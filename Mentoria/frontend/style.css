@@ -1,0 +1,507 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #e8f0fe, #ffffff);
+  color: #202124;
+}
+
+.page-wrapper {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.card {
+  background: #ffffff;
+  width: 100%;
+  max-width: 900px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 32px 32px 28px;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.logo-parana {
+  height: 48px;
+  margin-bottom: 8px;
+}
+
+.header h1 {
+  font-size: 24px;
+  margin-bottom: 4px;
+}
+
+.header p {
+  font-size: 14px;
+  color: #5f6368;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.form-row {
+  display: flex;
+  gap: 12px;
+}
+
+.form-row .form-group {
+  flex: 1;
+}
+
+label {
+  font-size: 13px;
+  color: #3c4043;
+}
+
+input,
+select,
+textarea {
+  border-radius: 4px;
+  border: 1px solid #dadce0;
+  padding: 10px 12px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: #1a73e8;
+  box-shadow: 0 0 0 1px rgba(26, 115, 232, 0.15);
+}
+
+textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.submit-btn {
+  margin-top: 8px;
+  width: 100%;
+  border: none;
+  border-radius: 4px;
+  background: #1a73e8;
+  color: #ffffff;
+  font-weight: 500;
+  font-size: 14px;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.submit-btn:hover {
+  background: #1765cc;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.submit-btn:active {
+  background: #155bb8;
+}
+
+.mensagem {
+  margin-top: 8px;
+  font-size: 13px;
+  min-height: 18px;
+}
+
+.mensagem.sucesso {
+  color: #0f9d58;
+}
+
+.mensagem.erro {
+  color: #d93025;
+}
+
+.hint {
+  font-size: 11px;
+  color: #5f6368;
+  margin-top: 4px;
+}
+
+/* Caixas de seleção de horários */
+.hora-opcoes {
+  margin-top: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.hora-slot {
+  min-width: 64px;
+  padding: 6px 8px;
+  border-radius: 16px;
+  border: 1px solid #dadce0;
+  font-size: 12px;
+  text-align: center;
+  cursor: pointer;
+  background: #ffffff;
+  color: #202124;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.hora-slot:hover {
+  background: #e8f0fe;
+  border-color: #1a73e8;
+}
+
+.hora-slot.selecionado {
+  background: #1a73e8;
+  border-color: #1a73e8;
+  color: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.hora-slot.desativado {
+  background: #f1f3f4;
+  border-color: #dadce0;
+  color: #9aa0a6;
+  cursor: default;
+}
+
+.hora-slot.bloqueado-admin {
+  background: #d93025;
+  border-color: #d93025;
+  color: #ffffff;
+}
+
+.hora-msg {
+  font-size: 12px;
+  color: #5f6368;
+}
+
+/* Calendário em blocos */
+.calendar {
+  margin-top: 6px;
+  border: 1px solid #dadce0;
+  border-radius: 4px;
+  padding: 8px;
+  background: #fafafa;
+}
+
+.calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  font-size: 13px;
+  color: #3c4043;
+}
+
+.calendar-nav {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 14px;
+  color: #5f6368;
+}
+
+.calendar-nav:hover {
+  background: #e8f0fe;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  font-size: 11px;
+}
+
+.calendar-day-name {
+  text-align: center;
+  font-weight: 500;
+  color: #5f6368;
+  padding: 2px 0;
+}
+
+.calendar-day {
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #202124;
+}
+
+.calendar-day.outside-month {
+  color: #dadce0;
+  cursor: default;
+}
+
+.calendar-day:not(.outside-month):hover {
+  background: #e8f0fe;
+}
+
+.calendar-day.selected {
+  background: #1a73e8;
+  color: #ffffff;
+}
+
+.calendar-day.today {
+  border: 1px solid #1a73e8;
+}
+
+.calendar-day.sem-horario {
+  background: #f1f3f4;
+  color: #9aa0a6;
+  cursor: not-allowed;
+}
+
+.calendar-day.weekend {
+  background: #f1f3f4;
+  color: #9aa0a6;
+  cursor: not-allowed;
+}
+
+.lista-wrapper {
+  margin-top: 24px;
+  border-top: 1px solid #dadce0;
+  padding-top: 16px;
+}
+
+.link-lista {
+  font-size: 13px;
+  color: #1a73e8;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.link-lista:hover {
+  text-decoration: underline;
+}
+
+.lista-agendamentos {
+  margin-top: 12px;
+}
+
+.lista-agendamentos h2 {
+  font-size: 16px;
+  margin-bottom: 8px;
+}
+
+.filtros-lista {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.filtro-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.lista-conteudo {
+  max-height: 220px;
+  overflow-y: auto;
+  border: 1px solid #dadce0;
+  border-radius: 4px;
+  padding: 8px 10px;
+  background: #fafafa;
+}
+
+.mensagem-lista {
+  font-size: 13px;
+  color: #5f6368;
+}
+
+.tabela-agendamentos {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.tabela-agendamentos thead {
+  background: #e8f0fe;
+}
+
+.tabela-agendamentos th,
+.tabela-agendamentos td {
+  padding: 6px 8px;
+  border-bottom: 1px solid #dadce0;
+  text-align: left;
+}
+
+.tabela-agendamentos th {
+  font-weight: 600;
+  color: #3c4043;
+}
+
+.tabela-agendamentos tbody tr:nth-child(even) {
+  background: #f5f5f5;
+}
+
+.oculto {
+  display: none;
+}
+
+.admin-row {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.admin-col {
+  flex: 1;
+  min-width: 0;
+}
+
+/* --------- Estilos específicos da tela de admin --------- */
+
+.admin-row {
+  margin-top: 8px;
+}
+
+.lista-bloqueios-dia,
+.lista-bloqueios-resumo,
+.lista-agendamentos {
+  background: #fafafa;
+  border: 1px solid #dadce0;
+  border-radius: 6px;
+  padding: 12px 12px 10px;
+}
+
+.lista-bloqueios-dia h2,
+.lista-bloqueios-resumo h2,
+.lista-agendamentos h2 {
+  font-size: 15px;
+  margin-bottom: 6px;
+}
+
+.lista-bloqueios-resumo .hint {
+  margin-bottom: 8px;
+}
+
+.item-resumo-bloqueio {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.item-resumo-bloqueio:last-child {
+  border-bottom: none;
+}
+
+.resumo-data {
+  font-weight: 500;
+  font-size: 13px;
+  color: #202124;
+}
+
+.resumo-horas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.tag-bloqueio {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #fce8e6;
+  color: #b3261e;
+  font-size: 11px;
+}
+
+.btn-remover-bloqueio {
+  border: none;
+  background: transparent;
+  color: #b3261e;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0 2px;
+}
+
+.btn-remover-bloqueio:hover {
+  color: #8c1c16;
+}
+
+.btn-cancelar {
+  border-radius: 999px;
+  border: 1px solid #d93025;
+  background: #ffffff;
+  color: #d93025;
+  padding: 4px 10px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-cancelar:hover {
+  background: #fce8e6;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.admin-row-single {
+  margin-top: 16px;
+}
+
+/* Deixar os botões do calendário admin iguais ao calendário público */
+.cal-btn {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 14px;
+  color: #5f6368;
+}
+
+.cal-btn:hover {
+  background: #e8f0fe;
+}
+
+@media (max-width: 480px) {
+  .filtros-lista {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 480px) {
+  .card {
+    padding: 24px 20px 20px;
+  }
+
+  .form-row {
+    flex-direction: column;
+  }
+
+  .admin-row {
+    flex-direction: column;
+    gap: 16px;
+  }
+}

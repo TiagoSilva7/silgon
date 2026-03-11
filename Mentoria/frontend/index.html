@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agendamento de Mentoria</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="page-wrapper">
+    <div class="card">
+      <div class="header">
+        <img src="logo-parana.png" alt="Logo do Governo do Paraná" class="logo-parana" />
+        <h1>Agendar Mentoria</h1>
+        <p>Preencha os dados para marcar sua mentoria online.</p>
+      </div>
+
+      <form id="mentoria-form" class="form">
+        <div class="form-group">
+          <label for="nomeCompleto">Nome completo</label>
+          <input type="text" id="nomeCompleto" name="nomeCompleto" required />
+        </div>
+
+        <div class="form-group">
+          <label for="email">E-mail</label>
+          <input type="email" id="email" name="email" required />
+        </div>
+
+        <div class="form-group">
+          <label for="telefone">Telefone de contato</label>
+          <input type="tel" id="telefone" name="telefone" required />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="data">Data</label>
+            <!-- Campo oculto que armazena a data selecionada (YYYY-MM-DD) -->
+            <input type="hidden" id="data" name="data" required />
+
+            <!-- Calendário em blocos -->
+            <div class="calendar" id="calendar">
+              <div class="calendar-header">
+                <button type="button" class="calendar-nav" id="cal-prev">&#9664;</button>
+                <span id="cal-month-label"></span>
+                <button type="button" class="calendar-nav" id="cal-next">&#9654;</button>
+              </div>
+              <div class="calendar-grid" id="cal-grid">
+                <!-- Cabeçalho de dias da semana e dias do mês serão preenchidos via JS -->
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="hora">Horário (9h às 17h)</label>
+            <!-- Campo oculto que armazena o horário selecionado -->
+            <input type="hidden" id="hora" name="hora" />
+            <!-- Caixas de seleção de horários -->
+            <div id="hora-opcoes" class="hora-opcoes">
+              <span class="hora-msg">Selecione uma data primeiro.</span>
+            </div>
+            <p class="hint">Atendimento com 1 hora de duração do horário selecionado.</p>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="assunto">Assunto da mentoria</label>
+          <textarea id="assunto" name="assunto" rows="3" placeholder="Descreva o que você deseja trabalhar nessa mentoria" required></textarea>
+        </div>
+
+        <button type="submit" class="submit-btn">Realizar agendamento</button>
+
+        <p id="mensagem" class="mensagem"></p>
+      </form>
+    </div>
+    </div>
+  </div>
+
+  <script src="api.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

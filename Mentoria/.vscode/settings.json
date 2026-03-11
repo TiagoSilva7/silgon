@@ -1,0 +1,12 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "/^try \\{ Get-NetTCPConnection -LocalPort 3000 -ErrorAction Stop \\| Select-Object -First 5 \\| Format-Table -AutoSize \\} catch \\{ \\$_\\.Exception\\.Message \\}$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^Start-Process -FilePath \"node\" -ArgumentList \"backend/index\\.js\" -WorkingDirectory \\(Get-Location\\) -WindowStyle Hidden$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
+}

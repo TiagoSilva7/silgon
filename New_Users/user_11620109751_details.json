@@ -1,0 +1,40 @@
+{
+  "name": "Flavio Lessa Martins",
+  "id": "C40A551A714B58DDCC3DD69E85282713",
+  "abbreviation": "11620109751",
+  "enabled": true,
+  "memberships": [
+    {
+      "id": "2963DCB94CEAE6FE845575AF5620AFDB",
+      "name": "200 - CRE - AUDITOR FISCAL",
+      "source": {
+        "type": [
+          "MSTR"
+        ]
+      }
+    },
+    {
+      "id": "70BDFD414083A7E1E6217EB2D12585EF",
+      "name": "405 - MICROSTRATEGY - ANALISTA WEB - AUDITOR FISCAL",
+      "source": {
+        "type": [
+          "MSTR"
+        ]
+      }
+    },
+    {
+      "id": "C82C6B1011D2894CC0009D9F29718E4F",
+      "name": "Everyone",
+      "source": {
+        "type": [
+          "MSTR"
+        ]
+      }
+    }
+  ],
+  "_resolved_group_names": [
+    "200 - CRE - AUDITOR FISCAL",
+    "405 - MICROSTRATEGY - ANALISTA WEB - AUDITOR FISCAL",
+    "Everyone"
+  ]
+}

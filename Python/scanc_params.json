@@ -1,0 +1,7 @@
+{
+"TD_AMB": "D",
+"TD_SIST_ORIG":"SCANC",
+"TD_HOST":"trdtdb",
+"TD_USER":"DPYTHON",
+"TD_PWD":"$$tdwallet(SPYTHON)"
+}
