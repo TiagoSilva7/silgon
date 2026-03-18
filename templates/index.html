@@ -1,0 +1,2298 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#2a6f4f">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="SILGON">
+  <title>SILGON — Agendamento</title>
+    <link rel="manifest" href="/static/manifest.webmanifest">
+    <link rel="icon" type="image/svg+xml" href="/static/icons/icon.svg">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+      :root{
+        /* Reworked palette: greens + beige/off-white */
+        --primary: #2a6f4f; /* deep green */
+        --primary-600: #4aa977; /* medium green */
+        --primary-800: #184e36; /* dark green */
+        --accent: #d9e6d8; /* soft green/beige accent */
+        --muted: #6b6a55; /* muted olive for secondary text */
+        --text: #213227; /* primary text on beige */
+        --surface: #f6f2ea; /* off-white / beige surface */
+        --surface-light: #faf8f4; /* lighter surface */
+        --surface-dark: #e9e3d9; /* slightly darker beige */
+        --card: #ffffff;
+        --border: rgba(33,50,38,0.06);
+      }
+
+      /* reset */
+      *{box-sizing:border-box}
+      /* page base — improved typography */
+      body{font-family:'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;margin:0;padding:24px;background:var(--surface);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;font-size:15px;line-height:1.45}
+
+      /* headings */
+      h1,h2,h3,h4,h5{font-family:'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;font-weight:600;letter-spacing:0.2px;margin:0}
+
+      /* layout */
+      .app-container{max-width:1200px;margin:0 auto;display:flex;gap:24px;align-items:flex-start;padding:14px;width:100%;justify-content:center}
+      .main{flex:1;min-width:0;max-width:800px;width:100%}
+      .aside{flex:0 0 360px}
+      /* hide aside when empty so it doesn't consume layout space */
+      .aside:empty{display:none}
+
+      /* cards and panels */
+      .card{background:var(--card);border-radius:12px;padding:16px;box-shadow:0 10px 30px rgba(33,50,38,0.06);border:1px solid var(--border);transition:box-shadow .18s ease,transform .12s}
+      .card:hover{box-shadow:0 18px 48px rgba(33,50,38,0.08);transform:translateY(-2px)}
+      /* ensure panels that represent main views match the calendar width and center */
+      #panel-agendamento.card{width:100%;max-width:800px;box-sizing:border-box;margin:0 auto}
+      /* patient panel should match agendamento width so subtabs don't overflow the layout */
+      #panel-paciente.card{width:100%;max-width:800px;box-sizing:border-box;margin:0 auto}
+      /* patient subpanels should fill the available panel width and avoid internal overflow */
+      #patient-panels, #patient-panels .patient-panel{width:100%;max-width:100%;box-sizing:border-box}
+      .patient-panel{display:none;padding:8px;overflow:hidden}
+      .patient-panel.active{display:block}
+      /* ensure content inside patient panels wraps instead of expanding layout */
+      #patient-panels .patient-panel *{max-width:100%;box-sizing:border-box;overflow-wrap:break-word}
+      .tabs{display:flex;border-bottom:1px solid rgba(15,43,68,0.06);margin-bottom:12px;gap:12px}
+      .tab{padding:8px 14px;border-radius:12px;cursor:pointer;background:var(--surface-light);color:var(--text);font-weight:700;border:1px solid rgba(33,50,38,0.04);box-shadow:0 8px 20px rgba(33,50,38,0.04);transition:transform .12s,box-shadow .12s,filter .12s}
+      .tab:hover{transform:translateY(-3px);filter:brightness(1.04);box-shadow:0 12px 30px rgba(11,22,24,0.08)}
+      /* active tab highlight to make current tab obvious */
+      .tab.active{box-shadow:0 12px 28px rgba(11,22,24,0.08);border-color:rgba(11,22,24,0.06);background:var(--primary-800);color:#fff;transform:translateY(-2px)}
+      .panel{display:none;padding:12px;border-radius:6px}
+      .panel.active{display:block}
+
+      /* controls */
+      label{display:block;margin-top:6px;font-weight:700;color:var(--muted);font-size:15px}
+
+      /* make labels inside Patient panels black for better contrast */
+      #panel-paciente label, #patient-panels label, .patient-panel label { color: #000000; }
+      input,textarea,select{box-sizing:border-box;padding:10px 12px;border-radius:8px;border:1px solid rgba(33,50,38,0.06);background:transparent;font-size:15px;transition:border-color .12s,box-shadow .12s}
+      input:focus, textarea:focus, select:focus{outline:none;border-color:var(--primary-600);box-shadow:0 6px 18px rgba(34,105,74,0.06)}
+      /* patient form inputs — tightened height/padding for compact layout */
+      #panel-paciente.card input, #panel-paciente.card textarea, #panel-paciente.card select{padding:8px 10px;height:36px;border-radius:8px;font-size:14px}
+      /* make the patient name and email inputs slightly larger but compact */
+      #p_name{display:block;width:100%;font-size:15px;padding:10px;border-radius:8px;height:40px}
+      #p_email{display:inline-block;width:60%;font-size:14px;padding:8px;border-radius:8px;height:36px}
+      /* make the logradouro input prominent but compact */
+      #p_address{display:block;width:100%;font-size:15px;padding:10px;border-radius:8px;height:40px}
+      button{transition:all .14s ease;margin-top:12px;padding:8px 12px;border-radius:8px;background:var(--primary-600);color:white;border:none;cursor:pointer;box-shadow:0 6px 18px rgba(33,50,38,0.06)}
+      button:hover{transform:translateY(-1px);filter:brightness(1.03)}
+      button:active{transform:translateY(0)}
+      button.secondary{background:transparent;color:var(--primary-800);border:1px solid rgba(31,111,58,0.12)}
+      button.secondary:hover{background:rgba(47,166,74,0.06)}
+      button[disabled]{opacity:0.6;cursor:not-allowed;box-shadow:none}
+
+      /* gradient gray->green action button used in Agendamento and Paciente panels */
+      .grad-btn{display:inline-block;padding:8px 14px;border-radius:12px;border:none;color:var(--text);font-weight:700;cursor:pointer;background:var(--primary-600);box-shadow:0 8px 20px rgba(33,50,38,0.06);transition:transform .12s,box-shadow .12s,filter .12s}
+      .grad-btn:hover{transform:translateY(-3px);filter:brightness(1.06);box-shadow:0 12px 30px rgba(11,22,24,0.10)}
+      .grad-btn:active{transform:translateY(-1px);filter:brightness(0.98)}
+      .grad-btn[disabled]{opacity:0.6;cursor:not-allowed}
+
+      /* calendar */
+      .controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+      .modern-select{padding:6px 10px;border-radius:8px;border:1px solid rgba(15,43,68,0.06);background:white;min-width:140px;font-size:14px;height:34px}
+
+      /* smaller, tighter selects for year/month filters */
+      #year-filter, #month-filter{padding:6px 10px;height:34px;border-radius:8px;font-size:14px}
+      .calendar{width:100%;padding:6px}
+      .calendar-header{text-align:center;font-size:20px;color:white;font-weight:700;margin-bottom:10px;padding:12px;border-radius:8px;background:var(--primary-600);box-shadow:0 8px 24px rgba(33,50,38,0.08)}
+      .calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:10px}
+      .calendar-dayname{text-align:center;font-weight:700;color:var(--primary-800);padding:6px 0;font-size:13px}
+      .calendar-cell{min-height:86px;border-radius:10px;padding:10px;background:var(--surface);border:1px solid rgba(31,111,58,0.04);transition:transform .12s,box-shadow .12s}
+      .calendar-cell:hover{transform:translateY(-4px);box-shadow:0 18px 40px rgba(31,111,58,0.06)}
+      /* weekends: slightly darker metallic gray to indicate non-working days */
+      .calendar-cell.weekend{background:var(--surface-dark);border:1px solid rgba(33,50,38,0.06)}
+      .calendar-cell.weekend .date-num{color:var(--text)}
+      .calendar-cell.empty{background:transparent;border:0}
+      .date-num{font-weight:700;color:var(--primary-800);font-size:14px}
+      .appointment-item{margin-top:6px;font-size:13px;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:6px 8px;border-radius:8px;display:inline-block;background:var(--primary-800)}
+      .appointment-item.more{opacity:0.9;background:var(--primary-600);font-weight:600}
+
+      /* modal */
+      .modal-backdrop{position:fixed;inset:0;background:rgba(8,20,32,0.36);display:none;align-items:center;justify-content:center;z-index:60;padding:18px}
+      .modal{background:var(--card);border-radius:10px;padding:12px 14px;width:100%;max-width:920px;box-shadow:0 30px 80px rgba(31,111,58,0.12);max-height:calc(100vh - 80px);overflow:auto}
+      .modal h4{margin:0 0 10px 0;color:var(--primary-800)}
+      .picker-backdrop{position:fixed;inset:0;background:rgba(8,20,32,0.36);display:flex;align-items:center;justify-content:center;z-index:90;padding:18px}
+      .picker-modal{background:var(--card);border-radius:12px;padding:14px;width:100%;max-width:620px;box-shadow:0 30px 80px rgba(31,111,58,0.12);max-height:calc(100vh - 80px);overflow:auto;border:1px solid var(--border)}
+      .picker-item{width:100%;text-align:left;padding:10px 12px;border-radius:10px;border:1px solid rgba(33,50,38,0.08);background:#fff;cursor:pointer}
+      .picker-item:hover{background:var(--surface-light);border-color:rgba(33,50,38,0.14)}
+      .modal-body-inner{display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap}
+      .hours-grid{display:flex;flex-direction:column;gap:4px;margin-top:4px;flex:1;min-width:220px}
+      .detail-panel{flex:0 0 380px;padding:12px;border-left:1px solid rgba(31,111,58,0.04);min-height:220px;overflow:auto}
+      .hour-btn{display:flex;justify-content:space-between;align-items:center;padding:4px 8px;border-radius:8px;border:0;background:var(--primary-600);color:white;cursor:pointer;width:100%;font-weight:700;font-size:13px;transition:transform .08s,box-shadow .12s;min-height:32px}
+      .hour-btn.occupied{background:var(--primary-800)}
+      .hour-btn:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(31,111,58,0.08)}
+      .modal .close{float:right;cursor:pointer;color:var(--muted)}
+      .hour-content{display:flex;align-items:center;gap:8px;flex:1;min-height:24px}
+      .hour-content > *{display:inline-flex;align-items:center}
+      .patient-name{display:inline-flex;align-items:center}
+      .hour-actions{display:flex;align-items:center;gap:8px;margin-left:12px;height:100%;align-self:center}
+      .cancel-inline{display:inline-flex;align-items:center;justify-content:center;background:#c0392b;color:#fff;border:0;padding:2px 6px;border-radius:6px;font-size:12px;cursor:pointer;height:22px;line-height:1;margin:0}
+      .hour-label{font-size:12px;line-height:1;display:inline-flex;align-items:center}
+      .hour-btn{align-items:center}
+
+      /* subtabs */
+      .subtabs{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+      /* subtabs styled to match main tabs: gray->green gradient + hover */
+      .subtab{padding:8px 14px;border-radius:12px;cursor:pointer;background:var(--surface-light);color:var(--text);font-weight:700;border:1px solid rgba(33,50,38,0.04);box-shadow:0 8px 20px rgba(33,50,38,0.04);transition:transform .12s,box-shadow .12s,filter .12s}
+      .subtab.active{box-shadow:0 12px 28px rgba(11,22,24,0.08);border-color:rgba(11,22,24,0.06);background:var(--primary-800);color:#fff;transform:translateY(-2px)}
+      .subtab:hover{transform:translateY(-3px);filter:brightness(1.04);box-shadow:0 12px 30px rgba(11,22,24,0.08)}
+      /* stronger, visible hover specifically for patient subtabs */
+      #patient-subtabs .subtab:hover{background:var(--primary-600);color:#fff;filter:brightness(1);transform:translateY(-2px);box-shadow:0 12px 30px rgba(11,22,24,0.12)}
+      .patient-panel{display:none;padding:8px}
+      .patient-panel.active{display:block}
+
+      /* theme buttons removed */
+
+      /* block accents: apply stronger, consistent visuals to all main panels and sub-blocks */
+      .panel.card, #panel-agendamento, #panel-paciente{background:var(--surface);border-left:6px solid var(--primary-600);box-shadow:0 8px 30px rgba(33,50,38,0.04);padding:12px}
+      .panel h2, .patient-panel h3{color:var(--primary-800);margin:0 0 10px 0}
+      /* Lighter metallic background for main screens (Agendamento / Paciente) */
+      #panel-agendamento.card, #panel-paciente.card{
+        background: var(--surface);
+        color: var(--text);
+        border-left:6px solid rgba(33,50,38,0.06);
+      }
+      /* ensure text inside these panels is readable */
+      #panel-agendamento.card h2, #panel-paciente.card h2, #panel-agendamento.card .subtitle, #panel-paciente.card .subtitle{color:var(--text)}
+      /* make inputs visible on lighter panels */
+      #panel-agendamento.card input, #panel-agendamento.card textarea, #panel-agendamento.card select,
+      #panel-paciente.card input, #panel-paciente.card textarea, #panel-paciente.card select{
+        background: rgba(255,255,255,0.96);
+        color: var(--text);
+        border: 1px solid rgba(33,50,38,0.06);
+      }
+      /* subpanels and detail areas */
+      .patient-panel{background:rgba(47,166,74,0.02);border:1px solid rgba(31,111,58,0.04);padding:12px;border-radius:8px}
+      /* in-app confirmation box styling */
+      .app-confirm{background:#fff6f5;border-left:4px solid rgba(192,57,43,0.08);padding:12px;border-radius:8px;margin-top:10px}
+      .app-confirm .app-confirm-cancel{background:#e8e8e8;color:#333;border:0;padding:8px 12px;border-radius:8px}
+      .app-confirm .app-confirm-ok{background:var(--green-700);color:#fff;border:0;padding:8px 12px;border-radius:8px}
+      .app-confirm.danger{background:#fff1f0;border-left-color:#c0392b}
+      .app-confirm.danger .app-confirm-ok{background:#c0392b}
+      .hours-grid{background:var(--card);padding:12px;border-radius:8px;border:1px solid rgba(31,111,58,0.04)}
+      .detail-panel{background:var(--card);border-left:6px solid rgba(31,111,58,0.06);}
+      .appointment-list{display:flex;flex-direction:column;gap:6px}
+      /* ensure subtab panels also get card feeling */
+      #patient-panels > .patient-panel{background:transparent;border:none;padding:0}
+
+      /* responsive */
+      @media (max-width: 880px){
+        .app-container{flex-direction:column;padding:12px}
+        .aside{width:100%}
+        .modal{max-width:720px}
+        .detail-panel{flex-basis:100%;border-left:0;border-top:1px solid rgba(15,43,68,0.04)}
+        .modal-body-inner{flex-direction:column}
+        .calendar-grid{grid-template-columns:repeat(auto-fit,minmax(120px,1fr))}
+      }
+      @media (max-width:480px){
+        .calendar-grid{grid-template-columns:repeat(2,1fr)}
+        .hour-btn{font-size:13px;padding:8px}
+        .appointment-item{font-size:12px}
+      }
+      /* Prevent layout shift when vertical scrollbar appears/disappears */
+      html{overflow-y:scroll}
+      /* Keep patient subpanels a consistent height so switching tabs doesn't shift layout */
+      #patient-panels .patient-panel{min-height:520px;overflow:auto;box-sizing:border-box;padding-bottom:12px}
+      @media (max-width:880px){ #patient-panels .patient-panel{min-height:360px} }
+
+      /* Ensure all patient-related panels use the same font family and sizing
+         so labels, inputs and selects in Anamnese/Avaliação match Dados do Paciente */
+      #patient-panels, #patient-panels label, #patient-panels input, #patient-panels textarea, #patient-panels select, #patient-panels button {
+        font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        font-size: 15px;
+        color: var(--text);
+      }
+      #patient-panels select, #patient-panels option { font-size:14px; }
+    </style>
+  </head>
+  <body>
+    <div class="app-container">
+      <div class="main">
+        <div style="text-align:center;margin-bottom:8px">
+          <h1>SILGON</h1>
+        </div>
+
+        
+        <!-- theme selector removed -->
+
+        <div class="tabs">
+          <div id="tab-agendamento" class="tab active" onclick="showTab('agendamento')">Agendamento</div>
+          <div id="tab-paciente" class="tab" onclick="showTab('paciente')">Paciente</div>
+        </div>
+
+        <div id="panel-agendamento" class="panel active card">
+
+          <div class="controls">
+            <label>Ano
+              <select id="year-filter" class="modern-select"></select>
+            </label>
+            <label>Mês
+              <select id="month-filter" class="modern-select"></select>
+            </label>
+          </div>
+
+          <div id="calendar" class="calendar"></div>
+        </div>
+
+      </div>
+
+      <aside class="aside"></aside>
+    </div>
+
+    <div id="panel-paciente" class="panel card">
+      <div class="subtabs" id="patient-subtabs">
+        <div class="subtab active" data-sub="dados" onclick="showPatientTab('dados')">Dados do Paciente</div>
+        <div class="subtab" data-sub="anamnese" onclick="showPatientTab('anamnese')">Anamnese</div>
+        <div class="subtab" data-sub="avaliacao" onclick="showPatientTab('avaliacao')">Avaliação</div>
+        <div class="subtab" data-sub="plano" onclick="showPatientTab('plano')">Plano terapêutico</div>
+        <div class="subtab" data-sub="financeiro" onclick="showPatientTab('financeiro')">Financeiro</div>
+        <div class="subtab" data-sub="anexos" onclick="showPatientTab('anexos')">Anexos</div>
+        <div class="subtab" data-sub="relatorio" onclick="showPatientTab('relatorio')">Relatório PDF</div>
+      </div>
+
+      <div id="patient-panels">
+        <div id="panel-dados" class="patient-panel active">
+          <div id="dados-content">
+            <div id="patient-form" style="display:flex;flex-direction:column;gap:8px">
+              <input id="p_id" type="hidden" />
+              <div style="display:flex;gap:8px;justify-content:flex-end">
+                <button id="patient-switch-prontuario" class="secondary" type="button" disabled>Trocar prontuário</button>
+                <button id="patient-clear" class="secondary" type="button">Limpar</button>
+                <button id="patient-edit" class="secondary" type="button">Editar</button>
+                <button id="patient-delete" type="button" style="background:#c0392b;color:#fff;border:0;padding:8px 12px;border-radius:8px">Excluir paciente</button>
+                <button id="patient-save" type="button" disabled>Salvar paciente</button>
+              </div>
+              <div id="patient-msg" style="margin-top:6px;font-size:13px;color:var(--muted)"></div>
+              <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px">
+                <input id="p_search_cpf" placeholder="Buscar por CPF (000.000.000-00)" maxlength="14" inputmode="numeric" oninput="this.value = (function(v){ v = String(v||'').replace(/\D/g,'').slice(0,11); return formatCPF(v); })(this.value)" style="flex:0 0 220px;padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.06);height:36px;box-sizing:border-box" />
+                <button id="p_search_btn" type="button" class="secondary" style="height:36px;display:inline-flex;align-items:center;padding:8px 12px;margin:0;border-radius:8px;box-sizing:border-box">Buscar</button>
+                <div id="p_search_msg" style="color:var(--muted);font-size:13px;white-space:nowrap"></div>
+
+                <input id="p_search_name" placeholder="Buscar por nome" style="flex:0 0 260px;padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.06);height:36px;box-sizing:border-box" />
+                <button id="p_search_name_btn" type="button" class="secondary" style="height:36px;display:inline-flex;align-items:center;padding:8px 12px;margin:0;border-radius:8px;box-sizing:border-box">Buscar nome</button>
+                <div id="p_search_name_msg" style="color:var(--muted);font-size:13px;white-space:nowrap"></div>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px">
+                <label style="white-space:nowrap">CPF*:</label>
+                <input id="p_cpf" placeholder="000.000.000-00" maxlength="14" inputmode="numeric" oninput="this.value = (function(v){ v = String(v||'').replace(/\D/g,'').slice(0,11); return formatCPF(v); })(this.value)" style="flex:0 0 180px;padding:10px;border-radius:8px" />
+              </div>
+              <div id="cpf-msg" style="color:red;display:none;font-size:13px"></div>
+
+              <div style="display:flex;align-items:center;gap:8px">
+                <label style="white-space:nowrap">Nome completo:</label>
+                <input id="p_name" style="flex:1;padding:12px;font-size:16px;border-radius:8px" />
+              </div>
+
+              <div style="display:flex;gap:8px">
+                <div style="flex:1;display:flex;align-items:center;gap:8px">
+                  <label style="white-space:nowrap">Telefone residencial:</label>
+                  <input id="p_tel_home" inputmode="numeric" maxlength="15" style="flex:1" />
+                </div>
+                <div style="flex:1;display:flex;align-items:center;gap:8px">
+                  <label style="white-space:nowrap">Telefone celular:</label>
+                  <input id="p_tel_cell" inputmode="numeric" maxlength="15" style="flex:1" />
+                </div>
+              </div>
+
+              <div style="display:flex;align-items:center;gap:8px">
+                <label style="white-space:nowrap">Telefone para recado:</label>
+                <input id="p_tel_msg" inputmode="numeric" maxlength="15" style="flex:1" />
+                <label style="white-space:nowrap;margin-left:6px">Nome do contato:</label>
+                <input id="p_contact_name" placeholder="Nome do contato" style="flex:0 0 220px;padding:8px;border-radius:8px" />
+              </div>
+
+              <div style="display:flex;align-items:center;gap:8px">
+                <label style="white-space:nowrap">E-mail:</label>
+                <input id="p_email" type="email" style="flex:1;padding:10px;border-radius:8px" />
+              </div>
+
+              <div style="display:flex;align-items:center;gap:8px">
+                <label style="white-space:nowrap">CEP:</label>
+                <input id="p_cep" maxlength="9" inputmode="numeric" placeholder="00000-000" style="width:140px;padding:8px;border-radius:8px;height:36px;box-sizing:border-box;" />
+                <button id="btn-cep" type="button" class="secondary" style="height:36px;display:inline-flex;align-items:center;padding:8px 12px;margin:0;border-radius:8px;box-sizing:border-box">Buscar CEP</button>
+              </div>
+
+              <div style="display:flex;align-items:center;gap:8px;width:100%">
+                <label style="white-space:nowrap">Logradouro:</label>
+                <input id="p_address" placeholder="Rua / Av / Praça" style="flex:1;padding:10px;border-radius:8px" />
+              </div>
+              <div style="display:flex;gap:8px;align-items:center;width:100%">
+                <label style="white-space:nowrap">Número:</label>
+                <input id="p_num" maxlength="5" inputmode="numeric" pattern="\d*" placeholder="00000" style="width:90px;padding:8px;border-radius:8px" />
+                <label style="white-space:nowrap">Complemento:</label>
+                <input id="p_comp" placeholder="Ex: Apt 101" style="flex:1;min-width:120px;padding:8px;border-radius:8px" />
+              </div>
+
+              <div style="display:flex;align-items:center;gap:8px">
+                <label style="white-space:nowrap">Profissão:</label>
+                <input id="p_prof" style="flex:1;padding:8px;border-radius:8px" />
+              </div>
+
+              <div style="display:flex;gap:8px">
+                <div style="flex:1;display:flex;align-items:center;gap:8px">
+                  <label style="white-space:nowrap">Idade:</label>
+                  <input id="p_age" type="number" min="0" style="width:120px;padding:8px;border-radius:8px" />
+                </div>
+                <div style="flex:1;display:flex;align-items:center;gap:8px">
+                  <label style="white-space:nowrap">Peso (kg):</label>
+                  <input id="p_weight" type="number" step="0.1" style="width:140px;padding:8px;border-radius:8px" />
+                </div>
+                <div style="flex:1;display:flex;align-items:center;gap:8px">
+                  <label style="white-space:nowrap">Altura (m):</label>
+                  <input id="p_height" type="number" step="0.01" style="width:140px;padding:8px;border-radius:8px" />
+                </div>
+              </div>
+
+            </div>
+            <hr />
+            <div id="patient-list" style="margin-top:8px"></div>
+          </div>
+        </div>
+        <div id="panel-anamnese" class="patient-panel">
+          <div id="anamnese-content">
+            <div id="anamnese-form" style="display:flex;flex-direction:column;gap:8px">
+              <input id="a_p_id" type="hidden" />
+              <div style="display:flex;gap:8px;justify-content:flex-end">
+                <button id="anamnese-clear" class="secondary" type="button">Limpar</button>
+                <button id="anamnese-save" type="button">Salvar Anamnese</button>
+              </div>
+              <div id="anamnese-msg" style="margin-top:6px;font-size:13px;color:var(--muted)"></div>
+              <div>
+                <label>História clínica</label>
+                <textarea id="a_historia" rows="3" style="width:100%;padding:8px;border-radius:8px"></textarea>
+              </div>
+              <div style="display:flex;gap:8px">
+                <div style="flex:1">
+                  <label>HMB (História da moléstia de base)</label>
+                  <textarea id="a_hmb" rows="2" style="width:100%;padding:8px;border-radius:8px"></textarea>
+                </div>
+                <div style="flex:1">
+                  <label>HMP (Histórico médico pregresso)</label>
+                  <textarea id="a_hmp" rows="2" style="width:100%;padding:8px;border-radius:8px"></textarea>
+                </div>
+              </div>
+              <div>
+                <label>Antecedentes pessoais e familiares</label>
+                <textarea id="a_antec" rows="2" style="width:100%;padding:8px;border-radius:8px"></textarea>
+              </div>
+              <div>
+                <label>Queixa principal</label>
+                <textarea id="a_queixa" rows="2" style="width:100%;padding:8px;border-radius:8px"></textarea>
+              </div>
+              <div>
+                <label>Hábitos de vida</label>
+                <textarea id="a_habitos" rows="2" style="width:100%;padding:8px;border-radius:8px"></textarea>
+              </div>
+              <div>
+                <label>Tratamentos realizados</label>
+                <textarea id="a_tratamentos" rows="2" style="width:100%;padding:8px;border-radius:8px"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="panel-avaliacao" class="patient-panel">
+          <div id="avaliacao-content">
+            <div id="avaliacao-form" style="display:flex;flex-direction:column;gap:8px">
+              <input id="av_p_id" type="hidden" />
+              <div style="display:flex;gap:8px;justify-content:flex-end">
+                <button id="avaliacao-clear" class="secondary" type="button">Limpar</button>
+                <button id="avaliacao-save" type="button">Salvar Avaliação</button>
+              </div>
+              <div id="avaliacao-msg" style="margin-top:6px;font-size:13px;color:var(--muted)"></div>
+              <div>
+                <label>Exames clínicos e físicos</label>
+                <textarea id="av_exames_clinicos" rows="3" style="width:100%;padding:8px;border-radius:8px"></textarea>
+              </div>
+
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <div style="display:flex;align-items:center;gap:12px">
+                  <label style="margin:0;white-space:nowrap">Tipo de exames</label>
+                  <select id="av_deambulando" style="padding:8px;border-radius:8px;min-width:220px">
+                    <option value="deambulando">Deambulando</option>
+                    <option value="deambulando_apoio">Deambulando com apoio/auxílio</option>
+                    <option value="cadeira">Cadeira de rodas</option>
+                    <option value="internado">Internado</option>
+                    <option value="orientado">Orientado</option>
+                    <option value="outros">Outros</option>
+                  </select>
+                </div>
+                <input id="av_deambulando_outros" placeholder="Especifique outros" style="display:none;margin-top:0;padding:8px;border-radius:8px;width:100%" />
+              </div>
+
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <div style="display:flex;align-items:center;gap:12px">
+                  <label style="margin:0;">Exames complementares</label>
+                  <div style="display:flex;gap:12px;align-items:center">
+                    <label style="font-weight:600;margin:0;display:inline-flex;align-items:center;gap:6px"><input type="radio" name="av_exames_comp" value="sim" /> Sim</label>
+                    <label style="font-weight:600;margin:0;display:inline-flex;align-items:center;gap:6px"><input type="radio" name="av_exames_comp" value="nao" checked /> Não</label>
+                  </div>
+                </div>
+                <textarea id="av_exames_comp_which" rows="2" placeholder="Quais?" style="display:none;width:100%;padding:8px;border-radius:8px;margin-top:0"></textarea>
+              </div>
+
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <div style="display:flex;align-items:center;gap:12px">
+                  <label style="margin:0;">Usa medicamentos?</label>
+                  <div style="display:flex;gap:12px;align-items:center">
+                    <label style="font-weight:600;margin:0;display:inline-flex;align-items:center;gap:6px"><input type="radio" name="av_medicamentos" value="sim" /> Sim</label>
+                    <label style="font-weight:600;margin:0;display:inline-flex;align-items:center;gap:6px"><input type="radio" name="av_medicamentos" value="nao" checked /> Não</label>
+                  </div>
+                </div>
+                <textarea id="av_medicamentos_which" rows="2" placeholder="Quais?" style="display:none;width:100%;padding:8px;border-radius:8px;margin-top:0"></textarea>
+              </div>
+
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <div style="display:flex;align-items:center;gap:12px">
+                  <label style="margin:0;">Realizou cirurgia?</label>
+                  <div style="display:flex;gap:12px;align-items:center">
+                    <label style="font-weight:600;margin:0;display:inline-flex;align-items:center;gap:6px"><input type="radio" name="av_cirurgia" value="sim" /> Sim</label>
+                    <label style="font-weight:600;margin:0;display:inline-flex;align-items:center;gap:6px"><input type="radio" name="av_cirurgia" value="nao" checked /> Não</label>
+                  </div>
+                </div>
+                <textarea id="av_cirurgia_which" rows="2" placeholder="Quais?" style="display:none;width:100%;padding:8px;border-radius:8px;margin-top:0"></textarea>
+              </div>
+
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <div style="display:flex;align-items:center;gap:12px">
+                  <label style="margin:0;white-space:nowrap">Inspeção/Palpação</label>
+                  <select id="av_inspec" style="padding:8px;border-radius:8px;min-width:220px">
+                    <option value="normal">Normal</option>
+                    <option value="edema">Edema</option>
+                    <option value="cicatrizacao_incompleta">Cicatrização incompleta</option>
+                    <option value="eritema">Eritema</option>
+                    <option value="outros">Outros</option>
+                  </select>
+                </div>
+                <input id="av_inspec_outros" placeholder="Especifique outros" style="display:none;margin-top:0;padding:8px;border-radius:8px;width:100%" />
+              </div>
+
+              <div>
+                <label>Testes específicos</label>
+                <textarea id="av_testes" rows="2" style="width:100%;padding:8px;border-radius:8px"></textarea>
+              </div>
+
+              <div>
+                <label>Avaliação de intensidade e dor (EVA)</label>
+                <textarea id="av_eva" rows="2" style="width:100%;padding:8px;border-radius:8px"></textarea>
+              </div>
+
+            </div>
+          </div>
+        </div>
+        <div id="panel-plano" class="patient-panel">
+          <div id="plano-content">
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="display:flex;gap:8px;justify-content:flex-end">
+                <button id="plano-clear" class="secondary" type="button">Limpar Plano</button>
+                <button id="plano-save" type="button">Salvar Plano</button>
+              </div>
+              <div id="plano-msg" style="margin-top:6px;font-size:13px;color:var(--muted)"></div>
+              <div>
+                <label>Objetivo de tratamento</label>
+                <textarea id="pl_objetivo" rows="3" style="width:100%;padding:8px;border-radius:8px"></textarea>
+              </div>
+              <div>
+                <label>Recursos terapêuticos</label>
+                <textarea id="pl_recursos" rows="3" style="width:100%;padding:8px;border-radius:8px"></textarea>
+              </div>
+              <div>
+                <label>Plano de tratamento</label>
+                <textarea id="pl_plano" rows="4" style="width:100%;padding:8px;border-radius:8px"></textarea>
+              </div>
+              <div>
+                <label>Evolução</label>
+                <div id="pl_evol_list" style="display:flex;flex-direction:column;gap:8px;max-height:220px;overflow:auto;padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.04);background:rgba(255,255,255,0.95)"></div>
+                <textarea id="pl_new_evo" placeholder="Nova evolução..." rows="2" style="width:100%;padding:8px;border-radius:8px;margin-top:8px"></textarea>
+                <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:6px">
+                  <button id="pl_evo_add" class="secondary" type="button">+ Adicionar evolução</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="panel-financeiro" class="patient-panel">
+          <div id="financeiro-content">Histórico financeiro e cobranças.</div>
+        </div>
+        <div id="panel-anexos" class="patient-panel">
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="color:var(--muted)">Anexe fotos, vídeos e arquivos do prontuário ativo. Os arquivos serão salvos em uma pasta no padrão CPF_Nome_Prontuário/anexos.</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+              <button id="anexos-add-files" type="button" class="secondary">+ Buscar arquivos</button>
+              <input id="anexos-input" type="file" multiple accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip,.rar,.7z,.mp3,.wav" style="display:none" />
+              <select id="anexos-upload-type" style="min-width:280px">
+                <option value="">Selecione o tipo de anexo</option>
+              </select>
+              <button id="anexos-upload" type="button">Anexar arquivos</button>
+              <button id="anexos-open-folder" type="button" class="secondary">Abrir pasta do prontuário</button>
+            </div>
+            <div id="anexos-msg" style="font-size:13px;color:var(--muted)"></div>
+            <div id="anexos-list" style="display:flex;flex-direction:column;gap:8px"></div>
+          </div>
+        </div>
+        <div id="panel-relatorio" class="patient-panel">
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="color:var(--muted)">Gera um PDF do prontuário com marca d'água SILGON, em que cada aba vira uma página.</div>
+            <div style="display:flex;justify-content:flex-end;gap:8px">
+              <button id="report-generate-pdf" type="button">Gerar PDF do Prontuário</button>
+            </div>
+            <div id="report-msg" style="font-size:13px;color:var(--muted)"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+      const MONTH_NAMES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+      const ATTACHMENT_TYPE_OPTIONS = [
+        'Comprovante de pagamento',
+        'Recibo emitido',
+        'Exames (iniciais)',
+        'Exames (Evolução clínica)',
+        'Vídeos do paciente (inicial)',
+        'Vídeos do paciente (Evolução clínica)',
+        'Fotos (inicial)',
+        'Fotos (Evolução clínica)',
+        'Pedido médico'
+      ];
+      let ALL_APPOINTMENTS = [];
+      let ACTIVE_PRONTUARIO_ID = '';
+      let PENDING_ATTACHMENTS = [];
+
+
+      // theme selector removed — using default CSS variables
+
+      function showTab(name){
+        document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+        document.getElementById('tab-'+name).classList.add('active');
+        document.getElementById('panel-'+name).classList.add('active');
+        if(name==='agendamento') loadAppointments();
+        if(name==='paciente') initPatientUI();
+      }
+
+      // Patient tab helpers
+      function initPatientUI(){
+        if(window._patientInit) return; window._patientInit = true;
+        // default show Dados do Paciente
+        showPatientTab('dados');
+        // wire form events (do NOT render full patient list here)
+        initPatientFormEvents();
+      }
+
+      function showPatientTab(name){
+        document.querySelectorAll('#patient-subtabs .subtab').forEach(s=>s.classList.remove('active'));
+        document.querySelectorAll('#patient-panels .patient-panel').forEach(p=>p.classList.remove('active'));
+        const tab = document.querySelector(`#patient-subtabs .subtab[data-sub="${name}"]`);
+        if(tab) tab.classList.add('active');
+        const panel = document.getElementById('panel-'+name);
+        if(panel) panel.classList.add('active');
+        // ensure per-patient data for these subtabs is loaded when the user views them
+        try{
+          const pid = getCurrentPatientId();
+          if(name === 'anamnese'){
+            console.debug('[DEBUG] showPatientTab -> loading anamnese for pid=', pid);
+            loadAnamneseForPatient(pid);
+          }
+          if(name === 'avaliacao'){
+            console.debug('[DEBUG] showPatientTab -> loading avaliacao for pid=', pid);
+            loadAvaliacaoForPatient(pid);
+          }
+          if(name === 'plano'){
+            try{ loadPlanoForPatient(pid); }catch(e){}
+          }
+          if(name === 'financeiro'){
+            try{ loadFinanceiroForPatient(pid); }catch(e){}
+          }
+          if(name === 'anexos'){
+            try{ loadAnexosForPatient(pid); }catch(e){}
+          }
+        }catch(e){ console.warn('Error loading patient subtabs', e); }
+      }
+
+      /* Patient data form and helpers */
+      async function fetchPatients(){
+        try{
+          const res = await fetch('/api/patients'); if(!res.ok) throw new Error('fetch failed');
+          const data = await res.json(); window._patientsCache = data||[]; return window._patientsCache;
+        }catch(e){ window._patientsCache = []; return []; }
+      }
+      async function savePatientToServer(payload){
+        try{
+          const res = await fetch('/api/patients', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+          const j = await res.json().catch(()=>null);
+          if(res.status===409){
+            // CPF already exists — return object signalling existence
+            return { status: 'exists', patient: (j && j.patient) ? j.patient : null, id: (j && j.id) ? j.id : (j && j.patient && j.patient.id) };
+          }
+          if(!res.ok) return null;
+          return j;
+        }catch(e){ return null; }
+      }
+
+      function validateCPF(cpf){
+        if(!cpf) return false;
+        const s = String(cpf).replace(/\D/g,'');
+        // reject known fake/test CPFs that sometimes pass checksum but are invalid in practice
+        const blacklist = ['12345678909','01234567890','98765432100'];
+        if(blacklist.includes(s)) return false;
+        if(s.length!==11) return false;
+        if(/^(\d)\1{10}$/.test(s)) return false;
+        const nums = s.split('').map(n=>parseInt(n,10));
+        // first digit
+        let sum=0; for(let i=0;i<9;i++) sum += nums[i]*(10-i);
+        let r = (sum*10)%11; if(r===10) r=0; if(r !== nums[9]) return false;
+        // second digit
+        sum=0; for(let i=0;i<10;i++) sum += nums[i]*(11-i);
+        r = (sum*10)%11; if(r===10) r=0; if(r !== nums[10]) return false;
+        return true;
+      }
+
+      function formatCPF(digits){
+        const s = String(digits||'').replace(/\D/g,'').slice(0,11);
+        if(s.length<=3) return s;
+        if(s.length<=6) return `${s.slice(0,3)}.${s.slice(3)}`;
+        if(s.length<=9) return `${s.slice(0,3)}.${s.slice(3,6)}.${s.slice(6)}`;
+        return `${s.slice(0,3)}.${s.slice(3,6)}.${s.slice(6,9)}-${s.slice(9,11)}`;
+      }
+
+      function formatCEP(digits){
+        const s = String(digits||'').replace(/\D/g,'').slice(0,8);
+        if(s.length<=5) return s;
+        return `${s.slice(0,5)}-${s.slice(5,8)}`;
+      }
+
+      function formatPhone(digits){
+        const s = String(digits||'').replace(/\D/g,'').slice(0,11);
+        if(s.length===0) return '';
+        if(s.length<=2) return `(${s}`;
+        if(s.length<=6) return `(${s.slice(0,2)}) ${s.slice(2)}`;
+        if(s.length<=10) return `(${s.slice(0,2)}) ${s.slice(2,6)}-${s.slice(6)}`;
+        return `(${s.slice(0,2)}) ${s.slice(2,7)}-${s.slice(7,11)}`;
+      }
+
+      function normalizeText(s){
+        return String(s||'')
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .toLowerCase()
+          .trim();
+      }
+
+      function showPatientNamePicker(matches, query, onPick){
+        const prev = document.getElementById('patient-picker-backdrop');
+        if(prev) prev.remove();
+        const bd = document.createElement('div');
+        bd.id = 'patient-picker-backdrop';
+        bd.className = 'picker-backdrop';
+        const itemsHtml = (matches||[]).map((p, i)=>{
+          const n = (p.name||'(sem nome)');
+          const cpf = p.cpf || 'CPF não informado';
+          return `<button type="button" class="picker-item" data-idx="${i}">
+            <div style="display:flex;align-items:center;gap:12px;justify-content:space-between;flex-wrap:wrap">
+              <div style="font-size:13px;color:var(--muted)"><strong>CPF:</strong> ${cpf}</div>
+              <div style="font-size:14px;color:var(--text)"><strong>Nome:</strong> ${n}</div>
+            </div>
+          </button>`;
+        }).join('');
+        bd.innerHTML = `<div class="picker-modal">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+            <h4 style="margin:0;color:var(--primary-800)">Selecione o paciente</h4>
+            <button id="picker-close" type="button" class="secondary" style="margin:0">Fechar</button>
+          </div>
+          <div style="font-size:13px;color:var(--muted);margin-top:6px">${matches.length} resultado(s) para "${query}"</div>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px">${itemsHtml}</div>
+        </div>`;
+        document.body.appendChild(bd);
+        bd.querySelector('#picker-close').onclick = ()=> bd.remove();
+        bd.addEventListener('click', (ev)=>{ if(ev.target===bd) bd.remove(); });
+        bd.querySelectorAll('.picker-item').forEach(btn=>{
+          btn.onclick = ()=>{
+            const idx = parseInt(btn.dataset.idx, 10);
+            const p = matches[idx];
+            bd.remove();
+            if(p && typeof onPick === 'function') onPick(p);
+          };
+        });
+      }
+
+      function getProntuariosKey(pid){ return 'prontuarios_' + String(pid||''); }
+
+      function getProntuariosForPatient(pid){
+        if(!pid) return [];
+        try{
+          const raw = localStorage.getItem(getProntuariosKey(pid));
+          const arr = raw ? JSON.parse(raw) : [];
+          return Array.isArray(arr) ? arr : [];
+        }catch(e){ return []; }
+      }
+
+      function saveProntuariosForPatient(pid, items){
+        if(!pid) return;
+        try{ localStorage.setItem(getProntuariosKey(pid), JSON.stringify(items||[])); }catch(e){}
+      }
+
+      function formatProntuarioDate(value){
+        if(!value) return '';
+        try{
+          const d = new Date(value);
+          if(isNaN(d.getTime())) return '';
+          return d.toLocaleString('pt-BR');
+        }catch(e){ return ''; }
+      }
+
+      function getProntuarioCreatedAtText(prontuario){
+        if(!prontuario) return '';
+        const fromCreatedAt = formatProntuarioDate(prontuario.created_at);
+        if(fromCreatedAt) return fromCreatedAt;
+        const id = String((prontuario && prontuario.id) ? prontuario.id : '');
+        const m = id.match(/_(\d{10,})$/);
+        if(m){
+          const ts = Number(m[1]);
+          if(!Number.isNaN(ts)) return formatProntuarioDate(ts);
+        }
+        return '';
+      }
+
+      function getProntuarioUpdatedAtText(prontuario){
+        if(!prontuario) return '';
+        const fromUpdatedAt = formatProntuarioDate(prontuario.updated_at);
+        if(fromUpdatedAt) return fromUpdatedAt;
+        const fromLegacy = formatProntuarioDate(prontuario.modified_at);
+        if(fromLegacy) return fromLegacy;
+        return getProntuarioCreatedAtText(prontuario);
+      }
+
+      function touchProntuarioModified(pid, prontuarioId){
+        if(!pid || !prontuarioId) return;
+        try{
+          const list = getProntuariosForPatient(pid);
+          if(!list || !list.length) return;
+          const idx = list.findIndex(pr=> String(pr.id) === String(prontuarioId));
+          if(idx === -1) return;
+          list[idx].updated_at = new Date().toISOString();
+          saveProntuariosForPatient(pid, list);
+        }catch(e){}
+      }
+
+      function getActiveProntuarioObject(pid){
+        if(!pid) return null;
+        const list = getProntuariosForPatient(pid);
+        if(!list || !list.length) return null;
+        const activeId = getActiveProntuarioId(pid);
+        const found = list.find(pr=> String(pr.id) === String(activeId));
+        return found || null;
+      }
+
+      function getCheckedRadioValue(name){
+        const el = document.querySelector(`input[name="${name}"]:checked`);
+        return el ? String(el.value||'') : '';
+      }
+
+      function getInputValue(id){
+        const el = document.getElementById(id);
+        return el ? String(el.value||'').trim() : '';
+      }
+
+      function getFinanceiroText(){
+        const el = document.getElementById('financeiro-content');
+        if(!el) return 'Sem dados financeiros.';
+        const txt = String(el.innerText || el.textContent || '').replace(/\n{3,}/g, '\n\n').trim();
+        return txt || 'Sem dados financeiros.';
+      }
+
+      function buildProntuarioPdfSections(pid, prontuario){
+        const patientName = getInputValue('p_name') || 'Paciente sem nome';
+        const patientCpf = getInputValue('p_cpf') || 'Não informado';
+        const dados = [
+          `Nome: ${patientName}`,
+          `CPF: ${patientCpf}`,
+          `Telefone residencial: ${getInputValue('p_tel_home') || 'Não informado'}`,
+          `Telefone celular: ${getInputValue('p_tel_cell') || 'Não informado'}`,
+          `Telefone recado: ${getInputValue('p_tel_msg') || 'Não informado'}`,
+          `Contato de recado: ${getInputValue('p_contact_name') || 'Não informado'}`,
+          `E-mail: ${getInputValue('p_email') || 'Não informado'}`,
+          `CEP: ${getInputValue('p_cep') || 'Não informado'}`,
+          `Logradouro: ${getInputValue('p_address') || 'Não informado'}`,
+          `Número: ${getInputValue('p_num') || 'Não informado'}`,
+          `Complemento: ${getInputValue('p_comp') || 'Não informado'}`,
+          `Profissão: ${getInputValue('p_prof') || 'Não informado'}`,
+          `Idade: ${getInputValue('p_age') || 'Não informado'}`,
+          `Peso (kg): ${getInputValue('p_weight') || 'Não informado'}`,
+          `Altura (m): ${getInputValue('p_height') || 'Não informado'}`
+        ];
+
+        const anamnese = [
+          `História clínica: ${getInputValue('a_historia') || 'Não informado'}`,
+          `HMB: ${getInputValue('a_hmb') || 'Não informado'}`,
+          `HMP: ${getInputValue('a_hmp') || 'Não informado'}`,
+          `Antecedentes pessoais e familiares: ${getInputValue('a_antec') || 'Não informado'}`,
+          `Queixa principal: ${getInputValue('a_queixa') || 'Não informado'}`,
+          `Hábitos de vida: ${getInputValue('a_habitos') || 'Não informado'}`,
+          `Tratamentos realizados: ${getInputValue('a_tratamentos') || 'Não informado'}`
+        ];
+
+        const avExamesComp = getCheckedRadioValue('av_exames_comp');
+        const avMedicamentos = getCheckedRadioValue('av_medicamentos');
+        const avCirurgia = getCheckedRadioValue('av_cirurgia');
+        const avaliacao = [
+          `Exames clínicos e físicos: ${getInputValue('av_exames_clinicos') || 'Não informado'}`,
+          `Tipo de exames: ${getInputValue('av_deambulando') || 'Não informado'}`,
+          `Outros (tipo de exames): ${getInputValue('av_deambulando_outros') || 'Não informado'}`,
+          `Exames complementares: ${avExamesComp ? (avExamesComp==='sim' ? 'Sim' : 'Não') : 'Não informado'}`,
+          `Quais exames complementares: ${getInputValue('av_exames_comp_which') || 'Não informado'}`,
+          `Uso de medicamentos: ${avMedicamentos ? (avMedicamentos==='sim' ? 'Sim' : 'Não') : 'Não informado'}`,
+          `Quais medicamentos: ${getInputValue('av_medicamentos_which') || 'Não informado'}`,
+          `Cirurgia: ${avCirurgia ? (avCirurgia==='sim' ? 'Sim' : 'Não') : 'Não informado'}`,
+          `Qual cirurgia: ${getInputValue('av_cirurgia_which') || 'Não informado'}`,
+          `Inspeção: ${getInputValue('av_inspec') || 'Não informado'}`,
+          `Outros (inspeção): ${getInputValue('av_inspec_outros') || 'Não informado'}`,
+          `Testes específicos: ${getInputValue('av_testes') || 'Não informado'}`,
+          `Avaliação de dor (EVA): ${getInputValue('av_eva') || 'Não informado'}`
+        ];
+
+        let evolText = 'Sem evoluções registradas.';
+        try{
+          const key = 'plano_' + String((prontuario && prontuario.id) ? prontuario.id : '');
+          const raw = localStorage.getItem(key);
+          const obj = raw ? JSON.parse(raw) : null;
+          const ev = obj && Array.isArray(obj.evolutions) ? obj.evolutions : [];
+          if(ev.length){
+            evolText = ev.map((it, idx)=> `${idx+1}) ${it.ts || ''} - ${it.text || ''}`).join(' | ');
+          }
+        }catch(e){}
+
+        const plano = [
+          `Objetivo: ${getInputValue('pl_objetivo') || 'Não informado'}`,
+          `Recursos terapêuticos: ${getInputValue('pl_recursos') || 'Não informado'}`,
+          `Plano de tratamento: ${getInputValue('pl_plano') || 'Não informado'}`,
+          `Evoluções: ${evolText}`
+        ];
+
+        const financeiro = [
+          `Resumo financeiro: ${getFinanceiroText()}`
+        ];
+
+        return [
+          { tabName: 'Dados do Paciente', lines: dados },
+          { tabName: 'Anamnese', lines: anamnese },
+          { tabName: 'Avaliação', lines: avaliacao },
+          { tabName: 'Plano terapêutico', lines: plano },
+          { tabName: 'Financeiro', lines: financeiro }
+        ];
+      }
+
+      function renderPdfWatermark(doc){
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(56);
+        doc.setTextColor(230, 230, 230);
+        doc.text('SILGON', pageWidth/2, pageHeight/2, { align: 'center', angle: 35 });
+        doc.setTextColor(33, 50, 38);
+      }
+
+      function generateProntuarioPdf(){
+        const msg = document.getElementById('report-msg');
+        if(msg){ msg.style.color='var(--muted)'; msg.textContent=''; }
+
+        const pid = getCurrentPatientId();
+        if(!pid){
+          if(msg){ msg.style.color='red'; msg.textContent='Selecione o paciente antes de gerar o PDF.'; }
+          return;
+        }
+
+        const prontuarioId = getActiveProntuarioId(pid);
+        if(!prontuarioId){
+          askProntuarioForPatient(pid, getInputValue('p_name') || 'paciente');
+          if(msg){ msg.style.color='red'; msg.textContent='Selecione ou crie o prontuário antes de gerar o PDF.'; }
+          return;
+        }
+
+        if(!window.jspdf || !window.jspdf.jsPDF){
+          if(msg){ msg.style.color='red'; msg.textContent='Biblioteca de PDF não carregada. Verifique a conexão e tente novamente.'; }
+          return;
+        }
+
+        const prontuario = getActiveProntuarioObject(pid) || { id: prontuarioId, label: 'Sem nome' };
+        const patientName = getInputValue('p_name') || 'Paciente sem nome';
+        const generatedAt = new Date().toLocaleString('pt-BR');
+
+        const sections = buildProntuarioPdfSections(pid, prontuario);
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+
+        sections.forEach((section, idx)=>{
+          if(idx>0) doc.addPage('a4', 'p');
+          renderPdfWatermark(doc);
+
+          const marginX = 14;
+          let y = 16;
+          const maxWidth = 182;
+          const maxY = 282;
+          const lineHeight = 5.3;
+
+          if(idx === 0){
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(12);
+            doc.text('SILGON - Resumo do Prontuário', marginX, y);
+            y += 6;
+
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(10);
+            doc.text(`Paciente: ${patientName}`, marginX, y); y += 5;
+            doc.text(`Prontuário: ${prontuario.label || 'Sem nome'}`, marginX, y); y += 5;
+            doc.text(`Gerado em: ${generatedAt}`, marginX, y); y += 7;
+          }
+
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(13);
+          doc.text(`Aba: ${section.tabName}`, marginX, y);
+          y += 7;
+
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(10);
+          const lines = section.lines || [];
+          let truncated = false;
+
+          for(let i=0; i<lines.length; i++){
+            const wraps = doc.splitTextToSize(String(lines[i] || ''), maxWidth);
+            for(let j=0; j<wraps.length; j++){
+              if(y + lineHeight > maxY){ truncated = true; break; }
+              doc.text(wraps[j], marginX, y);
+              y += lineHeight;
+            }
+            if(truncated) break;
+            y += 1.2;
+          }
+
+          if(truncated){
+            doc.setFont('helvetica', 'italic');
+            doc.text('Resumo truncado para manter 1 página por aba.', marginX, maxY);
+            doc.setFont('helvetica', 'normal');
+          }
+        });
+
+        const safePatient = patientName.replace(/[^a-zA-Z0-9\-_\s]/g, '').trim().replace(/\s+/g, '_') || 'paciente';
+        const safeProntuario = String(prontuario.label || 'prontuario').replace(/[^a-zA-Z0-9\-_\s]/g, '').trim().replace(/\s+/g, '_') || 'prontuario';
+        doc.save(`SILGON_${safePatient}_${safeProntuario}.pdf`);
+
+        if(msg){ msg.style.color='green'; msg.textContent='PDF gerado com sucesso.'; }
+      }
+
+      function updateProntuarioSwitchButton(pid){
+        const btn = document.getElementById('patient-switch-prontuario');
+        if(!btn) return;
+        if(!pid){ btn.disabled = true; return; }
+        const list = getProntuariosForPatient(pid);
+        btn.disabled = !(list && list.length > 1);
+      }
+
+      function getActiveProntuarioId(pid){
+        const basePid = pid || getCurrentPatientId();
+        if(!basePid) return '';
+        return ACTIVE_PRONTUARIO_ID || '';
+      }
+
+      function loadFinanceiroForPatient(pid){
+        const fin = document.getElementById('financeiro-content');
+        if(!fin) return;
+        const prontuarioId = getActiveProntuarioId(pid);
+        fin.innerHTML = 'Histórico financeiro e cobranças.';
+        if(!prontuarioId) return;
+        try{ const raw = localStorage.getItem('financeiro_'+prontuarioId); if(raw) fin.innerHTML = raw; }catch(e){}
+      }
+
+      function getAnexoContext(pid){
+        const basePid = pid || getCurrentPatientId();
+        if(!basePid) return { error: 'Selecione o paciente antes.' };
+        const cpfDigits = String(getInputValue('p_cpf') || '').replace(/\D/g,'');
+        const patientName = getInputValue('p_name');
+        const prontuario = getActiveProntuarioObject(basePid);
+        const prontuarioLabel = prontuario && prontuario.label ? String(prontuario.label) : '';
+        if(!cpfDigits) return { error: 'CPF do paciente não informado.' };
+        if(!patientName) return { error: 'Nome do paciente não informado.' };
+        if(!prontuarioLabel) return { error: 'Selecione o prontuário para usar anexos.' };
+        return { cpf: cpfDigits, patient_name: patientName, prontuario_label: prontuarioLabel, pid: basePid };
+      }
+
+      function formatFileSize(bytes){
+        const n = Number(bytes || 0);
+        if(!n || n < 1024) return `${n || 0} B`;
+        const units = ['KB','MB','GB','TB'];
+        let v = n / 1024;
+        let i = 0;
+        while(v >= 1024 && i < units.length - 1){ v /= 1024; i++; }
+        return `${v.toFixed(1)} ${units[i]}`;
+      }
+
+      function setAnexosMessage(text, color){
+        const msg = document.getElementById('anexos-msg');
+        if(!msg) return;
+        msg.style.color = color || 'var(--muted)';
+        msg.textContent = text || '';
+      }
+
+      function escapeHtmlText(s){
+        return String(s || '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
+      function buildAttachmentTypeOptions(selected){
+        const sel = String(selected || '');
+        const first = `<option value="">Selecione o tipo</option>`;
+        const rest = ATTACHMENT_TYPE_OPTIONS.map(opt=>{
+          const isSel = sel === opt ? ' selected' : '';
+          return `<option value="${escapeHtmlText(opt)}"${isSel}>${escapeHtmlText(opt)}</option>`;
+        }).join('');
+        return first + rest;
+      }
+
+      function addPendingAnexos(files){
+        const arr = Array.isArray(files) ? files : [];
+        arr.forEach(f=>{
+          if(!f || !f.name) return;
+          const exists = PENDING_ATTACHMENTS.some(x=> x && x.name === f.name && x.size === f.size && x.lastModified === f.lastModified);
+          if(!exists){
+            PENDING_ATTACHMENTS.push(f);
+          }
+        });
+        if(PENDING_ATTACHMENTS.length){
+          setAnexosMessage(`Arquivos selecionados (${PENDING_ATTACHMENTS.length}): ${PENDING_ATTACHMENTS.map(f=>f.name).join(', ')}`);
+        } else {
+          setAnexosMessage('Nenhum arquivo selecionado.');
+        }
+      }
+
+      function clearPendingAnexos(){
+        PENDING_ATTACHMENTS = [];
+        const input = document.getElementById('anexos-input'); if(input) input.value = '';
+        setAnexosMessage('');
+      }
+
+      function renderAnexosList(items){
+        const box = document.getElementById('anexos-list');
+        if(!box) return;
+        box.innerHTML = '';
+        const arr = Array.isArray(items) ? items : [];
+        if(!arr.length){
+          box.innerHTML = '<div style="color:var(--muted)">Nenhum anexo encontrado para este prontuário.</div>';
+          return;
+        }
+        arr.forEach(it=>{
+          const row = document.createElement('div');
+          row.style.display = 'flex';
+          row.style.justifyContent = 'space-between';
+          row.style.alignItems = 'center';
+          row.style.gap = '10px';
+          row.style.padding = '8px';
+          row.style.border = '1px solid rgba(0,0,0,0.06)';
+          row.style.borderRadius = '8px';
+          const mod = it && it.modified_at ? new Date(Number(it.modified_at) * 1000).toLocaleString('pt-BR') : 'não informado';
+          const typeText = (it && it.attachment_type) ? String(it.attachment_type) : 'Não informado';
+          row.innerHTML = `<div style="min-width:0;flex:1">
+              <div style="font-weight:600;word-break:break-all">${it.name || 'arquivo'}</div>
+              <div style="font-size:12px;color:var(--muted)">Tipo: ${escapeHtmlText(typeText)} • Tamanho: ${formatFileSize(it.size)} • Modificado em: ${mod}</div>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button type="button" class="secondary anexos-open-file" data-name="${encodeURIComponent(it.name || '')}" style="margin:0">Abrir arquivo</button>
+              <button type="button" class="anexos-delete-file" data-name="${encodeURIComponent(it.name || '')}" style="margin:0;background:#c0392b;color:#fff">Excluir</button>
+            </div>`;
+          box.appendChild(row);
+        });
+      }
+
+      async function loadAnexosForPatient(pid){
+        const ctx = getAnexoContext(pid);
+        const box = document.getElementById('anexos-list');
+        if(box && ctx.error){
+          box.innerHTML = `<div style="color:var(--muted)">${ctx.error}</div>`;
+          setAnexosMessage('');
+          return;
+        }
+        setAnexosMessage('Carregando anexos...');
+        try{
+          const q = new URLSearchParams({ cpf: ctx.cpf, patient_name: ctx.patient_name, prontuario_label: ctx.prontuario_label });
+          const res = await fetch('/api/attachments?' + q.toString());
+          const data = await res.json().catch(()=>null);
+          if(!res.ok || !data || data.status !== 'ok'){
+            setAnexosMessage((data && data.message) ? data.message : 'Erro ao carregar anexos.', 'red');
+            if(box) box.innerHTML = '';
+            return;
+          }
+          renderAnexosList(data.items || []);
+          setAnexosMessage(`Pasta: ${data.folder || ''}`);
+        }catch(e){
+          setAnexosMessage('Erro de conexão ao carregar anexos.', 'red');
+          if(box) box.innerHTML = '';
+        }
+      }
+
+      async function uploadAnexosForCurrent(){
+        const ctx = getAnexoContext();
+        if(ctx.error){ setAnexosMessage(ctx.error, 'red'); return; }
+        const files = PENDING_ATTACHMENTS.slice();
+        if(!files.length){ setAnexosMessage('Selecione ao menos um arquivo.', 'red'); return; }
+        const typeSelect = document.getElementById('anexos-upload-type');
+        const selectedType = typeSelect ? String(typeSelect.value || '').trim() : '';
+        if(!selectedType){ setAnexosMessage('Selecione o tipo de anexo antes de anexar.', 'red'); return; }
+        const fd = new FormData();
+        fd.append('cpf', ctx.cpf);
+        fd.append('patient_name', ctx.patient_name);
+        fd.append('prontuario_label', ctx.prontuario_label);
+        files.forEach(f=> fd.append('files', f));
+        fd.append('file_types_json', JSON.stringify(files.map(()=> selectedType)));
+        setAnexosMessage('Enviando anexos...');
+        try{
+          const res = await fetch('/api/attachments/upload', { method: 'POST', body: fd });
+          const data = await res.json().catch(()=>null);
+          if(!res.ok || !data || data.status !== 'ok'){
+            setAnexosMessage((data && data.message) ? data.message : 'Erro ao enviar anexos.', 'red');
+            return;
+          }
+          clearPendingAnexos();
+          setAnexosMessage(`Anexos enviados: ${(data.saved || []).join(', ') || 'ok'}`, 'green');
+          await loadAnexosForPatient(ctx.pid);
+        }catch(e){
+          setAnexosMessage('Erro de conexão ao enviar anexos.', 'red');
+        }
+      }
+
+      async function openAnexoItem(filename, openFolder){
+        const ctx = getAnexoContext();
+        if(ctx.error){ setAnexosMessage(ctx.error, 'red'); return; }
+        try{
+          const res = await fetch('/api/attachments/open', {
+            method: 'POST',
+            headers: { 'Content-Type':'application/json' },
+            body: JSON.stringify({
+              cpf: ctx.cpf,
+              patient_name: ctx.patient_name,
+              prontuario_label: ctx.prontuario_label,
+              filename: filename || '',
+              open_folder: !!openFolder
+            })
+          });
+          const data = await res.json().catch(()=>null);
+          if(!res.ok || !data || data.status !== 'ok'){
+            setAnexosMessage((data && data.message) ? data.message : 'Não foi possível abrir.', 'red');
+            return;
+          }
+          setAnexosMessage(openFolder ? 'Pasta aberta.' : 'Arquivo aberto.', 'green');
+        }catch(e){
+          setAnexosMessage('Erro de conexão ao abrir anexo.', 'red');
+        }
+      }
+
+      async function deleteAnexoItem(filename){
+        const ctx = getAnexoContext();
+        if(ctx.error){ setAnexosMessage(ctx.error, 'red'); return; }
+        if(!filename){ setAnexosMessage('Arquivo inválido.', 'red'); return; }
+        const container = document.getElementById('panel-anexos') || document.getElementById('anexos-list');
+        showAppConfirm(container, `Confirma excluir o anexo "${filename}"?`, async ()=>{
+          try{
+            const res = await fetch('/api/attachments/delete', {
+              method: 'POST',
+              headers: { 'Content-Type':'application/json' },
+              body: JSON.stringify({
+                cpf: ctx.cpf,
+                patient_name: ctx.patient_name,
+                prontuario_label: ctx.prontuario_label,
+                filename: filename
+              })
+            });
+            const data = await res.json().catch(()=>null);
+            if(!res.ok || !data || data.status !== 'ok'){
+              setAnexosMessage((data && data.message) ? data.message : 'Não foi possível excluir o arquivo.', 'red');
+              return;
+            }
+            setAnexosMessage('Arquivo excluído com sucesso.', 'green');
+            await loadAnexosForPatient(ctx.pid);
+          }catch(e){
+            setAnexosMessage('Erro de conexão ao excluir arquivo.', 'red');
+          }
+        }, {danger:true});
+      }
+
+      function loadAllPatientPanels(pid){
+        try{ loadAnamneseForPatient(pid); }catch(e){}
+        try{ loadAvaliacaoForPatient(pid); }catch(e){}
+        try{ loadPlanoForPatient(pid); }catch(e){}
+        try{ loadFinanceiroForPatient(pid); }catch(e){}
+        try{ loadAnexosForPatient(pid); }catch(e){}
+      }
+
+      function activateProntuario(pid, prontuario){
+        ACTIVE_PRONTUARIO_ID = String((prontuario && prontuario.id) ? prontuario.id : (pid||''));
+        updateProntuarioSwitchButton(pid);
+        const msg = document.getElementById('patient-msg');
+        if(msg && prontuario){
+          msg.style.color = 'var(--muted)';
+          const createdAt = getProntuarioCreatedAtText(prontuario) || 'não informado';
+          const updatedAt = getProntuarioUpdatedAtText(prontuario) || createdAt;
+          msg.textContent = `Prontuário ativo: ${prontuario.label || 'Sem nome'} • criado em ${createdAt} • última modificação em ${updatedAt}`;
+        }
+        loadAllPatientPanels(pid);
+      }
+
+      function showNewProntuarioNameDialog(pid, patientName, onCreate){
+        if(!pid) return;
+        const old = document.getElementById('prontuario-new-backdrop');
+        if(old) old.remove();
+
+        const bd = document.createElement('div');
+        bd.id = 'prontuario-new-backdrop';
+        bd.className = 'picker-backdrop';
+        bd.innerHTML = `<div class="picker-modal">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+            <h4 style="margin:0;color:var(--primary-800)">Novo prontuário de ${patientName || 'paciente'}</h4>
+            <button id="prontuario-new-close" type="button" class="secondary" style="margin:0">Fechar</button>
+          </div>
+          <div style="font-size:13px;color:var(--muted);margin-top:6px">Digite o nome do novo prontuário:</div>
+          <input id="prontuario-new-name" type="text" placeholder="Ex: Retorno Março/2026" style="width:100%;padding:10px;border-radius:8px;margin-top:10px" />
+          <div id="prontuario-new-msg" style="font-size:12px;color:red;min-height:18px;margin-top:6px"></div>
+          <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:8px">
+            <button id="prontuario-new-save" type="button">Salvar nome</button>
+          </div>
+        </div>`;
+
+        document.body.appendChild(bd);
+        const close = ()=> bd.remove();
+        bd.querySelector('#prontuario-new-close').onclick = close;
+        bd.addEventListener('click', (ev)=>{ if(ev.target===bd) close(); });
+
+        const input = bd.querySelector('#prontuario-new-name');
+        const msg = bd.querySelector('#prontuario-new-msg');
+        const confirmCreate = ()=>{
+          const label = (input && input.value ? input.value : '').trim();
+          if(!label){ if(msg){ msg.textContent = 'Informe o nome do prontuário.'; } return; }
+          close();
+          if(typeof onCreate === 'function') onCreate(label);
+        };
+
+        bd.querySelector('#prontuario-new-save').onclick = confirmCreate;
+        if(input){
+          setTimeout(()=>{ try{ input.focus(); }catch(e){} }, 0);
+          input.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); confirmCreate(); } });
+        }
+      }
+
+      function askProntuarioForPatient(pid, patientName){
+        if(!pid) return;
+        const prev = document.getElementById('prontuario-picker-backdrop');
+        if(prev) prev.remove();
+
+        let prontuarios = getProntuariosForPatient(pid);
+        updateProntuarioSwitchButton(pid);
+
+        const bd = document.createElement('div');
+        bd.id = 'prontuario-picker-backdrop';
+        bd.className = 'picker-backdrop';
+
+        const itemsHtml = prontuarios.map((pr, i)=>{
+          const createdAt = getProntuarioCreatedAtText(pr) || 'não informado';
+          const updatedAt = getProntuarioUpdatedAtText(pr) || createdAt;
+          return `<button type="button" class="picker-item prontuario-item" data-idx="${i}">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+              <div style="font-size:14px;color:var(--text)"><strong>${pr.label || ('Prontuário ' + (i+1))}</strong></div>
+              <div style="font-size:12px;color:var(--muted)">Criado em: ${createdAt} • Última modificação em: ${updatedAt}</div>
+            </div>
+          </button>`;
+        }).join('');
+
+        const emptyHtml = '<div style="font-size:13px;color:var(--muted);padding:8px;border:1px dashed rgba(0,0,0,0.15);border-radius:8px">Nenhum prontuário criado ainda.</div>';
+
+        bd.innerHTML = `<div class="picker-modal">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+            <h4 style="margin:0;color:var(--primary-800)">Prontuários de ${patientName || 'paciente'}</h4>
+            <button id="prontuario-close" type="button" class="secondary" style="margin:0">Fechar</button>
+          </div>
+          <div style="font-size:13px;color:var(--muted);margin-top:6px">Selecione o nome do prontuário que deseja salvar.</div>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px">${itemsHtml || emptyHtml}</div>
+          <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:10px">
+            <button id="prontuario-new" type="button">Criar novo prontuário</button>
+          </div>
+        </div>`;
+
+        document.body.appendChild(bd);
+        bd.querySelector('#prontuario-close').onclick = ()=> bd.remove();
+
+        bd.querySelectorAll('.prontuario-item').forEach(btn=>{
+          btn.onclick = ()=>{
+            const idx = parseInt(btn.dataset.idx, 10);
+            const chosen = prontuarios[idx];
+            bd.remove();
+            activateProntuario(pid, chosen);
+          };
+        });
+
+        bd.querySelector('#prontuario-new').onclick = ()=>{
+          showNewProntuarioNameDialog(pid, patientName, (label)=>{
+            prontuarios = getProntuariosForPatient(pid);
+            const existing = prontuarios.find(pr=> String(pr.label||'').trim().toLowerCase() === String(label||'').trim().toLowerCase());
+            if(existing){
+              bd.remove();
+              activateProntuario(pid, existing);
+              return;
+            }
+            const nowIso = new Date().toISOString();
+            const created = { id: `${pid}_${Date.now()}`, label: label, created_at: nowIso, updated_at: nowIso };
+            prontuarios.push(created);
+            saveProntuariosForPatient(pid, prontuarios);
+            updateProntuarioSwitchButton(pid);
+            bd.remove();
+            activateProntuario(pid, created);
+            clearAnamnese();
+            clearAvaliacao();
+            clearPlano();
+            const fin = document.getElementById('financeiro-content'); if(fin) fin.innerHTML = 'Histórico financeiro e cobranças.';
+          });
+        };
+      }
+
+      // allow only digit-related keys for phone inputs (digits, navigation, delete/backspace)
+      function isDigitKey(e){
+        // allow Ctrl/meta combos (copy/paste/select etc.)
+        if(e.ctrlKey || e.metaKey) return true;
+        const allowed = ['Backspace','Delete','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End','Tab'];
+        if(allowed.indexOf(e.key) !== -1) return true;
+        // allow digits only
+        if(/^[0-9]$/.test(e.key)) return true;
+        // otherwise block
+        e.preventDefault(); return false;
+      }
+
+      // Centralized logic to update the Save button state based on current form
+      function updateSaveButtonState(){
+        const btn = document.getElementById('patient-save'); if(!btn) return;
+        const raw = (document.getElementById('p_cpf').value||'').replace(/\D/g,'');
+        const curId = (document.getElementById('p_id') && document.getElementById('p_id').value) || '';
+        const cm = document.getElementById('cpf-msg');
+        // editing existing patient: allow save
+        if(curId){ btn.disabled = false; if(cm) cm.style.display='none'; return }
+        // new patient: require CPF complete and valid
+        if(raw.length===11 && validateCPF(raw)){ btn.disabled = false; if(cm){ cm.style.display='block'; cm.style.color='green'; cm.textContent='CPF válido.'; setTimeout(()=>{ if(cm) cm.style.display='none'; },900); } }
+        else { btn.disabled = true; if(raw.length===11){ if(cm){ cm.style.display='block'; cm.style.color='red'; cm.textContent='CPF inválido. Corrija, por favor.'; } } else { if(cm) cm.style.display='none'; } }
+      }
+
+      async function lookupCEP(cep){
+        const raw = String(cep||'').replace(/\D/g,'');
+        if(raw.length!==8) return null;
+        try{
+          const res = await fetch('https://viacep.com.br/ws/'+raw+'/json/');
+          if(!res.ok) return null;
+          const j = await res.json(); if(j && !j.erro) return j; return null;
+        }catch(e){ return null; }
+      }
+
+      async function renderPatientList(){
+        const list = await fetchPatients();
+        const container = document.getElementById('patient-list');
+        if(!container) return;
+        container.innerHTML = '';
+        if(!list || list.length===0){ container.innerHTML = '<div style="color:var(--muted)">Nenhum paciente cadastrado.</div>'; return }
+        const table = document.createElement('div'); table.style.display='grid'; table.style.gridTemplateColumns='1fr auto'; table.style.gap='8px';
+        list.forEach(p=>{
+          const left = document.createElement('div'); left.style.padding='8px'; left.style.borderBottom='1px solid rgba(0,0,0,0.04)';
+          const addr = (p.address? (p.address + (p.number?(', '+p.number):'')) : '');
+          left.innerHTML = `<div style="font-weight:700">${p.name||'(sem nome)'} <span style='color:var(--muted);font-size:12px'>${p.cpf||''}</span></div><div style='color:var(--muted);font-size:13px'>${p.tel_cell||p.tel_home||''} • ${p.email||''}</div><div style='color:var(--muted);font-size:13px;margin-top:6px'>${addr}</div>`;
+          const actions = document.createElement('div'); actions.style.display='flex'; actions.style.gap='6px'; actions.style.alignItems='center';
+          const btnEdit = document.createElement('button'); btnEdit.textContent='Editar'; btnEdit.className='secondary'; btnEdit.onclick = ()=>{ populatePatientForm(p.id); };
+          const btnDel = document.createElement('button'); btnDel.textContent='Excluir'; btnDel.onclick = ()=>{
+            showAppConfirm(container, 'Confirma exclusão deste paciente?', async ()=>{ await deletePatient(p.id); }, {danger:true});
+          };
+          actions.appendChild(btnEdit); actions.appendChild(btnDel);
+          table.appendChild(left); table.appendChild(actions);
+        });
+        container.appendChild(table);
+      }
+
+      function clearPatientForm(){
+        ['p_id','p_cpf','p_name','p_tel_home','p_tel_cell','p_tel_msg','p_contact_name','p_email','p_cep','p_address','p_num','p_comp','p_prof','p_age','p_weight','p_height'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+        ACTIVE_PRONTUARIO_ID = '';
+        updateProntuarioSwitchButton('');
+        const cm = document.getElementById('cpf-msg'); if(cm) cm.style.display='none'; const pm = document.getElementById('patient-msg'); if(pm) pm.textContent='';
+        updateSaveButtonState();
+        // clear anamnese and other per-patient panels
+        clearAnamnese(); const aId = document.getElementById('a_p_id'); if(aId) aId.value='';
+        // IMPORTANT: do not overwrite Avaliação/Plano HTML, otherwise we destroy the inputs
+        // and future loads from localStorage will fail silently.
+        try{ clearAvaliacao(); }catch(e){}
+        try{ clearPlano(); }catch(e){}
+        const fin = document.getElementById('financeiro-content'); if(fin) fin.innerHTML='Histórico financeiro e cobranças.';
+        const anexosList = document.getElementById('anexos-list'); if(anexosList) anexosList.innerHTML = '';
+        clearPendingAnexos();
+        setAnexosMessage('');
+      }
+
+      function populatePatientForm(id){
+        const list = window._patientsCache || [];
+        const p = list.find(x=>String(x.id)===String(id)); if(!p) return;
+        document.getElementById('p_id').value = p.id || '';
+        document.getElementById('p_cpf').value = p.cpf||'';
+        document.getElementById('p_name').value = p.name||'';
+        document.getElementById('p_tel_home').value = p.tel_home ? formatPhone(String(p.tel_home).replace(/\D/g,'')) : '';
+        document.getElementById('p_tel_cell').value = p.tel_cell ? formatPhone(String(p.tel_cell).replace(/\D/g,'')) : '';
+        document.getElementById('p_tel_msg').value = p.tel_msg ? formatPhone(String(p.tel_msg).replace(/\D/g,'')) : '';
+        document.getElementById('p_contact_name').value = p.contact_name || '';
+        document.getElementById('p_email').value = p.email||'';
+        document.getElementById('p_cep').value = p.cep||'';
+        document.getElementById('p_address').value = p.address||'';
+        document.getElementById('p_num').value = p.number||'';
+        document.getElementById('p_comp').value = p.complement||'';
+        document.getElementById('p_prof').value = p.prof||'';
+        document.getElementById('p_age').value = p.age||'';
+        document.getElementById('p_weight').value = p.weight||'';
+        document.getElementById('p_height').value = p.height||'';
+        // set anamnese patient-id and load saved anamnese and other panel data
+        const aId = document.getElementById('a_p_id'); if(aId) aId.value = p.id || '';
+        ACTIVE_PRONTUARIO_ID = '';
+        askProntuarioForPatient(p.id, p.name);
+        updateSaveButtonState();
+      }
+
+      // populate patient form directly from a patient object returned by the server
+      function populatePatientFormFromObject(p, options){
+        if(!p) return;
+        const opts = options || {};
+        const shouldPromptProntuario = !!opts.promptProntuario;
+        const onlyIfHasProntuario = !!opts.onlyIfHasProntuario;
+        // keep/refresh cache
+        window._patientsCache = window._patientsCache || [];
+        const idx = window._patientsCache.findIndex(x=>String(x.id)===String(p.id));
+        if(idx===-1){ window._patientsCache.push(p); } else { window._patientsCache[idx] = p; }
+        document.getElementById('p_id').value = p.id || '';
+        document.getElementById('p_cpf').value = p.cpf||'';
+        document.getElementById('p_name').value = p.name||'';
+        document.getElementById('p_tel_home').value = p.tel_home ? formatPhone(String(p.tel_home).replace(/\D/g,'')) : '';
+        document.getElementById('p_tel_cell').value = p.tel_cell ? formatPhone(String(p.tel_cell).replace(/\D/g,'')) : '';
+        document.getElementById('p_tel_msg').value = p.tel_msg ? formatPhone(String(p.tel_msg).replace(/\D/g,'')) : '';
+        document.getElementById('p_email').value = p.email||'';
+        document.getElementById('p_cep').value = p.cep||'';
+        document.getElementById('p_address').value = p.address||'';
+        document.getElementById('p_num').value = p.number||'';
+        document.getElementById('p_comp').value = p.complement||'';
+        document.getElementById('p_prof').value = p.prof||'';
+        document.getElementById('p_age').value = p.age||'';
+        document.getElementById('p_weight').value = p.weight||'';
+        document.getElementById('p_height').value = p.height||'';
+        const aId = document.getElementById('a_p_id'); if(aId) aId.value = p.id || '';
+        ACTIVE_PRONTUARIO_ID = '';
+        if(shouldPromptProntuario){
+          const list = getProntuariosForPatient(p.id);
+          if(!onlyIfHasProntuario || (list && list.length > 0)){
+            askProntuarioForPatient(p.id, p.name);
+          } else {
+            updateProntuarioSwitchButton(p.id);
+          }
+        } else {
+          updateProntuarioSwitchButton(p.id);
+        }
+        updateSaveButtonState();
+      }
+
+      async function deletePatient(id){
+        try{
+          const res = await fetch('/api/patients/'+id, { method: 'DELETE' });
+          if(!res.ok) throw new Error('delete failed');
+        }catch(e){ console.warn('delete patient failed', e); }
+        // do not re-render the full patient list (we keep data in DB only)
+        // if the deleted patient was loaded in the form, clear the form to avoid stale data
+        // if the deleted patient was loaded in the form, clear the form to avoid stale data
+        try{
+          const cur = document.getElementById('p_id');
+          if(cur && String(cur.value) === String(id)){
+            clearPatientForm();
+          }
+        }catch(e){ /* ignore */ }
+      }
+
+      async function savePatient(){
+        const id = document.getElementById('p_id').value || '';
+        const cpf = (document.getElementById('p_cpf').value||'').trim();
+        const name = (document.getElementById('p_name').value||'').trim();
+        const tel_home = (document.getElementById('p_tel_home').value||'').trim();
+        const tel_cell = (document.getElementById('p_tel_cell').value||'').trim();
+        const tel_msg = (document.getElementById('p_tel_msg').value||'').trim();
+        const contact_name = (document.getElementById('p_contact_name').value||'').trim();
+        const email = (document.getElementById('p_email').value||'').trim();
+        const cep = (document.getElementById('p_cep').value||'').trim();
+        const address = (document.getElementById('p_address').value||'').trim();
+        const number = (document.getElementById('p_num').value||'').trim();
+        const complement = (document.getElementById('p_comp').value||'').trim();
+        const prof = (document.getElementById('p_prof').value||'').trim();
+        const age = (document.getElementById('p_age').value||'').trim();
+        const weight = (document.getElementById('p_weight').value||'').trim();
+        const height = (document.getElementById('p_height').value||'').trim();
+        const msgEl = document.getElementById('patient-msg'); msgEl.style.color='var(--muted)';
+        if(!cpf){ document.getElementById('cpf-msg').textContent='CPF obrigatório.'; document.getElementById('cpf-msg').style.display='block'; return }
+        if(!validateCPF(cpf)){ document.getElementById('cpf-msg').textContent='CPF inválido.'; document.getElementById('cpf-msg').style.display='block'; return }
+        document.getElementById('cpf-msg').style.display='none';
+        // only include `id` in payload when updating an existing patient
+        const payload = { cpf, name, tel_home, tel_cell, tel_msg, contact_name, email, cep, address, number, complement, prof, age, weight, height };
+        if(id){ payload.id = id; }
+        const result = await savePatientToServer(payload);
+        if(!result){ msgEl.style.color='red'; msgEl.textContent='Erro ao salvar.'; return }
+        if(result.status === 'exists' && result.patient){
+          // show in-app message offering to load existing patient data
+          msgEl.style.color='var(--muted)';
+          msgEl.innerHTML = `<div style="font-size:13px">CPF já cadastrado para <strong>${result.patient.name||'(sem nome)'}</strong>.</div>
+            <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:6px">
+              <button id="load-existing" type="button" class="secondary">Carregar informações</button>
+              <button id="keep-new" type="button">Cancelar</button>
+            </div>`;
+          const btnLoad = document.getElementById('load-existing');
+          const btnKeep = document.getElementById('keep-new');
+          btnLoad.onclick = ()=>{
+            // populate form with existing patient object returned by server
+            populatePatientFormFromObject(result.patient, { promptProntuario: true, onlyIfHasProntuario: true });
+            // ensure Dados tab visible
+            showPatientTab('dados');
+            msgEl.textContent = '';
+          };
+          btnKeep.onclick = ()=>{ msgEl.textContent = ''; };
+          return;
+        }
+        const savedPid = String((result && result.id) ? result.id : (id || ''));
+        if(savedPid) document.getElementById('p_id').value = savedPid;
+
+        const prontuarios = getProntuariosForPatient(savedPid);
+        if(savedPid && (!prontuarios || prontuarios.length === 0)){
+          msgEl.style.color='green';
+          msgEl.textContent='Paciente salvo. Informe o nome do prontuário.';
+          showNewProntuarioNameDialog(savedPid, name || 'paciente', (label)=>{
+            const arr = getProntuariosForPatient(savedPid);
+            const nowIso = new Date().toISOString();
+            const created = { id: `${savedPid}_${Date.now()}`, label: label, created_at: nowIso, updated_at: nowIso };
+            arr.push(created);
+            saveProntuariosForPatient(savedPid, arr);
+            activateProntuario(savedPid, created);
+            if(msgEl){
+              msgEl.style.color='green';
+              msgEl.textContent='Paciente e prontuário salvos.';
+              setTimeout(()=>{ msgEl.textContent=''; }, 1200);
+            }
+          });
+          return;
+        }
+
+        msgEl.style.color='green'; msgEl.textContent='Paciente salvo.';
+        // Do NOT render the full patient list after saving — keep message only
+        setTimeout(()=>{ msgEl.textContent=''; clearPatientForm(); },800);
+      }
+
+      // wire patient form events when the tab initializes
+      function initPatientFormEvents(){
+        const btnSave = document.getElementById('patient-save'); if(btnSave) btnSave.onclick = savePatient;
+        const pNewBtn = document.getElementById('p_new');
+        const btnClear = document.getElementById('patient-clear'); if(btnClear) btnClear.onclick = clearPatientForm;
+        const btnSwitchProntuario = document.getElementById('patient-switch-prontuario');
+        if(btnSwitchProntuario){
+          btnSwitchProntuario.onclick = ()=>{
+            const pid = getCurrentPatientId();
+            if(!pid) return;
+            const pname = (document.getElementById('p_name') && document.getElementById('p_name').value) ? document.getElementById('p_name').value : 'paciente';
+            askProntuarioForPatient(pid, pname);
+          };
+        }
+        const btnCep = document.getElementById('btn-cep'); if(btnCep) btnCep.onclick = async ()=>{
+          const cep = document.getElementById('p_cep').value||''; const res = await lookupCEP(cep);
+          if(res){ document.getElementById('p_address').value = res.logradouro || ''; }
+        };
+        const pCep = document.getElementById('p_cep');
+        if(pCep){
+          pCep.addEventListener('input', (e)=>{ const raw = (e.target.value||'').replace(/\D/g,'').slice(0,8); e.target.value = formatCEP(raw); });
+        }
+        // phone fields masking (DDD + number) + numeric-only enforcement
+        ['p_tel_home','p_tel_cell','p_tel_msg'].forEach(id=>{
+          const el = document.getElementById(id);
+          if(!el) return;
+          el.addEventListener('input', (e)=>{ const raw = (e.target.value||'').replace(/\D/g,'').slice(0,11); e.target.value = formatPhone(raw); });
+          // block non-digit keystrokes
+          el.addEventListener('keydown', (e)=> isDigitKey(e));
+          // sanitize pasted content to digits only
+          el.addEventListener('paste', (e)=>{
+            e.preventDefault();
+            const text = (e.clipboardData || window.clipboardData).getData('text') || '';
+            const raw = String(text).replace(/\D/g,'').slice(0,11);
+            el.value = formatPhone(raw);
+          });
+        });
+        // search / new controls (CPF search)
+        const pSearch = document.getElementById('p_search_cpf');
+        const pSearchBtn = document.getElementById('p_search_btn');
+        const pSearchMsg = document.getElementById('p_search_msg');
+        const pSearchName = document.getElementById('p_search_name');
+        const pSearchNameBtn = document.getElementById('p_search_name_btn');
+        const pSearchNameMsg = document.getElementById('p_search_name_msg');
+        if(pSearch){
+          pSearch.addEventListener('input', (e)=>{ const raw = (e.target.value||'').replace(/\D/g,'').slice(0,11); e.target.value = formatCPF(raw); });
+          pSearch.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); if(pSearchBtn) pSearchBtn.click(); } });
+        }
+        if(pSearchName){
+          pSearchName.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); if(pSearchNameBtn) pSearchNameBtn.click(); } });
+        }
+        if(pSearchNameBtn){
+          pSearchNameBtn.onclick = async ()=>{
+            const q = (pSearchName && pSearchName.value ? pSearchName.value : '').trim();
+            if(!q || q.length < 2){ if(pSearchNameMsg){ pSearchNameMsg.style.color='red'; pSearchNameMsg.textContent='Digite ao menos 2 letras.'; } return; }
+            if(pSearchNameMsg){ pSearchNameMsg.style.color='var(--muted)'; pSearchNameMsg.textContent='Procurando...'; }
+            const list = await fetchPatients();
+            const nq = normalizeText(q);
+            const matches = (list||[]).filter(p=> normalizeText(p.name).includes(nq));
+            if(!matches.length){ if(pSearchNameMsg){ pSearchNameMsg.style.color='red'; pSearchNameMsg.textContent='Nenhum paciente encontrado.'; } return; }
+            if(matches.length === 1){
+              populatePatientFormFromObject(matches[0], { promptProntuario: true, onlyIfHasProntuario: true });
+              showPatientTab('dados');
+              if(pSearchNameMsg){ pSearchNameMsg.style.color='green'; pSearchNameMsg.textContent='Paciente encontrado.'; }
+              return;
+            }
+            if(pSearchNameMsg){ pSearchNameMsg.style.color='var(--muted)'; pSearchNameMsg.textContent='Mais de um paciente encontrado. Selecione na caixa.'; }
+            showPatientNamePicker(matches, q, (selected)=>{
+              populatePatientFormFromObject(selected, { promptProntuario: true, onlyIfHasProntuario: true });
+              showPatientTab('dados');
+              if(pSearchNameMsg){ pSearchNameMsg.style.color='green'; pSearchNameMsg.textContent='Paciente selecionado.'; }
+            });
+          };
+        }
+        if(pSearchBtn){
+          pSearchBtn.onclick = async ()=>{
+            const raw = (pSearch.value||'').replace(/\D/g,'');
+            if(!raw || raw.length<11){ if(pSearchMsg){ pSearchMsg.style.color='red'; pSearchMsg.textContent='CPF incompleto.'; } return; }
+            // allow searches with 11-digit CPF even if checksum invalid; show message but continue
+            if(!validateCPF(raw)){ if(pSearchMsg){ pSearchMsg.style.color='orange'; pSearchMsg.textContent='CPF com checksum inválido — buscando mesmo assim...'; } }
+            if(pSearchMsg){ pSearchMsg.style.color='var(--muted)'; pSearchMsg.textContent='Procurando...'; }
+            try{
+              const res = await fetch('/api/patients?cpf='+encodeURIComponent(raw));
+              if(!res.ok){ if(pSearchMsg){ pSearchMsg.style.color='red'; pSearchMsg.textContent='Erro ao buscar.'; } return; }
+              const data = await res.json();
+              let found = null;
+              if(Array.isArray(data)) found = data.length?data[0]:null;
+              else if(data && data.id) found = data;
+              if(found){
+                if(pSearchMsg){ pSearchMsg.style.color='green'; pSearchMsg.textContent='Paciente encontrado.'; }
+                populatePatientFormFromObject(found, { promptProntuario: true, onlyIfHasProntuario: true });
+                showPatientTab('dados');
+              } else {
+                if(pSearchMsg){ pSearchMsg.style.color='var(--muted)'; pSearchMsg.textContent='Paciente não encontrado. Preencha os dados e clique em Salvar para cadastrar.'; }
+                const pCpf = document.getElementById('p_cpf');
+                if(pCpf){
+                  pCpf.value = formatCPF(raw);
+                  pCpf.dispatchEvent(new Event('input'));
+                  const btnSaveRef = document.getElementById('patient-save');
+                  if(btnSaveRef){
+                    if(validateCPF(raw)) btnSaveRef.disabled = false;
+                    else { btnSaveRef.disabled = true; const cm = document.getElementById('cpf-msg'); if(cm){ cm.style.display='block'; cm.style.color='red'; cm.textContent='CPF inválido.'; } }
+                  }
+                }
+              }
+            }catch(e){ if(pSearchMsg){ pSearchMsg.style.color='red'; pSearchMsg.textContent='Erro de conexão.'; } }
+          };
+        }
+        const btnDelete = document.getElementById('patient-delete');
+        if(btnDelete) btnDelete.onclick = ()=>{
+          const id = document.getElementById('p_id').value || '';
+          const container = document.getElementById('patient-form');
+          const msg = document.getElementById('patient-msg'); if(msg) msg.style.color='var(--muted)';
+          if(!id){ if(msg){ msg.style.color='red'; msg.textContent='Selecione um paciente antes de excluir.'; setTimeout(()=>msg.textContent='',1400); } return }
+          showAppConfirm(container, 'Confirma exclusão deste paciente?', async ()=>{
+            try{
+              const res = await fetch('/api/patients/'+id, { method: 'DELETE' });
+              if(!res.ok){ if(msg){ msg.style.color='red'; msg.textContent='Erro ao excluir.'; } return }
+              // Do not re-render patient list — keep data in DB only. Just clear the form and show message.
+              clearPatientForm(); if(msg){ msg.style.color='green'; msg.textContent='Paciente excluído.'; setTimeout(()=>msg.textContent='',1400); }
+            }catch(e){ if(msg){ msg.style.color='red'; msg.textContent='Erro de conexão.'; } }
+          }, {danger:true});
+        }
+        // anamnese save/clear (store per-patient in localStorage)
+        const anSave = document.getElementById('anamnese-save'); if(anSave) anSave.onclick = saveAnamnese;
+        const anClear = document.getElementById('anamnese-clear'); if(anClear) anClear.onclick = clearAnamnese;
+        // avaliacao save/clear and field wiring
+        const avSave = document.getElementById('avaliacao-save'); if(avSave) avSave.onclick = saveAvaliacao;
+        const avClear = document.getElementById('avaliacao-clear'); if(avClear) avClear.onclick = clearAvaliacao;
+        const avDeamb = document.getElementById('av_deambulando'); if(avDeamb) avDeamb.onchange = (e)=>{ const other=document.getElementById('av_deambulando_outros'); if(e.target.value==='outros'){ other.style.display='block'; } else { other.style.display='none'; other.value=''; } };
+        const avIns = document.getElementById('av_inspec'); if(avIns) avIns.onchange = (e)=>{ const other=document.getElementById('av_inspec_outros'); if(e.target.value==='outros'){ other.style.display='block'; } else { other.style.display='none'; other.value=''; } };
+        // radio groups show/hide details
+        document.querySelectorAll('input[name="av_exames_comp"]').forEach(r=>r.onchange = (e)=>{ document.getElementById('av_exames_comp_which').style.display = (e.target.value==='sim') ? 'block' : 'none'; });
+        document.querySelectorAll('input[name="av_medicamentos"]').forEach(r=>r.onchange = (e)=>{ document.getElementById('av_medicamentos_which').style.display = (e.target.value==='sim') ? 'block' : 'none'; });
+        document.querySelectorAll('input[name="av_cirurgia"]').forEach(r=>r.onchange = (e)=>{ document.getElementById('av_cirurgia_which').style.display = (e.target.value==='sim') ? 'block' : 'none'; });
+        // CPF mask and validation
+        const cpfInput = document.getElementById('p_cpf');
+        if(cpfInput){
+          const btnSaveRef = document.getElementById('patient-save'); if(btnSaveRef) btnSaveRef.disabled = true;
+          cpfInput.addEventListener('input', (e)=>{
+            const raw = (e.target.value||'').replace(/\D/g,'').slice(0,11);
+            e.target.value = formatCPF(raw);
+            // temporary debug log to inspect input value and validation
+            try{ console.log('[DEBUG] CPF input raw=', raw, 'valid=', validateCPF(raw), 'p_id=', (document.getElementById('p_id')&&document.getElementById('p_id').value)||''); }catch(err){}
+            // centralize enabling/disabling
+            updateSaveButtonState();
+          });
+          cpfInput.addEventListener('blur', (e)=>{
+            const raw = (e.target.value||'').replace(/\D/g,'');
+            const cm = document.getElementById('cpf-msg');
+            if(raw.length===11){ if(!validateCPF(raw)){ cm.style.display='block'; cm.style.color='red'; cm.textContent='CPF inválido. Corrija, por favor.'; } }
+            else if(raw.length>0 && raw.length<11){ cm.style.display='block'; cm.style.color='red'; cm.textContent='CPF incompleto.'; }
+          });
+        }
+        // plano wiring
+        const plSave = document.getElementById('plano-save'); if(plSave) plSave.onclick = savePlano;
+        const plClear = document.getElementById('plano-clear'); if(plClear) plClear.onclick = clearPlano;
+        const plAdd = document.getElementById('pl_evo_add'); if(plAdd) plAdd.onclick = addEvolution;
+        const anType = document.getElementById('anexos-upload-type'); if(anType) anType.innerHTML = buildAttachmentTypeOptions('');
+        const anAdd = document.getElementById('anexos-add-files'); if(anAdd) anAdd.onclick = ()=>{ const input = document.getElementById('anexos-input'); if(input) input.click(); };
+        const anInput = document.getElementById('anexos-input'); if(anInput) anInput.onchange = (e)=>{ const fs = e && e.target && e.target.files ? Array.from(e.target.files) : []; addPendingAnexos(fs); if(anInput) anInput.value=''; };
+        const anUpload = document.getElementById('anexos-upload'); if(anUpload) anUpload.onclick = uploadAnexosForCurrent;
+        const anFolder = document.getElementById('anexos-open-folder'); if(anFolder) anFolder.onclick = ()=> openAnexoItem('', true);
+        const anList = document.getElementById('anexos-list');
+        if(anList){
+          anList.addEventListener('click', (ev)=>{
+            const btn = ev.target && ev.target.closest ? ev.target.closest('.anexos-open-file') : null;
+            if(btn){
+              const name = decodeURIComponent(btn.getAttribute('data-name') || '');
+              if(name) openAnexoItem(name, false);
+              return;
+            }
+            const btnDel = ev.target && ev.target.closest ? ev.target.closest('.anexos-delete-file') : null;
+            if(btnDel){
+              const name = decodeURIComponent(btnDel.getAttribute('data-name') || '');
+              if(name) deleteAnexoItem(name);
+            }
+          });
+        }
+        const btnPdf = document.getElementById('report-generate-pdf'); if(btnPdf) btnPdf.onclick = generateProntuarioPdf;
+      }
+
+      function getCurrentPatientId(){
+        const id = document.getElementById('p_id') ? document.getElementById('p_id').value : '';
+        return id || '';
+      }
+
+      function saveAnamnese(){
+        const pid = getCurrentPatientId();
+        const prontuarioId = getActiveProntuarioId(pid);
+        const msgEl = document.getElementById('anamnese-msg'); if(msgEl) msgEl.style.color='var(--muted)';
+        if(!pid){ if(msgEl) { msgEl.style.color='red'; msgEl.textContent='Selecione o paciente antes.'; } return }
+        if(!prontuarioId){
+          askProntuarioForPatient(pid, (document.getElementById('p_name') && document.getElementById('p_name').value) ? document.getElementById('p_name').value : 'paciente');
+          if(msgEl) { msgEl.style.color='red'; msgEl.textContent='Selecione ou crie o prontuário para salvar.'; }
+          return;
+        }
+        const payload = {
+          historia: (document.getElementById('a_historia').value||'').trim(),
+          hmb: (document.getElementById('a_hmb').value||'').trim(),
+          hmp: (document.getElementById('a_hmp').value||'').trim(),
+          antecedentes: (document.getElementById('a_antec').value||'').trim(),
+          queixa: (document.getElementById('a_queixa').value||'').trim(),
+          habitos: (document.getElementById('a_habitos').value||'').trim(),
+          tratamentos: (document.getElementById('a_tratamentos').value||'').trim(),
+        };
+        try{ localStorage.setItem('anamnese_'+prontuarioId, JSON.stringify(payload)); touchProntuarioModified(pid, prontuarioId); if(msgEl){ msgEl.style.color='green'; msgEl.textContent='Anamnese salva localmente.'; setTimeout(()=>{ msgEl.textContent=''; },900); } }
+        catch(e){ if(msgEl){ msgEl.style.color='red'; msgEl.textContent='Erro ao salvar localmente.'; } }
+      }
+
+      function clearAnamnese(){ ['a_historia','a_hmb','a_hmp','a_antec','a_queixa','a_habitos','a_tratamentos'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; }); const msg=document.getElementById('anamnese-msg'); if(msg) msg.textContent=''; }
+
+      function loadAnamneseForPatient(pid){ if(!pid) return; try{ const prontuarioId = getActiveProntuarioId(pid); if(!prontuarioId){ clearAnamnese(); return; } const raw = localStorage.getItem('anamnese_'+prontuarioId); if(!raw){ clearAnamnese(); return; } const obj = JSON.parse(raw); if(!obj){ clearAnamnese(); return; } document.getElementById('a_historia').value = obj.historia||''; document.getElementById('a_hmb').value = obj.hmb||''; document.getElementById('a_hmp').value = obj.hmp||''; document.getElementById('a_antec').value = obj.antecedentes||''; document.getElementById('a_queixa').value = obj.queixa||''; document.getElementById('a_habitos').value = obj.habitos||''; document.getElementById('a_tratamentos').value = obj.tratamentos||''; }catch(e){}
+      }
+
+      /* Avaliação: save/load per-patient in localStorage */
+      function saveAvaliacao(){
+        const pid = getCurrentPatientId(); const prontuarioId = getActiveProntuarioId(pid); const msg = document.getElementById('avaliacao-msg'); if(msg) msg.style.color='var(--muted)';
+        if(!pid){ if(msg){ msg.style.color='red'; msg.textContent='Selecione o paciente antes.';} return }
+        if(!prontuarioId){
+          askProntuarioForPatient(pid, (document.getElementById('p_name') && document.getElementById('p_name').value) ? document.getElementById('p_name').value : 'paciente');
+          if(msg){ msg.style.color='red'; msg.textContent='Selecione ou crie o prontuário para salvar.'; }
+          return;
+        }
+        const payload = {
+          exames_clinicos: (document.getElementById('av_exames_clinicos').value||'').trim(),
+          deambulando: (document.getElementById('av_deambulando').value||''),
+          deambulando_outros: (document.getElementById('av_deambulando_outros').value||'').trim(),
+          exames_comp: (document.querySelector('input[name="av_exames_comp"]:checked')||{value:'nao'}).value,
+          exames_comp_which: (document.getElementById('av_exames_comp_which').value||'').trim(),
+          medicamentos: (document.querySelector('input[name="av_medicamentos"]:checked')||{value:'nao'}).value,
+          medicamentos_which: (document.getElementById('av_medicamentos_which').value||'').trim(),
+          cirurgia: (document.querySelector('input[name="av_cirurgia"]:checked')||{value:'nao'}).value,
+          cirurgia_which: (document.getElementById('av_cirurgia_which').value||'').trim(),
+          inspec: (document.getElementById('av_inspec').value||''),
+          inspec_outros: (document.getElementById('av_inspec_outros').value||'').trim(),
+          testes: (document.getElementById('av_testes').value||'').trim(),
+          eva: (document.getElementById('av_eva').value||'').trim()
+        };
+        try{
+          console.debug('[DEBUG] saveAvaliacao pid=', pid, 'payload=', payload);
+          localStorage.setItem('avaliacao_'+prontuarioId, JSON.stringify(payload));
+          touchProntuarioModified(pid, prontuarioId);
+          if(msg){ msg.style.color='green'; msg.textContent='Avaliação salva localmente.'; setTimeout(()=>{ msg.textContent=''; },900); }
+        }catch(e){ console.error('saveAvaliacao error', e); if(msg){ msg.style.color='red'; msg.textContent='Erro ao salvar.'; } }
+      }
+
+      function clearAvaliacao(){ ['av_exames_clinicos','av_deambulando','av_deambulando_outros','av_exames_comp_which','av_medicamentos_which','av_cirurgia_which','av_inspec','av_inspec_outros','av_testes','av_eva'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; if(el && el.tagName==='TEXTAREA') el.value=''; });
+        // reset radios
+        document.querySelectorAll('input[name="av_exames_comp"]').forEach(r=>r.checked = (r.value==='nao'));
+        document.querySelectorAll('input[name="av_medicamentos"]').forEach(r=>r.checked = (r.value==='nao'));
+        document.querySelectorAll('input[name="av_cirurgia"]').forEach(r=>r.checked = (r.value==='nao'));
+        // hide detail fields
+        const msg = document.getElementById('avaliacao-msg'); if(msg) msg.textContent=''; document.getElementById('av_deambulando_outros').style.display='none'; document.getElementById('av_inspec_outros').style.display='none'; document.getElementById('av_exames_comp_which').style.display='none'; document.getElementById('av_medicamentos_which').style.display='none'; document.getElementById('av_cirurgia_which').style.display='none'; }
+
+      function loadAvaliacaoForPatient(pid){ if(!pid) return; try{ const prontuarioId = getActiveProntuarioId(pid); if(!prontuarioId){ clearAvaliacao(); return; } const raw = localStorage.getItem('avaliacao_'+prontuarioId); if(!raw){ clearAvaliacao(); return; } const obj = JSON.parse(raw); if(!obj){ clearAvaliacao(); return; } document.getElementById('av_exames_clinicos').value = obj.exames_clinicos||''; document.getElementById('av_deambulando').value = obj.deambulando||'deambulando'; if(obj.deambulando==='outros'){ document.getElementById('av_deambulando_outros').style.display='block'; document.getElementById('av_deambulando_outros').value = obj.deambulando_outros||''; } else { document.getElementById('av_deambulando_outros').style.display='none'; }
+        // radios and details
+        const ev = obj.exames_comp||'nao'; document.querySelectorAll('input[name="av_exames_comp"]').forEach(r=>{ r.checked = (r.value===ev); }); if(ev==='sim'){ document.getElementById('av_exames_comp_which').style.display='block'; document.getElementById('av_exames_comp_which').value = obj.exames_comp_which||''; } else { document.getElementById('av_exames_comp_which').style.display='none'; }
+        const mv = obj.medicamentos||'nao'; document.querySelectorAll('input[name="av_medicamentos"]').forEach(r=>{ r.checked = (r.value===mv); }); if(mv==='sim'){ document.getElementById('av_medicamentos_which').style.display='block'; document.getElementById('av_medicamentos_which').value = obj.medicamentos_which||''; } else { document.getElementById('av_medicamentos_which').style.display='none'; }
+        const cv = obj.cirurgia||'nao'; document.querySelectorAll('input[name="av_cirurgia"]').forEach(r=>{ r.checked = (r.value===cv); }); if(cv==='sim'){ document.getElementById('av_cirurgia_which').style.display='block'; document.getElementById('av_cirurgia_which').value = obj.cirurgia_which||''; } else { document.getElementById('av_cirurgia_which').style.display='none'; }
+        document.getElementById('av_inspec').value = obj.inspec||'normal'; if(obj.inspec==='outros'){ document.getElementById('av_inspec_outros').style.display='block'; document.getElementById('av_inspec_outros').value = obj.inspec_outros||''; } else { document.getElementById('av_inspec_outros').style.display='none'; }
+        document.getElementById('av_testes').value = obj.testes||''; document.getElementById('av_eva').value = obj.eva||'';
+      }catch(e){ console.debug('[DEBUG] loadAvaliacaoForPatient failed for pid=', pid, 'error=', e); }
+      }
+
+      // Plano: load/save/clear evolutions and plano fields per patient
+      function renderEvolutions(evos){
+        const container = document.getElementById('pl_evol_list'); if(!container) return;
+        container.innerHTML = '';
+        (evos||[]).slice().reverse().forEach(ev=>{
+          const item = document.createElement('div'); item.style.padding='8px'; item.style.borderBottom='1px solid rgba(0,0,0,0.04)';
+          item.innerHTML = `<div style="font-size:12px;color:var(--muted)">${ev.ts}</div><div style="margin-top:6px">${escapeHtml(ev.text)}</div>`;
+          container.appendChild(item);
+        });
+      }
+
+      function escapeHtml(s){ if(!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;'); }
+
+      function loadPlanoForPatient(pid){ if(!pid) { document.getElementById('pl_objetivo').value=''; document.getElementById('pl_recursos').value=''; document.getElementById('pl_plano').value=''; renderEvolutions([]); return; }
+        try{
+          const prontuarioId = getActiveProntuarioId(pid);
+          if(!prontuarioId){ document.getElementById('pl_objetivo').value=''; document.getElementById('pl_recursos').value=''; document.getElementById('pl_plano').value=''; renderEvolutions([]); return; }
+          const raw = localStorage.getItem('plano_'+prontuarioId);
+          if(!raw){ document.getElementById('pl_objetivo').value=''; document.getElementById('pl_recursos').value=''; document.getElementById('pl_plano').value=''; renderEvolutions([]); return; }
+          const obj = JSON.parse(raw);
+          document.getElementById('pl_objetivo').value = obj.objetivo||'';
+          document.getElementById('pl_recursos').value = obj.recursos||'';
+          document.getElementById('pl_plano').value = obj.plano||'';
+          renderEvolutions(obj.evolutions||[]);
+        }catch(e){ console.warn('loadPlanoForPatient failed', e); }
+      }
+
+      function savePlano(){
+        const pid = getCurrentPatientId(); const prontuarioId = getActiveProntuarioId(pid); const msg = document.getElementById('plano-msg'); if(msg) msg.style.color='var(--muted)';
+        if(!pid){ if(msg){ msg.style.color='red'; msg.textContent='Selecione o paciente antes.'; } return }
+        if(!prontuarioId){
+          askProntuarioForPatient(pid, (document.getElementById('p_name') && document.getElementById('p_name').value) ? document.getElementById('p_name').value : 'paciente');
+          if(msg){ msg.style.color='red'; msg.textContent='Selecione ou crie o prontuário para salvar.'; }
+          return;
+        }
+        try{
+          const objetivo = (document.getElementById('pl_objetivo').value||'').trim();
+          const recursos = (document.getElementById('pl_recursos').value||'').trim();
+          const plano = (document.getElementById('pl_plano').value||'').trim();
+          const existing = JSON.parse(localStorage.getItem('plano_'+prontuarioId) || '{}');
+          const evol = existing.evolutions || [];
+          const obj = { objetivo, recursos, plano, evolutions: evol };
+          localStorage.setItem('plano_'+prontuarioId, JSON.stringify(obj));
+          touchProntuarioModified(pid, prontuarioId);
+          if(msg){ msg.style.color='green'; msg.textContent='Plano salvo localmente.'; setTimeout(()=>msg.textContent='',900); }
+        }catch(e){ console.error('savePlano failed', e); if(msg){ msg.style.color='red'; msg.textContent='Erro ao salvar.'; } }
+      }
+
+      function clearPlano(){ const pid = getCurrentPatientId(); const prontuarioId = getActiveProntuarioId(pid); const msg = document.getElementById('plano-msg'); if(msg) msg.style.color='var(--muted)'; if(!pid || !prontuarioId){ if(msg){ msg.style.color='red'; msg.textContent='Selecione paciente e prontuário.'; } return } document.getElementById('pl_objetivo').value=''; document.getElementById('pl_recursos').value=''; document.getElementById('pl_plano').value=''; localStorage.removeItem('plano_'+prontuarioId); renderEvolutions([]); if(msg){ msg.style.color='green'; msg.textContent='Plano limpo.'; setTimeout(()=>msg.textContent='',900); } }
+
+      function addEvolution(){ const pid = getCurrentPatientId(); const prontuarioId = getActiveProntuarioId(pid); const msg = document.getElementById('plano-msg'); if(msg) msg.style.color='var(--muted)'; if(!pid){ if(msg){ msg.style.color='red'; msg.textContent='Selecione o paciente antes.'; } return } if(!prontuarioId){ askProntuarioForPatient(pid, (document.getElementById('p_name') && document.getElementById('p_name').value) ? document.getElementById('p_name').value : 'paciente'); if(msg){ msg.style.color='red'; msg.textContent='Selecione ou crie o prontuário para salvar.'; } return } const text = (document.getElementById('pl_new_evo').value||'').trim(); if(!text){ if(msg){ msg.style.color='red'; msg.textContent='Digite a evolução antes de adicionar.'; } return } try{ const key = 'plano_'+prontuarioId; const raw = localStorage.getItem(key); const obj = raw ? JSON.parse(raw) : { objetivo:'', recursos:'', plano:'', evolutions:[] }; const ts = new Date().toLocaleString(); obj.evolutions = obj.evolutions || []; obj.evolutions.push({ ts: ts, text: text }); localStorage.setItem(key, JSON.stringify(obj)); touchProntuarioModified(pid, prontuarioId); document.getElementById('pl_new_evo').value=''; renderEvolutions(obj.evolutions); if(msg){ msg.style.color='green'; msg.textContent='Evolução adicionada.'; setTimeout(()=>msg.textContent='',900); } }catch(e){ console.error('addEvolution failed', e); if(msg){ msg.style.color='red'; msg.textContent='Erro ao adicionar evolução.'; } }
+      }
+
+      async function loadAppointments(){
+        try{
+          const res = await fetch('/api/appointments');
+          if(!res.ok) throw new Error('fetch failed');
+          const data = await res.json();
+          ALL_APPOINTMENTS = data || [];
+        }catch(err){
+          ALL_APPOINTMENTS = [];
+          console.warn('Could not load appointments:', err);
+        }
+        ensureYears();
+        populateYearSelect();
+        populateMonthSelect();
+        renderCalendarFromFilters();
+        // if a day modal is open, refresh its hours panel to reflect updated appointments
+        const bd = document.getElementById('modal-backdrop');
+        if(bd && bd.style.display==='flex' && bd.dataset && bd.dataset.day){
+          // re-render the modal for the same day using updated ALL_APPOINTMENTS
+          showDaySchedule(bd.dataset.day);
+        }
+      }
+
+      function getStoredYears(){
+        try{ const s = localStorage.getItem('silgon_years'); return s?JSON.parse(s):[] }catch(e){return[]}
+      }
+      function saveStoredYears(arr){ localStorage.setItem('silgon_years', JSON.stringify(arr)) }
+      function ensureYears(){
+        const current = new Date().getFullYear();
+        let years = getStoredYears();
+        if(!years || years.length===0){ years = [current, current+1]; saveStoredYears(years); return }
+        if(!years.includes(current)) years.push(current);
+        const next = current+1; if(!years.includes(next)) years.push(next);
+        years = Array.from(new Set(years)).sort((a,b)=>a-b);
+        saveStoredYears(years);
+      }
+
+      function populateYearSelect(){
+        const sel = document.getElementById('year-filter'); sel.innerHTML='';
+        const years = getStoredYears();
+        const current = new Date().getFullYear();
+        years.forEach(y=>{
+          const opt = document.createElement('option'); opt.value = y; opt.textContent = y; sel.appendChild(opt);
+        });
+        sel.value = current;
+        sel.onchange = ()=>{ populateMonthSelect(); renderCalendarFromFilters(); };
+      }
+
+      function populateMonthSelect(){
+        const sel = document.getElementById('month-filter'); sel.innerHTML='';
+        const yearSel = document.getElementById('year-filter');
+        const selectedYear = parseInt(yearSel.value,10) || new Date().getFullYear();
+        for(let m=1;m<=12;m++){
+          const opt = document.createElement('option');
+          opt.value = String(m);
+          opt.textContent = MONTH_NAMES[m-1];
+          sel.appendChild(opt);
+        }
+        const cur = new Date();
+        sel.value = (selectedYear===cur.getFullYear()) ? String(cur.getMonth()+1) : '1';
+        sel.onchange = renderCalendarFromFilters;
+      }
+
+      function renderCalendarFromFilters(){
+        const year = parseInt(document.getElementById('year-filter').value,10);
+        const month = parseInt(document.getElementById('month-filter').value,10) || (new Date().getMonth()+1);
+        renderCalendar(year, month);
+      }
+
+      function renderCalendar(year, month){
+        const cal = document.getElementById('calendar');
+        cal.className = 'calendar';
+        cal.innerHTML = '';
+        const hdr = document.createElement('div'); hdr.className = 'calendar-header'; hdr.textContent = `${MONTH_NAMES[month-1]} de ${year}`; cal.appendChild(hdr);
+        const grid = document.createElement('div'); grid.className = 'calendar-grid';
+        const days = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+        days.forEach(d=>{ const el=document.createElement('div'); el.className='calendar-dayname'; el.textContent=d; grid.appendChild(el); });
+        const first = new Date(year, month-1, 1);
+        const startDay = first.getDay();
+        const lastDay = new Date(year, month, 0).getDate();
+        for(let i=0;i<startDay;i++){ const el=document.createElement('div'); el.className='calendar-cell empty'; grid.appendChild(el); }
+        for(let d=1; d<=lastDay; d++){
+          const cell = document.createElement('div'); cell.className='calendar-cell';
+          const dateObj = new Date(year, month-1, d);
+          const weekday = dateObj.getDay();
+          if(weekday===0 || weekday===6) cell.classList.add('weekend');
+          const dt = document.createElement('div'); dt.className='date-num'; dt.textContent = d; cell.appendChild(dt);
+          const dayStr = `${year.toString().padStart(4,'0')}-${String(month).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+          const appts = ALL_APPOINTMENTS.filter(a=>a.date===dayStr);
+          if(appts.length>0){
+            const ul = document.createElement('div'); ul.className='appointment-list';
+            appts.slice(0,3).forEach(a=>{ const it=document.createElement('div'); it.className='appointment-item'; it.textContent = `${a.time||''} ${a.patient_name}`; ul.appendChild(it); });
+            if(appts.length>3){ const more=document.createElement('div'); more.className='appointment-item'; more.style.opacity='0.8'; more.textContent = `+${appts.length-3} mais`; ul.appendChild(more); }
+            cell.appendChild(ul);
+          }
+          // attach date and click
+          cell.dataset.date = dayStr;
+          if(!cell.classList.contains('empty')){
+            cell.style.cursor = 'pointer';
+            cell.onclick = ()=> showDaySchedule(dayStr);
+          }
+          grid.appendChild(cell);
+        }
+        cal.appendChild(grid);
+      }
+
+      // Modal for day hours
+      function showDaySchedule(dayStr){
+        // create backdrop if missing
+        let bd = document.getElementById('modal-backdrop');
+        if(!bd){
+          bd = document.createElement('div'); bd.id='modal-backdrop'; bd.className='modal-backdrop';
+          bd.innerHTML = '<div class="modal"><div style="display:flex;align-items:start;justify-content:space-between"><h4 id="modal-title"></h4><div class="close" onclick="closeModal()">✕</div></div><div id="modal-body"></div></div>';
+          document.body.appendChild(bd);
+        }
+        // remember which day is shown in the modal
+        bd.dataset.day = dayStr;
+        // populate
+        const title = document.getElementById('modal-title');
+        const body = document.getElementById('modal-body');
+        const d = new Date(dayStr);
+        title.textContent = `${d.getDate()} de ${MONTH_NAMES[d.getMonth()]} de ${d.getFullYear()}`;
+        // hours 8..20
+        body.innerHTML = '';
+        const inner = document.createElement('div'); inner.className = 'modal-body-inner';
+        const grid = document.createElement('div'); grid.className='hours-grid';
+        const detail = document.createElement('div'); detail.className = 'detail-panel'; detail.id = 'detail-panel';
+        for(let h=8; h<=20; h++){
+          const hh = String(h).padStart(2,'0')+':00';
+          const btn = document.createElement('button'); btn.type = 'button'; btn.className='hour-btn';
+          const spanHour = document.createElement('span'); spanHour.className='hour-label'; spanHour.textContent = hh;
+          const spanDash = document.createElement('span'); spanDash.className='dash'; spanDash.textContent = ' - ';
+          const spanPatient = document.createElement('span'); spanPatient.className='patient-name'; spanPatient.textContent = '';
+          // prepare content container (left side) and actions container (right side)
+          const left = document.createElement('div'); left.className = 'hour-content';
+          left.appendChild(spanHour);
+          left.appendChild(spanDash);
+          left.appendChild(spanPatient);
+          const actions = document.createElement('div'); actions.className = 'hour-actions';
+          // check occupied (find first appointment at that hour)
+          const appt = ALL_APPOINTMENTS.find(a=>a.date===dayStr && a.time && parseInt(a.time.split(':')[0],10)===h);
+          if(appt){
+            btn.classList.add('occupied'); btn.title = (appt.patient_name||'') + (appt.reason?(' — '+appt.reason):'');
+            spanPatient.textContent = appt.patient_name || '';
+            // clicking the hour opens detail in side panel
+            btn.onclick = ()=> openDetailPanel(appt);
+            spanPatient.style.cursor = 'pointer';
+            spanPatient.onclick = (ev)=>{ ev.stopPropagation(); openDetailPanel(appt); };
+            // add inline cancel button in the actions container for quick cancellation
+            const cancelBtn = document.createElement('button');
+            cancelBtn.type = 'button';
+            cancelBtn.className = 'cancel-inline';
+            cancelBtn.textContent = 'Cancelar consulta';
+            cancelBtn.onclick = (ev)=>{
+              ev.stopPropagation();
+              // show confirmation inside detail panel (danger style)
+              showAppConfirm(detail, 'Confirma cancelamento desta consulta?', async ()=>{
+                try{
+                  const res = await fetch('/api/appointments/'+appt.id, { method: 'DELETE' });
+                  if(!res.ok) throw new Error('delete failed');
+                  await loadAppointments();
+                }catch(err){
+                  const msg = document.createElement('div'); msg.style.color='red'; msg.style.fontSize='13px'; msg.textContent='Erro ao cancelar.'; detail.appendChild(msg);
+                }
+              }, {danger:true});
+            };
+            actions.appendChild(cancelBtn);
+          } else {
+            btn.onclick = ()=> createAppointment(dayStr, hh);
+          }
+          btn.appendChild(left);
+          btn.appendChild(actions);
+          grid.appendChild(btn);
+        }
+        inner.appendChild(grid);
+        inner.appendChild(detail);
+        body.appendChild(inner);
+        bd.style.display='flex';
+        // prevent page scroll while modal is open
+        document.body.classList.add('modal-open');
+      }
+
+      function closeModal(){
+        const bd=document.getElementById('modal-backdrop');
+        if(bd) bd.style.display='none';
+        if(bd) bd.dataset.day = '';
+        // re-enable page scroll
+        document.body.classList.remove('modal-open');
+        // cleanup any inline forms/management UI
+        const inf = document.getElementById('inline-form'); if(inf) inf.remove();
+        const im = document.getElementById('inline-manage'); if(im) im.remove();
+      }
+
+      function createAppointment(date, time){
+        // render CPF-first inline flow inside right-side detail panel
+        const detailPanel = document.getElementById('detail-panel');
+        if(!detailPanel) return;
+        detailPanel.innerHTML = '';
+        const wrap = document.createElement('div'); wrap.id = 'inline-form'; wrap.style.marginTop='4px';
+        wrap.innerHTML = `
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div><strong>Agendar</strong> — ${time}</div>
+            <label style="font-size:13px;color:var(--muted);margin-top:6px">CPF do paciente</label>
+            <div style="display:flex;gap:8px;align-items:center">
+              <input id="inline-cpf" placeholder="000.000.000-00" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.06)" />
+              <button id="inline-cpf-search" type="button" class="secondary">Procurar</button>
+            </div>
+            <div id="inline-cpf-msg" style="font-size:13px;color:var(--muted)"></div>
+            <div id="inline-patient-found" style="display:none;margin-top:6px"></div>
+            <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:6px">
+              <button id="inline-cancel" type="button" style="background:#ddd;color:#333;border-radius:8px;padding:8px 12px">Cancelar</button>
+            </div>
+          </div>
+        `;
+        detailPanel.appendChild(wrap);
+
+        const cpfInput = wrap.querySelector('#inline-cpf');
+        const cpfMsg = wrap.querySelector('#inline-cpf-msg');
+        const patientFound = wrap.querySelector('#inline-patient-found');
+        const btnSearch = wrap.querySelector('#inline-cpf-search');
+        const btnCancel = wrap.querySelector('#inline-cancel');
+
+        btnCancel.onclick = ()=>{ wrap.remove(); detailPanel.innerHTML=''; };
+
+        const performSearch = async ()=>{
+          const raw = (cpfInput.value||'').replace(/\D/g,'');
+          cpfInput.value = formatCPF(raw);
+          if(raw.length!==11){ cpfMsg.style.color='red'; cpfMsg.textContent='CPF incompleto.'; return; }
+          if(!validateCPF(raw)){ cpfMsg.style.color='red'; cpfMsg.textContent='CPF inválido.'; return; }
+          cpfMsg.style.color='var(--muted)'; cpfMsg.textContent='Procurando paciente...';
+          // fetch patients and search by cpf
+          const list = await fetchPatients();
+          const found = (list||[]).find(p=> (String(p.cpf||'').replace(/\D/g,'') )===raw );
+          if(found){
+            cpfMsg.style.color='green'; cpfMsg.textContent='Paciente encontrado: '+(found.name||'(sem nome)');
+            // show confirm button
+            patientFound.style.display='block';
+            patientFound.innerHTML = `<div style="font-size:14px"><strong>${found.name||'(sem nome)'}</strong> — ${found.cpf||''}</div>
+              <div style=\"display:flex;gap:8px;justify-content:flex-end;margin-top:8px\"> 
+                <button id=\"inline-agendar\" type=\"button\" style=\"background:var(--primary-600);color:#fff;border-radius:8px;padding:8px 12px\">Agendar para este paciente</button>
+              </div>`;
+            const btnAg = patientFound.querySelector('#inline-agendar');
+            btnAg.onclick = async ()=>{
+              const payload = { patient_name: found.name||'', patient_id: found.id, date: date, time: time };
+              patientFound.innerHTML += '<div style="margin-top:6px;font-size:13px;color:var(--muted)">Enviando agendamento...</div>';
+              try{
+                const res = await fetch('/api/appointments',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+                const j = await res.json();
+                if(j && j.status==='ok'){
+                  patientFound.innerHTML = '<div style="color:green">Agendamento criado com sucesso.</div>';
+                  await loadAppointments();
+                } else {
+                  patientFound.innerHTML = '<div style="color:red">Erro ao criar agendamento.</div>';
+                }
+              }catch(err){ patientFound.innerHTML = '<div style="color:red">Erro de conexão.</div>'; }
+              setTimeout(()=>{ wrap.remove(); detailPanel.innerHTML=''; },900);
+            };
+          } else {
+            cpfMsg.style.color='red'; cpfMsg.textContent='Paciente não cadastrado.';
+            patientFound.style.display='block';
+            patientFound.innerHTML = `<div style=\"font-size:13px;color:var(--muted)\">Deseja cadastrar o paciente?</div>
+              <div style=\"display:flex;gap:8px;justify-content:flex-end;margin-top:8px\">
+                <button id=\"inline-goto-cad\" type=\"button\" class=\"secondary\">Ir para cadastro</button>
+              </div>`;
+            const btnGo = patientFound.querySelector('#inline-goto-cad');
+            btnGo.onclick = ()=>{
+              // close the day/hours modal and switch to paciente tab to register
+              closeModal();
+              showTab('paciente');
+              showPatientTab('dados');
+              // small delay to ensure patient UI initialized
+              setTimeout(()=>{
+                const pCpf = document.getElementById('p_cpf'); if(pCpf){ pCpf.value = formatCPF(raw); pCpf.dispatchEvent(new Event('input')); }
+                // focus name
+                const pName = document.getElementById('p_name'); if(pName) pName.focus();
+              },120);
+            };
+          }
+        };
+
+        btnSearch.onclick = performSearch;
+        cpfInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ performSearch(); } });
+      }
+
+      function manageAppointment(appt){
+        // show inline management UI (no native confirm)
+        const body = document.getElementById('modal-body');
+        // render management UI in the side detail panel
+        const detailPanel = document.getElementById('detail-panel');
+        if(!detailPanel) return;
+        detailPanel.innerHTML = '';
+        const wrap = document.createElement('div'); wrap.id = 'inline-manage'; wrap.style.marginTop='4px';
+        wrap.innerHTML = `
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div><strong>Agendamento</strong> — ${appt.time || ''}</div>
+            <div style="font-size:14px"><strong>Nome:</strong> ${appt.patient_name||'<i>sem nome</i>'}</div>
+            <div style="font-size:13px;color:var(--muted)"><strong>Motivo:</strong> ${appt.reason||'<i>—</i>'}</div>
+            <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:6px">
+              <button id="manage-cancel" type="button" style="background:#ddd;color:#333;border-radius:8px;padding:8px 12px">Fechar</button>
+              <button id="manage-delete" type="button" style="background:var(--green-700);color:white;border-radius:8px;padding:8px 12px">Cancelar consulta</button>
+            </div>
+            <div id="manage-msg" style="margin-top:6px;font-size:13px;color:var(--muted)"></div>
+          </div>
+        `;
+        detailPanel.appendChild(wrap);
+        document.getElementById('manage-cancel').onclick = ()=>{ detailPanel.innerHTML=''; };
+        document.getElementById('manage-delete').onclick = async ()=>{
+          showAppConfirm(detailPanel, 'Confirma cancelamento desta consulta?', async ()=>{
+            const msg = document.getElementById('manage-msg'); msg.textContent = 'Cancelando...';
+            try{
+              const res = await fetch('/api/appointments/'+appt.id, { method: 'DELETE' });
+              if(!res.ok) throw new Error('delete failed');
+              const j = await res.json();
+              if(j && j.status==='ok'){
+                msg.style.color='green'; msg.textContent = 'Consulta cancelada.';
+                await loadAppointments();
+              } else { msg.style.color='red'; msg.textContent = 'Erro ao cancelar.'; }
+            }catch(err){ msg.style.color='red'; msg.textContent = 'Erro de conexão.'; }
+            setTimeout(()=>{ detailPanel.innerHTML=''; }, 800);
+          }, {danger:true});
+        };
+      }
+
+    // helper to open detail panel for an appointment (optionally focus delete)
+    function openDetailPanel(appt, opts){
+      const detailPanel = document.getElementById('detail-panel');
+      if(!detailPanel) return;
+      // ensure modal open
+      const bd = document.getElementById('modal-backdrop'); if(bd) bd.style.display='flex';
+      detailPanel.innerHTML = '';
+      const head = document.createElement('h5'); head.textContent = `Detalhes — ${appt.time||''}`; detailPanel.appendChild(head);
+      const info = document.createElement('div'); info.style.marginTop='8px';
+      info.innerHTML = `<div style="font-size:14px"><strong>Nome:</strong> ${appt.patient_name||'<i>sem nome</i>'}</div><div style="font-size:13px;color:var(--muted)"><strong>Motivo:</strong> ${appt.reason||'<i>—</i>'}</div>`;
+      detailPanel.appendChild(info);
+      const actions = document.createElement('div'); actions.style.marginTop='10px'; actions.style.display='flex'; actions.style.justifyContent='flex-end'; actions.style.gap='8px';
+      const closeBtn = document.createElement('button'); closeBtn.type='button'; closeBtn.textContent='Fechar'; closeBtn.style.background='#ddd'; closeBtn.style.border='0'; closeBtn.style.padding='8px 12px'; closeBtn.style.borderRadius='8px';
+      closeBtn.onclick = ()=>{ detailPanel.innerHTML=''; };
+      const delBtn = document.createElement('button'); delBtn.type='button'; delBtn.textContent='Cancelar consulta'; delBtn.style.background='var(--green-700)'; delBtn.style.color='white'; delBtn.style.border='0'; delBtn.style.padding='8px 12px'; delBtn.style.borderRadius='8px';
+      delBtn.onclick = async ()=>{
+        showAppConfirm(detailPanel, 'Confirma cancelamento desta consulta?', async ()=>{
+          const msg = document.createElement('div'); msg.style.marginTop='8px'; msg.style.fontSize='13px'; msg.style.color='var(--muted)'; msg.textContent='Cancelando...'; detailPanel.appendChild(msg);
+          try{
+            const res = await fetch('/api/appointments/'+appt.id, { method: 'DELETE' });
+            if(!res.ok) throw new Error('delete failed');
+            const j = await res.json();
+            if(j && j.status==='ok'){
+              msg.style.color='green'; msg.textContent='Consulta cancelada.';
+              await loadAppointments();
+              setTimeout(()=>{ detailPanel.innerHTML=''; }, 600);
+            } else { msg.style.color='red'; msg.textContent='Erro ao cancelar.'; }
+          }catch(err){ msg.style.color='red'; msg.textContent='Erro de conexão.'; }
+        }, {danger:true});
+      };
+      actions.appendChild(closeBtn); actions.appendChild(delBtn); detailPanel.appendChild(actions);
+      if(opts && opts.focusDelete){ delBtn.focus(); }
+    }
+
+    // in-app confirmation UI (renders inside provided container)
+    function showAppConfirm(container, message, onConfirm, opts){
+      if(!container) return;
+      // remove any existing confirm
+      const prev = container.querySelector('.app-confirm'); if(prev) prev.remove();
+      const box = document.createElement('div'); box.className='app-confirm' + ((opts && opts.danger) ? ' danger' : '');
+      box.innerHTML = `<div style="font-size:14px;margin-bottom:8px">${message}</div>
+        <div style="display:flex;justify-content:flex-end;gap:8px">
+          <button class="app-confirm-cancel" type="button">Cancelar</button>
+          <button class="app-confirm-ok" type="button">Confirmar</button>
+        </div>`;
+      container.appendChild(box);
+      const btnCancel = box.querySelector('.app-confirm-cancel');
+      const btnOk = box.querySelector('.app-confirm-ok');
+      btnCancel.onclick = ()=>{ box.remove(); };
+      btnOk.onclick = async ()=>{ box.remove(); try{ await onConfirm(); }catch(e){ console.warn('confirm action error', e); } };
+      btnOk.focus();
+    }
+
+    // PWA: registra service worker para permitir instalação no tablet/celular
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/static/service-worker.js').catch((err) => {
+          console.warn('Falha ao registrar service worker:', err);
+        });
+      });
+    }
+
+      // carregar na inicialização
+      loadAppointments();
+    </script>
+  </body>
+</html>
