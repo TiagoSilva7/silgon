@@ -562,6 +562,7 @@
       let ALL_APPOINTMENTS = [];
       let ACTIVE_PRONTUARIO_ID = '';
       let PENDING_ATTACHMENTS = [];
+      let PDF_WATERMARK_LOGO_PROMISE = null;
 
 
       // theme selector removed — using default CSS variables
@@ -886,9 +887,49 @@
         ];
       }
 
-      function renderPdfWatermark(doc){
+      async function getPdfWatermarkLogo(){
+        if(PDF_WATERMARK_LOGO_PROMISE) return PDF_WATERMARK_LOGO_PROMISE;
+        PDF_WATERMARK_LOGO_PROMISE = (async ()=>{
+          try{
+            const res = await fetch('/static/silgon.PNG', { cache: 'force-cache' });
+            if(!res.ok) return null;
+            const blob = await res.blob();
+            const dataUrl = await new Promise((resolve, reject)=>{
+              const reader = new FileReader();
+              reader.onload = ()=> resolve(reader.result);
+              reader.onerror = ()=> reject(new Error('Falha ao ler logo.'));
+              reader.readAsDataURL(blob);
+            });
+            return typeof dataUrl === 'string' ? dataUrl : null;
+          }catch(e){
+            console.warn('Não foi possível carregar a logo do PDF.', e);
+            return null;
+          }
+        })();
+        return PDF_WATERMARK_LOGO_PROMISE;
+      }
+
+      function renderPdfWatermark(doc, logoDataUrl){
         const pageWidth = doc.internal.pageSize.getWidth();
         const pageHeight = doc.internal.pageSize.getHeight();
+        if(logoDataUrl){
+          const logoWidth = 110;
+          const logoHeight = 110;
+          const x = (pageWidth - logoWidth) / 2;
+          const y = (pageHeight - logoHeight) / 2;
+          try{
+            if(typeof doc.GState === 'function' && typeof doc.setGState === 'function'){
+              doc.setGState(new doc.GState({ opacity: 0.10 }));
+            }
+            doc.addImage(logoDataUrl, 'PNG', x, y, logoWidth, logoHeight, undefined, 'FAST');
+            if(typeof doc.GState === 'function' && typeof doc.setGState === 'function'){
+              doc.setGState(new doc.GState({ opacity: 1 }));
+            }
+            return;
+          }catch(e){
+            console.warn('Falha ao aplicar logo como marca d\'água do PDF.', e);
+          }
+        }
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(56);
         doc.setTextColor(230, 230, 230);
@@ -896,7 +937,7 @@
         doc.setTextColor(33, 50, 38);
       }
 
-      function generateProntuarioPdf(){
+      async function generateProntuarioPdf(){
         const msg = document.getElementById('report-msg');
         if(msg){ msg.style.color='var(--muted)'; msg.textContent=''; }
 
@@ -925,10 +966,11 @@
         const sections = buildProntuarioPdfSections(pid, prontuario);
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+        const logoDataUrl = await getPdfWatermarkLogo();
 
         sections.forEach((section, idx)=>{
           if(idx>0) doc.addPage('a4', 'p');
-          renderPdfWatermark(doc);
+          renderPdfWatermark(doc, logoDataUrl);
 
           const marginX = 14;
           let y = 16;
