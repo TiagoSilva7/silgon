@@ -2156,6 +2156,12 @@
               <button id="inline-cpf-search" type="button" class="secondary">Procurar</button>
             </div>
             <div id="inline-cpf-msg" style="font-size:13px;color:var(--muted)"></div>
+            <label style="font-size:13px;color:var(--muted);margin-top:6px">Nome do paciente</label>
+            <div style="display:flex;gap:8px;align-items:center">
+              <input id="inline-name" placeholder="Digite o nome do paciente" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.06)" />
+              <button id="inline-name-search" type="button" class="secondary">Procurar</button>
+            </div>
+            <div id="inline-name-msg" style="font-size:13px;color:var(--muted)"></div>
             <div id="inline-patient-found" style="display:none;margin-top:6px"></div>
             <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:6px">
               <button id="inline-cancel" type="button" style="background:#ddd;color:#333;border-radius:8px;padding:8px 12px">Cancelar</button>
@@ -2166,15 +2172,92 @@
 
         const cpfInput = wrap.querySelector('#inline-cpf');
         const cpfMsg = wrap.querySelector('#inline-cpf-msg');
+        const nameInput = wrap.querySelector('#inline-name');
+        const nameMsg = wrap.querySelector('#inline-name-msg');
         const patientFound = wrap.querySelector('#inline-patient-found');
         const btnSearch = wrap.querySelector('#inline-cpf-search');
+        const btnNameSearch = wrap.querySelector('#inline-name-search');
         const btnCancel = wrap.querySelector('#inline-cancel');
 
         btnCancel.onclick = ()=>{ wrap.remove(); detailPanel.innerHTML=''; };
 
+        const clearInlineMessages = ()=>{
+          cpfMsg.style.color = 'var(--muted)';
+          cpfMsg.textContent = '';
+          nameMsg.style.color = 'var(--muted)';
+          nameMsg.textContent = '';
+        };
+
+        const scheduleForPatient = async (patient)=>{
+          const payload = { patient_name: patient.name||'', patient_id: patient.id, date: date, time: time };
+          patientFound.innerHTML += '<div style="margin-top:6px;font-size:13px;color:var(--muted)">Enviando agendamento...</div>';
+          try{
+            const res = await fetch('/api/appointments',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+            const j = await res.json();
+            if(j && j.status==='ok'){
+              patientFound.innerHTML = '<div style="color:green">Agendamento criado com sucesso.</div>';
+              await loadAppointments();
+            } else {
+              patientFound.innerHTML = '<div style="color:red">Erro ao criar agendamento.</div>';
+            }
+          }catch(err){ patientFound.innerHTML = '<div style="color:red">Erro de conexão.</div>'; }
+          setTimeout(()=>{ wrap.remove(); detailPanel.innerHTML=''; },900);
+        };
+
+        const renderFoundPatient = (patient, foundMessage, targetMsg)=>{
+          clearInlineMessages();
+          if(targetMsg){
+            targetMsg.style.color = 'green';
+            targetMsg.textContent = foundMessage;
+          }
+          patientFound.style.display='block';
+          patientFound.innerHTML = `<div style="font-size:14px"><strong>${patient.name||'(sem nome)'}</strong> — ${patient.cpf||''}</div>
+            <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px"> 
+              <button id="inline-agendar" type="button" style="background:var(--primary-600);color:#fff;border-radius:8px;padding:8px 12px">Agendar para este paciente</button>
+            </div>`;
+          const btnAg = patientFound.querySelector('#inline-agendar');
+          btnAg.onclick = async ()=> scheduleForPatient(patient);
+        };
+
+        const openCadastroWithPrefill = ({ cpfRaw = '', patientName = '' } = {})=>{
+          closeModal();
+          showTab('paciente');
+          showPatientTab('dados');
+          setTimeout(()=>{
+            const pCpf = document.getElementById('p_cpf');
+            if(pCpf && cpfRaw){
+              pCpf.value = formatCPF(cpfRaw);
+              pCpf.dispatchEvent(new Event('input'));
+            }
+            const pName = document.getElementById('p_name');
+            if(pName && patientName){
+              pName.value = patientName;
+              pName.dispatchEvent(new Event('input'));
+            }
+            if(patientName){
+              if(pCpf) pCpf.focus();
+            } else if(pName){
+              pName.focus();
+            }
+          },120);
+        };
+
+        const renderGoToCadastro = (message, onGo)=>{
+          patientFound.style.display='block';
+          patientFound.innerHTML = `<div style="font-size:13px;color:var(--muted)">${message}</div>
+            <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px">
+              <button id="inline-goto-cad" type="button" class="secondary">Ir para cadastro</button>
+            </div>`;
+          const btnGo = patientFound.querySelector('#inline-goto-cad');
+          btnGo.onclick = onGo;
+        };
+
         const performSearch = async ()=>{
           const raw = (cpfInput.value||'').replace(/\D/g,'');
           cpfInput.value = formatCPF(raw);
+          patientFound.style.display = 'none';
+          patientFound.innerHTML = '';
+          nameMsg.textContent = '';
           if(raw.length!==11){ cpfMsg.style.color='red'; cpfMsg.textContent='CPF incompleto.'; return; }
           if(!validateCPF(raw)){ cpfMsg.style.color='red'; cpfMsg.textContent='CPF inválido.'; return; }
           cpfMsg.style.color='var(--muted)'; cpfMsg.textContent='Procurando paciente...';
@@ -2182,54 +2265,44 @@
           const list = await fetchPatients();
           const found = (list||[]).find(p=> (String(p.cpf||'').replace(/\D/g,'') )===raw );
           if(found){
-            cpfMsg.style.color='green'; cpfMsg.textContent='Paciente encontrado: '+(found.name||'(sem nome)');
-            // show confirm button
-            patientFound.style.display='block';
-            patientFound.innerHTML = `<div style="font-size:14px"><strong>${found.name||'(sem nome)'}</strong> — ${found.cpf||''}</div>
-              <div style=\"display:flex;gap:8px;justify-content:flex-end;margin-top:8px\"> 
-                <button id=\"inline-agendar\" type=\"button\" style=\"background:var(--primary-600);color:#fff;border-radius:8px;padding:8px 12px\">Agendar para este paciente</button>
-              </div>`;
-            const btnAg = patientFound.querySelector('#inline-agendar');
-            btnAg.onclick = async ()=>{
-              const payload = { patient_name: found.name||'', patient_id: found.id, date: date, time: time };
-              patientFound.innerHTML += '<div style="margin-top:6px;font-size:13px;color:var(--muted)">Enviando agendamento...</div>';
-              try{
-                const res = await fetch('/api/appointments',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-                const j = await res.json();
-                if(j && j.status==='ok'){
-                  patientFound.innerHTML = '<div style="color:green">Agendamento criado com sucesso.</div>';
-                  await loadAppointments();
-                } else {
-                  patientFound.innerHTML = '<div style="color:red">Erro ao criar agendamento.</div>';
-                }
-              }catch(err){ patientFound.innerHTML = '<div style="color:red">Erro de conexão.</div>'; }
-              setTimeout(()=>{ wrap.remove(); detailPanel.innerHTML=''; },900);
-            };
+            renderFoundPatient(found, 'Paciente encontrado: '+(found.name||'(sem nome)'), cpfMsg);
           } else {
             cpfMsg.style.color='red'; cpfMsg.textContent='Paciente não cadastrado.';
-            patientFound.style.display='block';
-            patientFound.innerHTML = `<div style=\"font-size:13px;color:var(--muted)\">Deseja cadastrar o paciente?</div>
-              <div style=\"display:flex;gap:8px;justify-content:flex-end;margin-top:8px\">
-                <button id=\"inline-goto-cad\" type=\"button\" class=\"secondary\">Ir para cadastro</button>
-              </div>`;
-            const btnGo = patientFound.querySelector('#inline-goto-cad');
-            btnGo.onclick = ()=>{
-              // close the day/hours modal and switch to paciente tab to register
-              closeModal();
-              showTab('paciente');
-              showPatientTab('dados');
-              // small delay to ensure patient UI initialized
-              setTimeout(()=>{
-                const pCpf = document.getElementById('p_cpf'); if(pCpf){ pCpf.value = formatCPF(raw); pCpf.dispatchEvent(new Event('input')); }
-                // focus name
-                const pName = document.getElementById('p_name'); if(pName) pName.focus();
-              },120);
-            };
+            renderGoToCadastro('Deseja cadastrar o paciente?', ()=> openCadastroWithPrefill({ cpfRaw: raw }));
           }
         };
 
+        const performNameSearch = async ()=>{
+          const query = String(nameInput.value||'').trim();
+          patientFound.style.display = 'none';
+          patientFound.innerHTML = '';
+          cpfMsg.textContent = '';
+          if(!query || query.length < 2){ nameMsg.style.color='red'; nameMsg.textContent='Digite ao menos 2 letras.'; return; }
+          nameMsg.style.color='var(--muted)'; nameMsg.textContent='Procurando paciente...';
+          const list = await fetchPatients();
+          const normalizedQuery = normalizeText(query);
+          const matches = (list||[]).filter(p=> normalizeText(p.name).includes(normalizedQuery));
+          if(!matches.length){
+            nameMsg.style.color='red';
+            nameMsg.textContent='Paciente não cadastrado.';
+            renderGoToCadastro('Deseja cadastrar o paciente?', ()=> openCadastroWithPrefill({ patientName: query }));
+            return;
+          }
+          if(matches.length === 1){
+            renderFoundPatient(matches[0], 'Paciente encontrado: '+(matches[0].name||'(sem nome)'), nameMsg);
+            return;
+          }
+          nameMsg.style.color='var(--muted)';
+          nameMsg.textContent='Mais de um paciente encontrado. Selecione na lista.';
+          showPatientNamePicker(matches, query, (selected)=>{
+            renderFoundPatient(selected, 'Paciente selecionado: '+(selected.name||'(sem nome)'), nameMsg);
+          });
+        };
+
         btnSearch.onclick = performSearch;
+        btnNameSearch.onclick = performNameSearch;
         cpfInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ performSearch(); } });
+        nameInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ performNameSearch(); } });
       }
 
       function manageAppointment(appt){
