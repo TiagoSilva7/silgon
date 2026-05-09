@@ -503,6 +503,16 @@
                 <label>Plano de tratamento</label>
                 <textarea id="pl_plano" rows="4" style="width:100%;padding:8px;border-radius:8px"></textarea>
               </div>
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+                  <label style="margin:0;">Prestação de Serviço</label>
+                  <div style="display:flex;gap:12px;align-items:center">
+                    <label style="font-weight:600;margin:0;display:inline-flex;align-items:center;gap:6px"><input type="radio" name="pl_prestacao_servico" value="nao" checked /> Não</label>
+                    <label style="font-weight:600;margin:0;display:inline-flex;align-items:center;gap:6px"><input type="radio" name="pl_prestacao_servico" value="sim" /> Sim</label>
+                  </div>
+                  <input id="pl_prestacao_servico_texto" placeholder="Informe a prestação de serviço" style="display:none;flex:1;min-width:240px;padding:8px;border-radius:8px" />
+                </div>
+              </div>
               <div>
                 <label>Evolução</label>
                 <div id="pl_evol_list" style="display:flex;flex-direction:column;gap:8px;max-height:220px;overflow:auto;padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.04);background:rgba(255,255,255,0.95)"></div>
@@ -871,6 +881,7 @@
           `Objetivo: ${getInputValue('pl_objetivo') || 'Não informado'}`,
           `Recursos terapêuticos: ${getInputValue('pl_recursos') || 'Não informado'}`,
           `Plano de tratamento: ${getInputValue('pl_plano') || 'Não informado'}`,
+          `Prestação de Serviço: ${getPrestacaoServicoPdfText()}`,
           `Evoluções: ${evolText}`
         ];
 
@@ -937,6 +948,17 @@
         doc.setTextColor(33, 50, 38);
       }
 
+      function renderPdfFooter(doc){
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.setTextColor(90, 90, 90);
+        doc.text('David Francisco da Silva', pageWidth / 2, pageHeight - 10, { align: 'center' });
+        doc.text('CREFITO: 453418-F.', pageWidth / 2, pageHeight - 5, { align: 'center' });
+        doc.setTextColor(33, 50, 38);
+      }
+
       async function generateProntuarioPdf(){
         const msg = document.getElementById('report-msg');
         if(msg){ msg.style.color='var(--muted)'; msg.textContent=''; }
@@ -975,7 +997,7 @@
           const marginX = 14;
           let y = 16;
           const maxWidth = 182;
-          const maxY = 282;
+          const maxY = 274;
           const lineHeight = 5.3;
 
           if(idx === 0){
@@ -1017,6 +1039,8 @@
             doc.text('Resumo truncado para manter 1 página por aba.', marginX, maxY);
             doc.setFont('helvetica', 'normal');
           }
+
+          renderPdfFooter(doc);
         });
 
         const safePatient = patientName.replace(/[^a-zA-Z0-9\-_\s]/g, '').trim().replace(/\s+/g, '_') || 'paciente';
@@ -1038,6 +1062,25 @@
         const basePid = pid || getCurrentPatientId();
         if(!basePid) return '';
         return ACTIVE_PRONTUARIO_ID || '';
+      }
+
+      function updatePrestacaoServicoUI(){
+        const selected = document.querySelector('input[name="pl_prestacao_servico"]:checked');
+        const input = document.getElementById('pl_prestacao_servico_texto');
+        if(!input) return;
+        const showCustom = selected && selected.value === 'sim';
+        input.style.display = showCustom ? 'block' : 'none';
+        if(!showCustom) input.value = '';
+      }
+
+      function getPrestacaoServicoPdfText(){
+        const selected = document.querySelector('input[name="pl_prestacao_servico"]:checked');
+        const input = document.getElementById('pl_prestacao_servico_texto');
+        if(selected && selected.value === 'sim'){
+          const custom = input ? String(input.value || '').trim() : '';
+          return custom || 'Não informado';
+        }
+        return 'SILGON';
       }
 
       function loadFinanceiroForPatient(pid){
@@ -1789,6 +1832,8 @@
         const plSave = document.getElementById('plano-save'); if(plSave) plSave.onclick = savePlano;
         const plClear = document.getElementById('plano-clear'); if(plClear) plClear.onclick = clearPlano;
         const plAdd = document.getElementById('pl_evo_add'); if(plAdd) plAdd.onclick = addEvolution;
+        document.querySelectorAll('input[name="pl_prestacao_servico"]').forEach(r=>{ r.onchange = updatePrestacaoServicoUI; });
+        updatePrestacaoServicoUI();
         const anType = document.getElementById('anexos-upload-type'); if(anType) anType.innerHTML = buildAttachmentTypeOptions('');
         const anAdd = document.getElementById('anexos-add-files'); if(anAdd) anAdd.onclick = ()=>{ const input = document.getElementById('anexos-input'); if(input) input.click(); };
         const anInput = document.getElementById('anexos-input'); if(anInput) anInput.onchange = (e)=>{ const fs = e && e.target && e.target.files ? Array.from(e.target.files) : []; addPendingAnexos(fs); if(anInput) anInput.value=''; };
@@ -1909,16 +1954,19 @@
 
       function escapeHtml(s){ if(!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;'); }
 
-      function loadPlanoForPatient(pid){ if(!pid) { document.getElementById('pl_objetivo').value=''; document.getElementById('pl_recursos').value=''; document.getElementById('pl_plano').value=''; renderEvolutions([]); return; }
+      function loadPlanoForPatient(pid){ if(!pid) { document.getElementById('pl_objetivo').value=''; document.getElementById('pl_recursos').value=''; document.getElementById('pl_plano').value=''; document.querySelectorAll('input[name="pl_prestacao_servico"]').forEach(r=>{ r.checked = (r.value==='nao'); }); document.getElementById('pl_prestacao_servico_texto').value=''; updatePrestacaoServicoUI(); renderEvolutions([]); return; }
         try{
           const prontuarioId = getActiveProntuarioId(pid);
-          if(!prontuarioId){ document.getElementById('pl_objetivo').value=''; document.getElementById('pl_recursos').value=''; document.getElementById('pl_plano').value=''; renderEvolutions([]); return; }
+          if(!prontuarioId){ document.getElementById('pl_objetivo').value=''; document.getElementById('pl_recursos').value=''; document.getElementById('pl_plano').value=''; document.querySelectorAll('input[name="pl_prestacao_servico"]').forEach(r=>{ r.checked = (r.value==='nao'); }); document.getElementById('pl_prestacao_servico_texto').value=''; updatePrestacaoServicoUI(); renderEvolutions([]); return; }
           const raw = localStorage.getItem('plano_'+prontuarioId);
-          if(!raw){ document.getElementById('pl_objetivo').value=''; document.getElementById('pl_recursos').value=''; document.getElementById('pl_plano').value=''; renderEvolutions([]); return; }
+          if(!raw){ document.getElementById('pl_objetivo').value=''; document.getElementById('pl_recursos').value=''; document.getElementById('pl_plano').value=''; document.querySelectorAll('input[name="pl_prestacao_servico"]').forEach(r=>{ r.checked = (r.value==='nao'); }); document.getElementById('pl_prestacao_servico_texto').value=''; updatePrestacaoServicoUI(); renderEvolutions([]); return; }
           const obj = JSON.parse(raw);
           document.getElementById('pl_objetivo').value = obj.objetivo||'';
           document.getElementById('pl_recursos').value = obj.recursos||'';
           document.getElementById('pl_plano').value = obj.plano||'';
+          document.querySelectorAll('input[name="pl_prestacao_servico"]').forEach(r=>{ r.checked = (r.value === (obj.prestacao_servico_tipo||'nao')); });
+          document.getElementById('pl_prestacao_servico_texto').value = obj.prestacao_servico_texto||'';
+          updatePrestacaoServicoUI();
           renderEvolutions(obj.evolutions||[]);
         }catch(e){ console.warn('loadPlanoForPatient failed', e); }
       }
@@ -1935,18 +1983,20 @@
           const objetivo = (document.getElementById('pl_objetivo').value||'').trim();
           const recursos = (document.getElementById('pl_recursos').value||'').trim();
           const plano = (document.getElementById('pl_plano').value||'').trim();
+          const prestacaoServicoTipo = (document.querySelector('input[name="pl_prestacao_servico"]:checked')||{value:'nao'}).value;
+          const prestacaoServicoTexto = (document.getElementById('pl_prestacao_servico_texto').value||'').trim();
           const existing = JSON.parse(localStorage.getItem('plano_'+prontuarioId) || '{}');
           const evol = existing.evolutions || [];
-          const obj = { objetivo, recursos, plano, evolutions: evol };
+          const obj = { objetivo, recursos, plano, prestacao_servico_tipo: prestacaoServicoTipo, prestacao_servico_texto: prestacaoServicoTipo === 'sim' ? prestacaoServicoTexto : '', evolutions: evol };
           localStorage.setItem('plano_'+prontuarioId, JSON.stringify(obj));
           touchProntuarioModified(pid, prontuarioId);
           if(msg){ msg.style.color='green'; msg.textContent='Plano salvo localmente.'; setTimeout(()=>msg.textContent='',900); }
         }catch(e){ console.error('savePlano failed', e); if(msg){ msg.style.color='red'; msg.textContent='Erro ao salvar.'; } }
       }
 
-      function clearPlano(){ const pid = getCurrentPatientId(); const prontuarioId = getActiveProntuarioId(pid); const msg = document.getElementById('plano-msg'); if(msg) msg.style.color='var(--muted)'; if(!pid || !prontuarioId){ if(msg){ msg.style.color='red'; msg.textContent='Selecione paciente e prontuário.'; } return } document.getElementById('pl_objetivo').value=''; document.getElementById('pl_recursos').value=''; document.getElementById('pl_plano').value=''; localStorage.removeItem('plano_'+prontuarioId); renderEvolutions([]); if(msg){ msg.style.color='green'; msg.textContent='Plano limpo.'; setTimeout(()=>msg.textContent='',900); } }
+      function clearPlano(){ const pid = getCurrentPatientId(); const prontuarioId = getActiveProntuarioId(pid); const msg = document.getElementById('plano-msg'); if(msg) msg.style.color='var(--muted)'; if(!pid || !prontuarioId){ if(msg){ msg.style.color='red'; msg.textContent='Selecione paciente e prontuário.'; } return } document.getElementById('pl_objetivo').value=''; document.getElementById('pl_recursos').value=''; document.getElementById('pl_plano').value=''; document.querySelectorAll('input[name="pl_prestacao_servico"]').forEach(r=>{ r.checked = (r.value==='nao'); }); document.getElementById('pl_prestacao_servico_texto').value=''; updatePrestacaoServicoUI(); localStorage.removeItem('plano_'+prontuarioId); renderEvolutions([]); if(msg){ msg.style.color='green'; msg.textContent='Plano limpo.'; setTimeout(()=>msg.textContent='',900); } }
 
-      function addEvolution(){ const pid = getCurrentPatientId(); const prontuarioId = getActiveProntuarioId(pid); const msg = document.getElementById('plano-msg'); if(msg) msg.style.color='var(--muted)'; if(!pid){ if(msg){ msg.style.color='red'; msg.textContent='Selecione o paciente antes.'; } return } if(!prontuarioId){ askProntuarioForPatient(pid, (document.getElementById('p_name') && document.getElementById('p_name').value) ? document.getElementById('p_name').value : 'paciente'); if(msg){ msg.style.color='red'; msg.textContent='Selecione ou crie o prontuário para salvar.'; } return } const text = (document.getElementById('pl_new_evo').value||'').trim(); if(!text){ if(msg){ msg.style.color='red'; msg.textContent='Digite a evolução antes de adicionar.'; } return } try{ const key = 'plano_'+prontuarioId; const raw = localStorage.getItem(key); const obj = raw ? JSON.parse(raw) : { objetivo:'', recursos:'', plano:'', evolutions:[] }; const ts = new Date().toLocaleString(); obj.evolutions = obj.evolutions || []; obj.evolutions.push({ ts: ts, text: text }); localStorage.setItem(key, JSON.stringify(obj)); touchProntuarioModified(pid, prontuarioId); document.getElementById('pl_new_evo').value=''; renderEvolutions(obj.evolutions); if(msg){ msg.style.color='green'; msg.textContent='Evolução adicionada.'; setTimeout(()=>msg.textContent='',900); } }catch(e){ console.error('addEvolution failed', e); if(msg){ msg.style.color='red'; msg.textContent='Erro ao adicionar evolução.'; } }
+      function addEvolution(){ const pid = getCurrentPatientId(); const prontuarioId = getActiveProntuarioId(pid); const msg = document.getElementById('plano-msg'); if(msg) msg.style.color='var(--muted)'; if(!pid){ if(msg){ msg.style.color='red'; msg.textContent='Selecione o paciente antes.'; } return } if(!prontuarioId){ askProntuarioForPatient(pid, (document.getElementById('p_name') && document.getElementById('p_name').value) ? document.getElementById('p_name').value : 'paciente'); if(msg){ msg.style.color='red'; msg.textContent='Selecione ou crie o prontuário para salvar.'; } return } const text = (document.getElementById('pl_new_evo').value||'').trim(); if(!text){ if(msg){ msg.style.color='red'; msg.textContent='Digite a evolução antes de adicionar.'; } return } try{ const key = 'plano_'+prontuarioId; const raw = localStorage.getItem(key); const obj = raw ? JSON.parse(raw) : { objetivo:'', recursos:'', plano:'', prestacao_servico_tipo:'nao', prestacao_servico_texto:'', evolutions:[] }; const ts = new Date().toLocaleString(); obj.evolutions = obj.evolutions || []; obj.evolutions.push({ ts: ts, text: text }); localStorage.setItem(key, JSON.stringify(obj)); touchProntuarioModified(pid, prontuarioId); document.getElementById('pl_new_evo').value=''; renderEvolutions(obj.evolutions); if(msg){ msg.style.color='green'; msg.textContent='Evolução adicionada.'; setTimeout(()=>msg.textContent='',900); } }catch(e){ console.error('addEvolution failed', e); if(msg){ msg.style.color='red'; msg.textContent='Erro ao adicionar evolução.'; } }
       }
 
       async function loadAppointments(){
@@ -2070,13 +2120,15 @@
         const body = document.getElementById('modal-body');
         const d = new Date(dayStr);
         title.textContent = `${d.getDate()} de ${MONTH_NAMES[d.getMonth()]} de ${d.getFullYear()}`;
-        // hours 8..20
+        // slots from 08:00 to 20:00 in 30-minute steps
         body.innerHTML = '';
         const inner = document.createElement('div'); inner.className = 'modal-body-inner';
         const grid = document.createElement('div'); grid.className='hours-grid';
         const detail = document.createElement('div'); detail.className = 'detail-panel'; detail.id = 'detail-panel';
-        for(let h=8; h<=20; h++){
-          const hh = String(h).padStart(2,'0')+':00';
+        for(let minutes = 8 * 60; minutes <= 20 * 60; minutes += 30){
+          const hour = Math.floor(minutes / 60);
+          const minute = minutes % 60;
+          const hh = `${String(hour).padStart(2,'0')}:${String(minute).padStart(2,'0')}`;
           const btn = document.createElement('button'); btn.type = 'button'; btn.className='hour-btn';
           const spanHour = document.createElement('span'); spanHour.className='hour-label'; spanHour.textContent = hh;
           const spanDash = document.createElement('span'); spanDash.className='dash'; spanDash.textContent = ' - ';
@@ -2087,8 +2139,8 @@
           left.appendChild(spanDash);
           left.appendChild(spanPatient);
           const actions = document.createElement('div'); actions.className = 'hour-actions';
-          // check occupied (find first appointment at that hour)
-          const appt = ALL_APPOINTMENTS.find(a=>a.date===dayStr && a.time && parseInt(a.time.split(':')[0],10)===h);
+          // check occupied (find first appointment at that exact time)
+          const appt = ALL_APPOINTMENTS.find(a=>a.date===dayStr && a.time && String(a.time).slice(0,5)===hh);
           if(appt){
             btn.classList.add('occupied'); btn.title = (appt.patient_name||'') + (appt.reason?(' — '+appt.reason):'');
             spanPatient.textContent = appt.patient_name || '';
