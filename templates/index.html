@@ -885,16 +885,11 @@
           `Evoluções: ${evolText}`
         ];
 
-        const financeiro = [
-          `Resumo financeiro: ${getFinanceiroText()}`
-        ];
-
         return [
           { tabName: 'Dados do Paciente', lines: dados },
           { tabName: 'Anamnese', lines: anamnese },
           { tabName: 'Avaliação', lines: avaliacao },
-          { tabName: 'Plano terapêutico', lines: plano },
-          { tabName: 'Financeiro', lines: financeiro }
+          { tabName: 'Plano terapêutico', lines: plano }
         ];
       }
 
@@ -1015,7 +1010,7 @@
 
           doc.setFont('helvetica', 'bold');
           doc.setFontSize(13);
-          doc.text(`Aba: ${section.tabName}`, marginX, y);
+          doc.text(`${section.tabName}`, marginX, y);
           y += 7;
 
           doc.setFont('helvetica', 'normal');
