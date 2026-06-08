@@ -112,6 +112,7 @@ def get_db():
     if db is None:
         db = g._database = sqlite3.connect(DB_PATH)
         db.row_factory = sqlite3.Row
+        db.execute('PRAGMA foreign_keys = ON')
     return db
 
 
@@ -137,6 +138,7 @@ def init_db():
                 tel_home TEXT,
                 tel_cell TEXT,
                 tel_msg TEXT,
+                contact_name TEXT,
                 email TEXT,
                 cep TEXT,
                 address TEXT,
@@ -186,7 +188,7 @@ def ensure_patients_schema():
             return
         expected = {
             'cpf': 'TEXT', 'name': 'TEXT', 'tel_home': 'TEXT', 'tel_cell': 'TEXT', 'tel_msg': 'TEXT',
-            'email': 'TEXT', 'cep': 'TEXT', 'address': 'TEXT', 'number': 'TEXT', 'complement': 'TEXT',
+            'contact_name': 'TEXT', 'email': 'TEXT', 'cep': 'TEXT', 'address': 'TEXT', 'number': 'TEXT', 'complement': 'TEXT',
             'prof': 'TEXT', 'age': 'INTEGER', 'weight': 'REAL', 'height': 'REAL'
         }
         for col, coltype in expected.items():
@@ -222,6 +224,51 @@ def ensure_appointments_schema():
         pass
     finally:
         db.close()
+
+
+def ensure_patient_records_schema():
+    """Persist prontuários and their sections in SQLite instead of browser-only storage."""
+    db = sqlite3.connect(DB_PATH)
+    cur = db.cursor()
+    try:
+        cur.execute('PRAGMA foreign_keys = ON')
+        cur.execute('''
+            CREATE TABLE IF NOT EXISTS patient_records (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                patient_id INTEGER NOT NULL,
+                label TEXT NOT NULL,
+                anamnese_json TEXT,
+                avaliacao_json TEXT,
+                plano_json TEXT,
+                financeiro_html TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(patient_id, label),
+                FOREIGN KEY(patient_id) REFERENCES patients(id) ON DELETE CASCADE
+            )
+        ''')
+        db.commit()
+    finally:
+        db.close()
+
+
+def _safe_json_loads(value, fallback):
+    if value in (None, ''):
+        return fallback
+    try:
+        parsed = json.loads(value)
+        return parsed if parsed is not None else fallback
+    except Exception:
+        return fallback
+
+
+def serialize_patient_record(row):
+    record = dict(row)
+    record['anamnese'] = _safe_json_loads(record.pop('anamnese_json', None), {})
+    record['avaliacao'] = _safe_json_loads(record.pop('avaliacao_json', None), {})
+    record['plano'] = _safe_json_loads(record.pop('plano_json', None), {})
+    record['financeiro_html'] = str(record.get('financeiro_html') or '')
+    return record
 
 
 TEMPLATES_DIR = os.path.join(RESOURCE_DIR, 'templates')
@@ -286,6 +333,7 @@ def ensure_initialized():
     # ensure patients table has required columns for current UI
     ensure_patients_schema()
     ensure_appointments_schema()
+    ensure_patient_records_schema()
 
 
 try:
@@ -343,7 +391,7 @@ def patients():
         data = request.get_json() or {}
         # if id provided, update; otherwise insert
         pid = data.get('id')
-        fields = ['cpf','name','tel_home','tel_cell','tel_msg','email','cep','address','number','complement','prof','age','weight','height']
+        fields = ['cpf','name','tel_home','tel_cell','tel_msg','contact_name','email','cep','address','number','complement','prof','age','weight','height']
         values = [data.get(f) for f in fields]
         cur = db.cursor()
         if pid:
@@ -399,6 +447,94 @@ def delete_patient(pid):
     cur.execute('DELETE FROM patients WHERE id=?', (pid,))
     db.commit()
     return jsonify({'status':'ok'})
+
+
+@app.route('/api/patients/<int:pid>/records', methods=['GET', 'POST'])
+def patient_records(pid):
+    if _BOOT_ERROR:
+        return jsonify({'status': 'error', 'message': f'Falha na inicialização: {_BOOT_ERROR}', 'db_path': DB_PATH}), 500
+    db = get_db()
+    cur = db.cursor()
+    cur.execute('SELECT id, name FROM patients WHERE id=?', (pid,))
+    patient = cur.fetchone()
+    if not patient:
+        return jsonify({'status': 'error', 'message': 'Paciente não encontrado.'}), 404
+
+    if request.method == 'GET':
+        rows = db.execute(
+            'SELECT * FROM patient_records WHERE patient_id=? ORDER BY datetime(updated_at) DESC, id DESC',
+            (pid,)
+        ).fetchall()
+        return jsonify([serialize_patient_record(row) for row in rows])
+
+    data = request.get_json() or {}
+    record_id = data.get('id')
+    label = str(data.get('label') or '').strip()
+    anamnese = data.get('anamnese') if 'anamnese' in data else None
+    avaliacao = data.get('avaliacao') if 'avaliacao' in data else None
+    plano = data.get('plano') if 'plano' in data else None
+    financeiro_html = data.get('financeiro_html') if 'financeiro_html' in data else None
+
+    if not record_id and not label:
+        return jsonify({'status': 'error', 'message': 'Nome do prontuário é obrigatório.'}), 400
+
+    if record_id:
+        existing = db.execute('SELECT * FROM patient_records WHERE id=? AND patient_id=?', (record_id, pid)).fetchone()
+        if not existing:
+            return jsonify({'status': 'error', 'message': 'Prontuário não encontrado.'}), 404
+        updates = []
+        values = []
+        if label:
+            updates.append('label=?')
+            values.append(label)
+        if 'anamnese' in data:
+            updates.append('anamnese_json=?')
+            values.append(json.dumps(anamnese or {}, ensure_ascii=False))
+        if 'avaliacao' in data:
+            updates.append('avaliacao_json=?')
+            values.append(json.dumps(avaliacao or {}, ensure_ascii=False))
+        if 'plano' in data:
+            updates.append('plano_json=?')
+            values.append(json.dumps(plano or {}, ensure_ascii=False))
+        if 'financeiro_html' in data:
+            updates.append('financeiro_html=?')
+            values.append(str(financeiro_html or ''))
+        if not updates:
+            return jsonify({'status': 'ok', 'record': serialize_patient_record(existing)})
+        updates.append('updated_at=CURRENT_TIMESTAMP')
+        values.extend([record_id, pid])
+        try:
+            cur.execute(f"UPDATE patient_records SET {', '.join(updates)} WHERE id=? AND patient_id=?", values)
+            db.commit()
+        except sqlite3.IntegrityError:
+            return jsonify({'status': 'error', 'message': 'Já existe um prontuário com esse nome para este paciente.'}), 409
+        row = db.execute('SELECT * FROM patient_records WHERE id=? AND patient_id=?', (record_id, pid)).fetchone()
+        return jsonify({'status': 'ok', 'record': serialize_patient_record(row)})
+
+    try:
+        cur.execute(
+            '''
+            INSERT INTO patient_records (patient_id, label, anamnese_json, avaliacao_json, plano_json, financeiro_html)
+            VALUES (?, ?, ?, ?, ?, ?)
+            ''',
+            (
+                pid,
+                label,
+                json.dumps(anamnese or {}, ensure_ascii=False),
+                json.dumps(avaliacao or {}, ensure_ascii=False),
+                json.dumps(plano or {}, ensure_ascii=False),
+                str(financeiro_html or '')
+            )
+        )
+        db.commit()
+    except sqlite3.IntegrityError:
+        existing = db.execute('SELECT * FROM patient_records WHERE patient_id=? AND label=?', (pid, label)).fetchone()
+        if existing:
+            return jsonify({'status': 'exists', 'record': serialize_patient_record(existing)}), 409
+        return jsonify({'status': 'error', 'message': 'Não foi possível criar o prontuário.'}), 400
+
+    row = db.execute('SELECT * FROM patient_records WHERE id=?', (cur.lastrowid,)).fetchone()
+    return jsonify({'status': 'ok', 'record': serialize_patient_record(row)})
 
 
 @app.route('/api/attachments', methods=['GET'])

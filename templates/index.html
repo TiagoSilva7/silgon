@@ -573,6 +573,7 @@
       let ACTIVE_PRONTUARIO_ID = '';
       let PENDING_ATTACHMENTS = [];
       let PDF_WATERMARK_LOGO_PROMISE = null;
+      window._prontuariosCache = window._prontuariosCache || {};
 
 
       // theme selector removed — using default CSS variables
@@ -733,7 +734,41 @@
 
       function getProntuariosKey(pid){ return 'prontuarios_' + String(pid||''); }
 
-      function getProntuariosForPatient(pid){
+      function normalizeProntuarioRecord(record){
+        if(!record) return null;
+        return {
+          id: record.id,
+          patient_id: record.patient_id,
+          label: String(record.label || 'Prontuário'),
+          created_at: record.created_at || new Date().toISOString(),
+          updated_at: record.updated_at || record.created_at || new Date().toISOString(),
+          anamnese: record.anamnese || {},
+          avaliacao: record.avaliacao || {},
+          plano: record.plano || {},
+          financeiro_html: String(record.financeiro_html || '')
+        };
+      }
+
+      function mergeProntuarioIntoCache(pid, record){
+        if(!pid || !record) return null;
+        const normalized = normalizeProntuarioRecord(record);
+        const list = getProntuariosForPatient(pid).slice();
+        const idx = list.findIndex(pr=> String(pr.id) === String(normalized.id));
+        if(idx >= 0) list[idx] = normalized;
+        else list.unshift(normalized);
+        saveProntuariosForPatient(pid, list);
+        return normalized;
+      }
+
+      function hydrateLegacyLocalStorageFromRecord(record){
+        if(!record || !record.id) return;
+        try{ localStorage.setItem('anamnese_'+record.id, JSON.stringify(record.anamnese || {})); }catch(e){}
+        try{ localStorage.setItem('avaliacao_'+record.id, JSON.stringify(record.avaliacao || {})); }catch(e){}
+        try{ localStorage.setItem('plano_'+record.id, JSON.stringify(record.plano || {})); }catch(e){}
+        try{ localStorage.setItem('financeiro_'+record.id, String(record.financeiro_html || '')); }catch(e){}
+      }
+
+      function getLegacyProntuariosForPatient(pid){
         if(!pid) return [];
         try{
           const raw = localStorage.getItem(getProntuariosKey(pid));
@@ -742,9 +777,87 @@
         }catch(e){ return []; }
       }
 
+      function getProntuariosForPatient(pid){
+        if(!pid) return [];
+        try{
+          const cached = window._prontuariosCache[String(pid)];
+          if(Array.isArray(cached)) return cached;
+          return getLegacyProntuariosForPatient(pid);
+        }catch(e){ return []; }
+      }
+
       function saveProntuariosForPatient(pid, items){
         if(!pid) return;
-        try{ localStorage.setItem(getProntuariosKey(pid), JSON.stringify(items||[])); }catch(e){}
+        const normalized = Array.isArray(items) ? items.map(normalizeProntuarioRecord).filter(Boolean) : [];
+        window._prontuariosCache[String(pid)] = normalized;
+        try{ localStorage.setItem(getProntuariosKey(pid), JSON.stringify(normalized)); }catch(e){}
+      }
+
+      async function migrateLegacyProntuariosToServer(pid){
+        const legacy = getLegacyProntuariosForPatient(pid);
+        if(!legacy.length) return [];
+        const migrated = [];
+        for(const item of legacy){
+          try{
+            const oldId = item && item.id ? item.id : '';
+            const anamnese = oldId ? JSON.parse(localStorage.getItem('anamnese_'+oldId) || '{}') : {};
+            const avaliacao = oldId ? JSON.parse(localStorage.getItem('avaliacao_'+oldId) || '{}') : {};
+            const plano = oldId ? JSON.parse(localStorage.getItem('plano_'+oldId) || '{}') : {};
+            const financeiro_html = oldId ? String(localStorage.getItem('financeiro_'+oldId) || '') : '';
+            const result = await saveProntuarioRecord(pid, {
+              label: String(item && item.label ? item.label : 'Prontuário'),
+              anamnese,
+              avaliacao,
+              plano,
+              financeiro_html
+            });
+            if(result && result.record) migrated.push(result.record);
+          }catch(e){}
+        }
+        if(migrated.length) saveProntuariosForPatient(pid, migrated);
+        return migrated;
+      }
+
+      async function fetchProntuariosForPatient(pid){
+        if(!pid) return [];
+        try{
+          const res = await fetch(`/api/patients/${encodeURIComponent(pid)}/records`);
+          if(!res.ok) throw new Error('fetch prontuarios failed');
+          const data = await res.json();
+          const items = Array.isArray(data) ? data.map(normalizeProntuarioRecord).filter(Boolean) : [];
+          if(!items.length){
+            const migrated = await migrateLegacyProntuariosToServer(pid);
+            if(migrated.length) return migrated;
+          }
+          items.forEach(hydrateLegacyLocalStorageFromRecord);
+          saveProntuariosForPatient(pid, items);
+          return items;
+        }catch(e){
+          return getProntuariosForPatient(pid);
+        }
+      }
+
+      async function saveProntuarioRecord(pid, payload){
+        if(!pid) return null;
+        try{
+          const res = await fetch(`/api/patients/${encodeURIComponent(pid)}/records`, {
+            method: 'POST',
+            headers: { 'Content-Type':'application/json' },
+            body: JSON.stringify(payload || {})
+          });
+          const data = await res.json().catch(()=>null);
+          if(res.status === 409 && data && data.record){
+            const existing = mergeProntuarioIntoCache(pid, data.record);
+            if(existing) hydrateLegacyLocalStorageFromRecord(existing);
+            return { status: 'exists', record: existing };
+          }
+          if(!res.ok || !data || !data.record) return null;
+          const saved = mergeProntuarioIntoCache(pid, data.record);
+          if(saved) hydrateLegacyLocalStorageFromRecord(saved);
+          return { status: 'ok', record: saved };
+        }catch(e){
+          return null;
+        }
       }
 
       function formatProntuarioDate(value){
@@ -787,6 +900,7 @@
           if(idx === -1) return;
           list[idx].updated_at = new Date().toISOString();
           saveProntuariosForPatient(pid, list);
+          hydrateLegacyLocalStorageFromRecord(list[idx]);
         }catch(e){}
       }
 
@@ -796,6 +910,7 @@
         if(!list || !list.length) return null;
         const activeId = getActiveProntuarioId(pid);
         const found = list.find(pr=> String(pr.id) === String(activeId));
+        if(found) hydrateLegacyLocalStorageFromRecord(found);
         return found || null;
       }
 
@@ -1084,6 +1199,11 @@
         const prontuarioId = getActiveProntuarioId(pid);
         fin.innerHTML = 'Histórico financeiro e cobranças.';
         if(!prontuarioId) return;
+        const record = getActiveProntuarioObject(pid);
+        if(record && record.financeiro_html){
+          fin.innerHTML = record.financeiro_html;
+          return;
+        }
         try{ const raw = localStorage.getItem('financeiro_'+prontuarioId); if(raw) fin.innerHTML = raw; }catch(e){}
       }
 
@@ -1312,6 +1432,7 @@
 
       function activateProntuario(pid, prontuario){
         ACTIVE_PRONTUARIO_ID = String((prontuario && prontuario.id) ? prontuario.id : (pid||''));
+        if(prontuario) hydrateLegacyLocalStorageFromRecord(prontuario);
         updateProntuarioSwitchButton(pid);
         const msg = document.getElementById('patient-msg');
         if(msg && prontuario){
@@ -1365,12 +1486,12 @@
         }
       }
 
-      function askProntuarioForPatient(pid, patientName){
+      async function askProntuarioForPatient(pid, patientName){
         if(!pid) return;
         const prev = document.getElementById('prontuario-picker-backdrop');
         if(prev) prev.remove();
 
-        let prontuarios = getProntuariosForPatient(pid);
+        let prontuarios = await fetchProntuariosForPatient(pid);
         updateProntuarioSwitchButton(pid);
 
         const bd = document.createElement('div');
@@ -1415,7 +1536,7 @@
         });
 
         bd.querySelector('#prontuario-new').onclick = ()=>{
-          showNewProntuarioNameDialog(pid, patientName, (label)=>{
+          showNewProntuarioNameDialog(pid, patientName, async (label)=>{
             prontuarios = getProntuariosForPatient(pid);
             const existing = prontuarios.find(pr=> String(pr.label||'').trim().toLowerCase() === String(label||'').trim().toLowerCase());
             if(existing){
@@ -1423,10 +1544,14 @@
               activateProntuario(pid, existing);
               return;
             }
-            const nowIso = new Date().toISOString();
-            const created = { id: `${pid}_${Date.now()}`, label: label, created_at: nowIso, updated_at: nowIso };
-            prontuarios.push(created);
-            saveProntuariosForPatient(pid, prontuarios);
+            const createdResult = await saveProntuarioRecord(pid, { label: label });
+            if(!createdResult || !createdResult.record){
+              const msg = document.getElementById('patient-msg');
+              if(msg){ msg.style.color='red'; msg.textContent='Erro ao criar prontuário.'; }
+              return;
+            }
+            const created = createdResult.record;
+            prontuarios = getProntuariosForPatient(pid);
             updateProntuarioSwitchButton(pid);
             bd.remove();
             activateProntuario(pid, created);
@@ -1555,6 +1680,8 @@
         document.getElementById('p_tel_home').value = p.tel_home ? formatPhone(String(p.tel_home).replace(/\D/g,'')) : '';
         document.getElementById('p_tel_cell').value = p.tel_cell ? formatPhone(String(p.tel_cell).replace(/\D/g,'')) : '';
         document.getElementById('p_tel_msg').value = p.tel_msg ? formatPhone(String(p.tel_msg).replace(/\D/g,'')) : '';
+        document.getElementById('p_contact_name').value = p.contact_name || '';
+        document.getElementById('p_contact_name').value = p.contact_name || '';
         document.getElementById('p_email').value = p.email||'';
         document.getElementById('p_cep').value = p.cep||'';
         document.getElementById('p_address').value = p.address||'';
@@ -1644,17 +1771,18 @@
         const savedPid = String((result && result.id) ? result.id : (id || ''));
         if(savedPid) document.getElementById('p_id').value = savedPid;
 
-        const prontuarios = getProntuariosForPatient(savedPid);
+        const prontuarios = await fetchProntuariosForPatient(savedPid);
         if(savedPid && (!prontuarios || prontuarios.length === 0)){
           msgEl.style.color='green';
           msgEl.textContent='Paciente salvo. Informe o nome do prontuário.';
-          showNewProntuarioNameDialog(savedPid, name || 'paciente', (label)=>{
-            const arr = getProntuariosForPatient(savedPid);
-            const nowIso = new Date().toISOString();
-            const created = { id: `${savedPid}_${Date.now()}`, label: label, created_at: nowIso, updated_at: nowIso };
-            arr.push(created);
-            saveProntuariosForPatient(savedPid, arr);
-            activateProntuario(savedPid, created);
+          showNewProntuarioNameDialog(savedPid, name || 'paciente', async (label)=>{
+            const createdResult = await saveProntuarioRecord(savedPid, { label: label });
+            if(!createdResult || !createdResult.record){
+              msgEl.style.color='red';
+              msgEl.textContent='Erro ao criar prontuário.';
+              return;
+            }
+            activateProntuario(savedPid, createdResult.record);
             if(msgEl){
               msgEl.style.color='green';
               msgEl.textContent='Paciente e prontuário salvos.';
@@ -1665,8 +1793,8 @@
         }
 
         msgEl.style.color='green'; msgEl.textContent='Paciente salvo.';
-        // Do NOT render the full patient list after saving — keep message only
-        setTimeout(()=>{ msgEl.textContent=''; clearPatientForm(); },800);
+        updateProntuarioSwitchButton(savedPid);
+        setTimeout(()=>{ msgEl.textContent=''; },1200);
       }
 
       // wire patient form events when the tab initializes
@@ -1858,7 +1986,7 @@
         return id || '';
       }
 
-      function saveAnamnese(){
+      async function saveAnamnese(){
         const pid = getCurrentPatientId();
         const prontuarioId = getActiveProntuarioId(pid);
         const msgEl = document.getElementById('anamnese-msg'); if(msgEl) msgEl.style.color='var(--muted)';
@@ -1877,17 +2005,25 @@
           habitos: (document.getElementById('a_habitos').value||'').trim(),
           tratamentos: (document.getElementById('a_tratamentos').value||'').trim(),
         };
-        try{ localStorage.setItem('anamnese_'+prontuarioId, JSON.stringify(payload)); touchProntuarioModified(pid, prontuarioId); if(msgEl){ msgEl.style.color='green'; msgEl.textContent='Anamnese salva localmente.'; setTimeout(()=>{ msgEl.textContent=''; },900); } }
-        catch(e){ if(msgEl){ msgEl.style.color='red'; msgEl.textContent='Erro ao salvar localmente.'; } }
+        try{
+          localStorage.setItem('anamnese_'+prontuarioId, JSON.stringify(payload));
+          const result = await saveProntuarioRecord(pid, { id: prontuarioId, anamnese: payload });
+          touchProntuarioModified(pid, prontuarioId);
+          if(msgEl){
+            msgEl.style.color = result && result.record ? 'green' : 'orange';
+            msgEl.textContent = result && result.record ? 'Anamnese salva.' : 'Anamnese salva no navegador, mas não sincronizou com o servidor.';
+            setTimeout(()=>{ msgEl.textContent=''; },1400);
+          }
+        }catch(e){ if(msgEl){ msgEl.style.color='red'; msgEl.textContent='Erro ao salvar anamnese.'; } }
       }
 
       function clearAnamnese(){ ['a_historia','a_hmb','a_hmp','a_antec','a_queixa','a_habitos','a_tratamentos'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; }); const msg=document.getElementById('anamnese-msg'); if(msg) msg.textContent=''; }
 
-      function loadAnamneseForPatient(pid){ if(!pid) return; try{ const prontuarioId = getActiveProntuarioId(pid); if(!prontuarioId){ clearAnamnese(); return; } const raw = localStorage.getItem('anamnese_'+prontuarioId); if(!raw){ clearAnamnese(); return; } const obj = JSON.parse(raw); if(!obj){ clearAnamnese(); return; } document.getElementById('a_historia').value = obj.historia||''; document.getElementById('a_hmb').value = obj.hmb||''; document.getElementById('a_hmp').value = obj.hmp||''; document.getElementById('a_antec').value = obj.antecedentes||''; document.getElementById('a_queixa').value = obj.queixa||''; document.getElementById('a_habitos').value = obj.habitos||''; document.getElementById('a_tratamentos').value = obj.tratamentos||''; }catch(e){}
+      function loadAnamneseForPatient(pid){ if(!pid) return; try{ const prontuarioId = getActiveProntuarioId(pid); if(!prontuarioId){ clearAnamnese(); return; } const record = getActiveProntuarioObject(pid); if(record && record.anamnese){ try{ localStorage.setItem('anamnese_'+prontuarioId, JSON.stringify(record.anamnese || {})); }catch(e){} } const raw = localStorage.getItem('anamnese_'+prontuarioId); if(!raw){ clearAnamnese(); return; } const obj = JSON.parse(raw); if(!obj){ clearAnamnese(); return; } document.getElementById('a_historia').value = obj.historia||''; document.getElementById('a_hmb').value = obj.hmb||''; document.getElementById('a_hmp').value = obj.hmp||''; document.getElementById('a_antec').value = obj.antecedentes||''; document.getElementById('a_queixa').value = obj.queixa||''; document.getElementById('a_habitos').value = obj.habitos||''; document.getElementById('a_tratamentos').value = obj.tratamentos||''; }catch(e){}
       }
 
       /* Avaliação: save/load per-patient in localStorage */
-      function saveAvaliacao(){
+      async function saveAvaliacao(){
         const pid = getCurrentPatientId(); const prontuarioId = getActiveProntuarioId(pid); const msg = document.getElementById('avaliacao-msg'); if(msg) msg.style.color='var(--muted)';
         if(!pid){ if(msg){ msg.style.color='red'; msg.textContent='Selecione o paciente antes.';} return }
         if(!prontuarioId){
@@ -1913,8 +2049,9 @@
         try{
           console.debug('[DEBUG] saveAvaliacao pid=', pid, 'payload=', payload);
           localStorage.setItem('avaliacao_'+prontuarioId, JSON.stringify(payload));
+          const result = await saveProntuarioRecord(pid, { id: prontuarioId, avaliacao: payload });
           touchProntuarioModified(pid, prontuarioId);
-          if(msg){ msg.style.color='green'; msg.textContent='Avaliação salva localmente.'; setTimeout(()=>{ msg.textContent=''; },900); }
+          if(msg){ msg.style.color = result && result.record ? 'green' : 'orange'; msg.textContent = result && result.record ? 'Avaliação salva.' : 'Avaliação salva no navegador, mas não sincronizou com o servidor.'; setTimeout(()=>{ msg.textContent=''; },1400); }
         }catch(e){ console.error('saveAvaliacao error', e); if(msg){ msg.style.color='red'; msg.textContent='Erro ao salvar.'; } }
       }
 
@@ -1926,7 +2063,7 @@
         // hide detail fields
         const msg = document.getElementById('avaliacao-msg'); if(msg) msg.textContent=''; document.getElementById('av_deambulando_outros').style.display='none'; document.getElementById('av_inspec_outros').style.display='none'; document.getElementById('av_exames_comp_which').style.display='none'; document.getElementById('av_medicamentos_which').style.display='none'; document.getElementById('av_cirurgia_which').style.display='none'; }
 
-      function loadAvaliacaoForPatient(pid){ if(!pid) return; try{ const prontuarioId = getActiveProntuarioId(pid); if(!prontuarioId){ clearAvaliacao(); return; } const raw = localStorage.getItem('avaliacao_'+prontuarioId); if(!raw){ clearAvaliacao(); return; } const obj = JSON.parse(raw); if(!obj){ clearAvaliacao(); return; } document.getElementById('av_exames_clinicos').value = obj.exames_clinicos||''; document.getElementById('av_deambulando').value = obj.deambulando||'deambulando'; if(obj.deambulando==='outros'){ document.getElementById('av_deambulando_outros').style.display='block'; document.getElementById('av_deambulando_outros').value = obj.deambulando_outros||''; } else { document.getElementById('av_deambulando_outros').style.display='none'; }
+      function loadAvaliacaoForPatient(pid){ if(!pid) return; try{ const prontuarioId = getActiveProntuarioId(pid); if(!prontuarioId){ clearAvaliacao(); return; } const record = getActiveProntuarioObject(pid); if(record && record.avaliacao){ try{ localStorage.setItem('avaliacao_'+prontuarioId, JSON.stringify(record.avaliacao || {})); }catch(e){} } const raw = localStorage.getItem('avaliacao_'+prontuarioId); if(!raw){ clearAvaliacao(); return; } const obj = JSON.parse(raw); if(!obj){ clearAvaliacao(); return; } document.getElementById('av_exames_clinicos').value = obj.exames_clinicos||''; document.getElementById('av_deambulando').value = obj.deambulando||'deambulando'; if(obj.deambulando==='outros'){ document.getElementById('av_deambulando_outros').style.display='block'; document.getElementById('av_deambulando_outros').value = obj.deambulando_outros||''; } else { document.getElementById('av_deambulando_outros').style.display='none'; }
         // radios and details
         const ev = obj.exames_comp||'nao'; document.querySelectorAll('input[name="av_exames_comp"]').forEach(r=>{ r.checked = (r.value===ev); }); if(ev==='sim'){ document.getElementById('av_exames_comp_which').style.display='block'; document.getElementById('av_exames_comp_which').value = obj.exames_comp_which||''; } else { document.getElementById('av_exames_comp_which').style.display='none'; }
         const mv = obj.medicamentos||'nao'; document.querySelectorAll('input[name="av_medicamentos"]').forEach(r=>{ r.checked = (r.value===mv); }); if(mv==='sim'){ document.getElementById('av_medicamentos_which').style.display='block'; document.getElementById('av_medicamentos_which').value = obj.medicamentos_which||''; } else { document.getElementById('av_medicamentos_which').style.display='none'; }
@@ -1953,6 +2090,8 @@
         try{
           const prontuarioId = getActiveProntuarioId(pid);
           if(!prontuarioId){ document.getElementById('pl_objetivo').value=''; document.getElementById('pl_recursos').value=''; document.getElementById('pl_plano').value=''; document.querySelectorAll('input[name="pl_prestacao_servico"]').forEach(r=>{ r.checked = (r.value==='nao'); }); document.getElementById('pl_prestacao_servico_texto').value=''; updatePrestacaoServicoUI(); renderEvolutions([]); return; }
+          const record = getActiveProntuarioObject(pid);
+          if(record && record.plano){ try{ localStorage.setItem('plano_'+prontuarioId, JSON.stringify(record.plano || {})); }catch(e){} }
           const raw = localStorage.getItem('plano_'+prontuarioId);
           if(!raw){ document.getElementById('pl_objetivo').value=''; document.getElementById('pl_recursos').value=''; document.getElementById('pl_plano').value=''; document.querySelectorAll('input[name="pl_prestacao_servico"]').forEach(r=>{ r.checked = (r.value==='nao'); }); document.getElementById('pl_prestacao_servico_texto').value=''; updatePrestacaoServicoUI(); renderEvolutions([]); return; }
           const obj = JSON.parse(raw);
@@ -1966,7 +2105,7 @@
         }catch(e){ console.warn('loadPlanoForPatient failed', e); }
       }
 
-      function savePlano(){
+      async function savePlano(){
         const pid = getCurrentPatientId(); const prontuarioId = getActiveProntuarioId(pid); const msg = document.getElementById('plano-msg'); if(msg) msg.style.color='var(--muted)';
         if(!pid){ if(msg){ msg.style.color='red'; msg.textContent='Selecione o paciente antes.'; } return }
         if(!prontuarioId){
@@ -1984,14 +2123,15 @@
           const evol = existing.evolutions || [];
           const obj = { objetivo, recursos, plano, prestacao_servico_tipo: prestacaoServicoTipo, prestacao_servico_texto: prestacaoServicoTipo === 'sim' ? prestacaoServicoTexto : '', evolutions: evol };
           localStorage.setItem('plano_'+prontuarioId, JSON.stringify(obj));
+          const result = await saveProntuarioRecord(pid, { id: prontuarioId, plano: obj });
           touchProntuarioModified(pid, prontuarioId);
-          if(msg){ msg.style.color='green'; msg.textContent='Plano salvo localmente.'; setTimeout(()=>msg.textContent='',900); }
+          if(msg){ msg.style.color = result && result.record ? 'green' : 'orange'; msg.textContent = result && result.record ? 'Plano salvo.' : 'Plano salvo no navegador, mas não sincronizou com o servidor.'; setTimeout(()=>msg.textContent='',1400); }
         }catch(e){ console.error('savePlano failed', e); if(msg){ msg.style.color='red'; msg.textContent='Erro ao salvar.'; } }
       }
 
-      function clearPlano(){ const pid = getCurrentPatientId(); const prontuarioId = getActiveProntuarioId(pid); const msg = document.getElementById('plano-msg'); if(msg) msg.style.color='var(--muted)'; if(!pid || !prontuarioId){ if(msg){ msg.style.color='red'; msg.textContent='Selecione paciente e prontuário.'; } return } document.getElementById('pl_objetivo').value=''; document.getElementById('pl_recursos').value=''; document.getElementById('pl_plano').value=''; document.querySelectorAll('input[name="pl_prestacao_servico"]').forEach(r=>{ r.checked = (r.value==='nao'); }); document.getElementById('pl_prestacao_servico_texto').value=''; updatePrestacaoServicoUI(); localStorage.removeItem('plano_'+prontuarioId); renderEvolutions([]); if(msg){ msg.style.color='green'; msg.textContent='Plano limpo.'; setTimeout(()=>msg.textContent='',900); } }
+      async function clearPlano(){ const pid = getCurrentPatientId(); const prontuarioId = getActiveProntuarioId(pid); const msg = document.getElementById('plano-msg'); if(msg) msg.style.color='var(--muted)'; if(!pid || !prontuarioId){ if(msg){ msg.style.color='red'; msg.textContent='Selecione paciente e prontuário.'; } return } const emptyPlano = { objetivo:'', recursos:'', plano:'', prestacao_servico_tipo:'nao', prestacao_servico_texto:'', evolutions:[] }; document.getElementById('pl_objetivo').value=''; document.getElementById('pl_recursos').value=''; document.getElementById('pl_plano').value=''; document.querySelectorAll('input[name="pl_prestacao_servico"]').forEach(r=>{ r.checked = (r.value==='nao'); }); document.getElementById('pl_prestacao_servico_texto').value=''; updatePrestacaoServicoUI(); localStorage.setItem('plano_'+prontuarioId, JSON.stringify(emptyPlano)); renderEvolutions([]); const result = await saveProntuarioRecord(pid, { id: prontuarioId, plano: emptyPlano }); if(msg){ msg.style.color = result && result.record ? 'green' : 'orange'; msg.textContent = result && result.record ? 'Plano limpo.' : 'Plano limpo no navegador, mas não sincronizou com o servidor.'; setTimeout(()=>msg.textContent='',1400); } }
 
-      function addEvolution(){ const pid = getCurrentPatientId(); const prontuarioId = getActiveProntuarioId(pid); const msg = document.getElementById('plano-msg'); if(msg) msg.style.color='var(--muted)'; if(!pid){ if(msg){ msg.style.color='red'; msg.textContent='Selecione o paciente antes.'; } return } if(!prontuarioId){ askProntuarioForPatient(pid, (document.getElementById('p_name') && document.getElementById('p_name').value) ? document.getElementById('p_name').value : 'paciente'); if(msg){ msg.style.color='red'; msg.textContent='Selecione ou crie o prontuário para salvar.'; } return } const text = (document.getElementById('pl_new_evo').value||'').trim(); if(!text){ if(msg){ msg.style.color='red'; msg.textContent='Digite a evolução antes de adicionar.'; } return } try{ const key = 'plano_'+prontuarioId; const raw = localStorage.getItem(key); const obj = raw ? JSON.parse(raw) : { objetivo:'', recursos:'', plano:'', prestacao_servico_tipo:'nao', prestacao_servico_texto:'', evolutions:[] }; const ts = new Date().toLocaleString(); obj.evolutions = obj.evolutions || []; obj.evolutions.push({ ts: ts, text: text }); localStorage.setItem(key, JSON.stringify(obj)); touchProntuarioModified(pid, prontuarioId); document.getElementById('pl_new_evo').value=''; renderEvolutions(obj.evolutions); if(msg){ msg.style.color='green'; msg.textContent='Evolução adicionada.'; setTimeout(()=>msg.textContent='',900); } }catch(e){ console.error('addEvolution failed', e); if(msg){ msg.style.color='red'; msg.textContent='Erro ao adicionar evolução.'; } }
+      async function addEvolution(){ const pid = getCurrentPatientId(); const prontuarioId = getActiveProntuarioId(pid); const msg = document.getElementById('plano-msg'); if(msg) msg.style.color='var(--muted)'; if(!pid){ if(msg){ msg.style.color='red'; msg.textContent='Selecione o paciente antes.'; } return } if(!prontuarioId){ askProntuarioForPatient(pid, (document.getElementById('p_name') && document.getElementById('p_name').value) ? document.getElementById('p_name').value : 'paciente'); if(msg){ msg.style.color='red'; msg.textContent='Selecione ou crie o prontuário para salvar.'; } return } const text = (document.getElementById('pl_new_evo').value||'').trim(); if(!text){ if(msg){ msg.style.color='red'; msg.textContent='Digite a evolução antes de adicionar.'; } return } try{ const key = 'plano_'+prontuarioId; const raw = localStorage.getItem(key); const obj = raw ? JSON.parse(raw) : { objetivo:'', recursos:'', plano:'', prestacao_servico_tipo:'nao', prestacao_servico_texto:'', evolutions:[] }; const ts = new Date().toLocaleString(); obj.evolutions = obj.evolutions || []; obj.evolutions.push({ ts: ts, text: text }); localStorage.setItem(key, JSON.stringify(obj)); const result = await saveProntuarioRecord(pid, { id: prontuarioId, plano: obj }); touchProntuarioModified(pid, prontuarioId); document.getElementById('pl_new_evo').value=''; renderEvolutions(obj.evolutions); if(msg){ msg.style.color = result && result.record ? 'green' : 'orange'; msg.textContent = result && result.record ? 'Evolução adicionada.' : 'Evolução salva no navegador, mas não sincronizou com o servidor.'; setTimeout(()=>msg.textContent='',1400); } }catch(e){ console.error('addEvolution failed', e); if(msg){ msg.style.color='red'; msg.textContent='Erro ao adicionar evolução.'; } }
       }
 
       async function loadAppointments(){
