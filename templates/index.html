@@ -363,14 +363,14 @@
                 </div>
               </div>
 
-              <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-                <div style="flex:1;display:flex;align-items:center;gap:8px;min-width:200px">
-                  <label style="display:inline-block;width:120px;margin:0;font-weight:700">Contato de emergência:</label>
-                  <input id="p_emergency_contact" style="flex:1;padding:8px;border-radius:8px" />
+              <div style="display:flex;gap:8px;flex-wrap:nowrap;align-items:center;overflow:hidden">
+                <div style="flex:1 1 auto;display:flex;align-items:center;gap:8px;min-width:0;overflow:hidden">
+                  <label style="display:inline-block;width:120px;margin:0;font-weight:700;white-space:nowrap">Contato de emergência:</label>
+                  <input id="p_emergency_contact" style="flex:1 1 auto;min-width:0;padding:8px;border-radius:8px;overflow:hidden" />
                 </div>
-                <div style="flex:1;display:flex;align-items:center;gap:8px;min-width:160px">
-                  <label style="display:inline-block;width:100px;margin:0;font-weight:700">Tel contato:</label>
-                  <input id="p_emergency_phone" inputmode="numeric" maxlength="15" style="flex:1" />
+                <div style="flex:0 0 220px;display:flex;align-items:center;gap:8px;min-width:0;overflow:hidden">
+                  <label style="display:inline-block;width:100px;margin:0;font-weight:700;white-space:nowrap">Tel contato:</label>
+                  <input id="p_emergency_phone" inputmode="numeric" maxlength="15" style="flex:1 1 auto;min-width:0" />
                 </div>
               </div>
 
