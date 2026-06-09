@@ -1,0 +1,13 @@
+Olá — segue o pacote com os arquivos atualizados para a versão portable 2.3.3.
+
+Arquivo ZIP: patches/Aplicacao_financeira_2.3.3.zip (contém `index.html`, `script.js`, README e mensagem de instalação).
+
+Passos rápidos (IMPORTANTE: peça ao usuário fazer backup antes):
+1) Abrir a aplicação -> Ferramentas -> Exportar backup (JSON) e salvar em local seguro.
+2) Fechar o navegador/aplicação.
+3) Substituir os arquivos `index.html` e `script.js` na pasta `app` da versão portable pelos arquivos deste ZIP.
+4) Reabrir a aplicação e verificar os lançamentos (Resumo Geral).
+
+Observação: não rodar a URL de teste `?run_test=1` sem backup; ela limpa e regrava dados para validação.
+
+Obrigado.

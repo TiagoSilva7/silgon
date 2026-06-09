@@ -1,0 +1,67 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Dashboard - PainelExcel</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/simpledotcss@1.1.0/simple.min.css">
+  <style>
+    :root{--card-bg:#ffffff;--muted:#6b7280;--accent:#0ea5a4}
+    body{font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;margin:18px}
+    header{display:flex;align-items:center;justify-content:space-between}
+    h2{margin:0 0 8px 0}
+    .layout{display:grid;grid-template-columns:320px 1fr;gap:20px;align-items:start}
+    .card{background:var(--card-bg);border-radius:8px;padding:14px;box-shadow:0 6px 18px rgba(15,23,42,0.06)}
+    #filters label{display:block;margin-bottom:6px;font-size:0.95rem;color:var(--muted)}
+    select,input,button{padding:8px;border-radius:6px;border:1px solid #e6e9ee}
+    #apply-filters{background:var(--accent);color:white;border:0;padding:8px 12px;margin-top:10px}
+    #chart{background:linear-gradient(180deg,#ffffff,#fbfdff);padding:20px;border-radius:8px}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:6px 8px;border-bottom:1px solid #f3f4f6;font-size:0.9rem}
+  </style>
+</head>
+<body>
+  <h2>Dashboard</h2>
+  <p><a href="/">Enviar novo arquivo</a></p>
+  <header>
+    <div>
+      <h2>Dashboard</h2>
+      <div style="color:var(--muted)">Interativo — filtre e explore seus dados</div>
+    </div>
+    <div><a href="/">Enviar novo arquivo</a></div>
+  </header>
+  <div class="layout" style="margin-top:12px">
+    <div class="card">
+      <h3 style="margin-top:0">Filtros</h3>
+      <div id="filters"></div>
+      <h4>Agregação / Gráfico</h4>
+      <label>Chart type:
+        <select id="chart-type">
+          <option value="line">Line</option>
+          <option value="bar">Bar</option>
+          <option value="pie">Pie</option>
+        </select>
+      </label>
+      <label>X axis: <select id="chart-x"></select></label>
+      <label>Y axis: <select id="chart-y"></select></label>
+      <label>Agg: <select id="chart-agg"><option value="sum">Sum</option><option value="mean">Mean</option><option value="count">Count</option></select></label>
+      <button id="apply-filters">Aplicar</button>
+      <hr>
+      <h3>Dados</h3>
+      <div style="max-height:400px;overflow:auto">
+        <table id="data-table">
+          <thead id="thead"></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">Visualizações</h3>
+      <div id="chart">
+        <canvas id="myChart"></canvas>
+      </div>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="/static/js/dashboard.js"></script>
+</body>
+</html>

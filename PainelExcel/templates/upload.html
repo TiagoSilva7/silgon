@@ -1,0 +1,19 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Upload Excel - PainelExcel</title>
+  <style>body{font-family:Segoe UI,Arial;padding:20px}label{display:block;margin-top:8px}</style>
+</head>
+<body>
+  <h2>Enviar arquivo Excel/CSV</h2>
+  <form method="post" action="/upload" enctype="multipart/form-data">
+    <label>Arquivo: <input type="file" name="file" required></label>
+    <label>Sheet (opcional): <input type="text" name="sheet" placeholder="nome ou índice (ex: 0)"></label>
+    <button type="submit">Enviar e gerar dashboard</button>
+  </form>
+  <hr>
+  <p>Após enviar, você será direcionado ao dashboard.</p>
+  <p><a href="/dashboard">Ir para o dashboard (mesmo sem upload)</a></p>
+</body>
+</html>

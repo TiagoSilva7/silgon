@@ -1,0 +1,14 @@
+﻿Diretoria;Area;AnoMes;Headcount proprio previsto (Qtd);Headcount proprio previsto (R$);Headcount proprio realizado (Qtd);Headcount proprio realizado (R$);Headcount terceiro previsto (Qtd);Headcount terceiro previsto (R$);Headcount realizado realizado (Qtd);Headcount realizado realizado (R$)
+Diretoria de Operações Financeiras;Tesouraria;202512;150;225000;100;150000;10;25000;5;12500
+Diretoria de Operações Financeiras;Contas a Pagar/Receber;202512;200;360000;250;450000;20;60000;10;30000
+Diretoria de Operações Financeiras;Planejamento Financeiro;202512;150;195000;50;65000;30;294000;25;245000
+Diretoria de Tecnologia e Produto;Desenvolvimento Backend;202512;10;10000;2;2000;55;126500;98;225400
+Diretoria de Tecnologia e Produto;User Experience (UX);202512;22;4400;1;200;89;667500;56;420000
+Diretoria de Tecnologia e Produto;Infraestrutura e Cloud;202512;3;1500;15;7500;52;546000;24;252000
+Riscos e Compliance;Prevenção a Fraudes;202512;9;900;5;500;12;6000;21;10500
+Riscos e Compliance;Jurídico e Regulatório;202512;8;1200;6;900;34;6800;47;9400
+Riscos e Compliance;Análise de Crédito;202512;7;1750;4;1000;35;52500;85;127500
+Crescimento e Marketing;Aquisição de Usuários;202512;1;9800;8;78400;85;297500;54;189000
+Crescimento e Marketing;CRM e Engajamento;202512;2;2000;7;7000;95;522500;23;126500
+Crescimento e Marketing;Branding;202512;3;16500;1;5500;34;289000;58;493000
+;;;;;;;;;;
