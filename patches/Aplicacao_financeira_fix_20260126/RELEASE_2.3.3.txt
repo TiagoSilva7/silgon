@@ -1,6 +1,0 @@
-Aplicação Financeira — Release salvo: 2.3.3
-
-Data: 2026-01-26
-Descrição: Versão estável antes de grande atualização para 2.4.
-Arquivos incluídos: index.html, script.js
-Notas: Esta versão preserva compatibilidade com backups existentes. Para instalar, siga o README_APLICACAO_FINANCEIRA_FIX.txt.
