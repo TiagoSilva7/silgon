@@ -207,44 +207,6 @@
         color: var(--text);
       }
       #patient-panels select, #patient-panels option { font-size:14px; }
-
-      /* Layout fixes for patient form to avoid labels/input overlap
-         - Allow labels to wrap instead of using nowrap so long labels don't 'eat' inputs
-         - Provide a predictable label width and ensure inputs can shrink (min-width:0)
-         - Force flex containers inside patient panels to wrap when there's not enough space
-      */
-      #patient-panels .patient-panel label {
-        display: inline-block;
-        width: 160px;
-        white-space: normal !important;
-        margin: 0;
-        font-weight: 700;
-      }
-      #patient-panels .patient-panel input,
-      #patient-panels .patient-panel select,
-      #patient-panels .patient-panel textarea {
-        min-width: 0;
-      }
-      /* Ensure flex rows inside patient panels wrap nicely and their children can shrink */
-      #patient-panels .patient-panel div[style*="display:flex"] {
-        align-items: center;
-        gap: 8px;
-        flex-wrap: wrap;
-      }
-      /* Make direct children of those flex rows behave as flexible columns with a sensible min-width */
-      #patient-panels .patient-panel div[style*="display:flex"] > div,
-      #patient-panels .patient-panel div[style*="display:flex"] > input,
-      #patient-panels .patient-panel div[style*="display:flex"] > select,
-      #patient-panels .patient-panel div[style*="display:flex"] > textarea {
-        flex: 1 1 auto;
-        min-width: 140px;
-      }
-
-      /* Specific adjustments for very small screens */
-      @media (max-width:600px){
-        #patient-panels .patient-panel label{width:120px;font-size:14px}
-        #patient-panels .patient-panel div[style*="display:flex"] > div{min-width:120px}
-      }
     </style>
   </head>
   <body>
