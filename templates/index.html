@@ -289,20 +289,52 @@
 
               <div style="display:flex;gap:8px">
                 <div style="flex:1;display:flex;align-items:center;gap:8px">
-                  <label style="white-space:nowrap">Telefone residencial:</label>
-                  <input id="p_tel_home" inputmode="numeric" maxlength="15" style="flex:1" />
+                  <label style="white-space:nowrap">Data de nascimento:</label>
+                  <input id="p_birth_date" type="date" style="flex:1;padding:8px;border-radius:8px" />
                 </div>
                 <div style="flex:1;display:flex;align-items:center;gap:8px">
-                  <label style="white-space:nowrap">Telefone celular:</label>
-                  <input id="p_tel_cell" inputmode="numeric" maxlength="15" style="flex:1" />
+                  <label style="white-space:nowrap">Idade:</label>
+                  <input id="p_age" type="number" min="0" readonly style="width:120px;padding:8px;border-radius:8px;background:#f5f7f8" />
                 </div>
               </div>
 
-              <div style="display:flex;align-items:center;gap:8px">
-                <label style="white-space:nowrap">Telefone para recado:</label>
-                <input id="p_tel_msg" inputmode="numeric" maxlength="15" style="flex:1" />
-                <label style="white-space:nowrap;margin-left:6px">Nome do contato:</label>
-                <input id="p_contact_name" placeholder="Nome do contato" style="flex:0 0 220px;padding:8px;border-radius:8px" />
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <div style="flex:1;display:flex;align-items:center;gap:8px;min-width:220px">
+                  <label style="white-space:nowrap">Sexo:</label>
+                  <select id="p_sex" style="flex:1;padding:8px;border-radius:8px">
+                    <option value="">Selecione</option>
+                    <option value="feminino">Feminino</option>
+                    <option value="masculino">Masculino</option>
+                    <option value="intersexo">Intersexo</option>
+                    <option value="nao_informado">Prefere não informar</option>
+                  </select>
+                </div>
+                <div style="flex:1;display:flex;align-items:center;gap:8px;min-width:220px">
+                  <label style="white-space:nowrap">Gênero:</label>
+                  <input id="p_gender" placeholder="Se necessário" style="flex:1;padding:8px;border-radius:8px" />
+                </div>
+              </div>
+
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <div style="flex:1;display:flex;align-items:center;gap:8px;min-width:220px">
+                  <label style="white-space:nowrap">Estado civil:</label>
+                  <input id="p_marital_status" style="flex:1;padding:8px;border-radius:8px" />
+                </div>
+                <div style="flex:1;display:flex;align-items:center;gap:8px;min-width:220px">
+                  <label style="white-space:nowrap">Profissão:</label>
+                  <input id="p_profession" style="flex:1;padding:8px;border-radius:8px" />
+                </div>
+              </div>
+
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <div style="flex:1;display:flex;align-items:center;gap:8px;min-width:220px">
+                  <label style="white-space:nowrap">Telefone:</label>
+                  <input id="p_phone" inputmode="numeric" maxlength="15" style="flex:1" />
+                </div>
+                <div style="flex:1;display:flex;align-items:center;gap:8px;min-width:220px">
+                  <label style="white-space:nowrap">WhatsApp:</label>
+                  <input id="p_whatsapp" inputmode="numeric" maxlength="15" style="flex:1" />
+                </div>
               </div>
 
               <div style="display:flex;align-items:center;gap:8px">
@@ -317,34 +349,130 @@
               </div>
 
               <div style="display:flex;align-items:center;gap:8px;width:100%">
-                <label style="white-space:nowrap">Logradouro:</label>
-                <input id="p_address" placeholder="Rua / Av / Praça" style="flex:1;padding:10px;border-radius:8px" />
+                <label style="white-space:nowrap">Endereço completo:</label>
+                <input id="p_address" placeholder="Rua / Av / Praça, número, complemento" style="flex:1;padding:10px;border-radius:8px" />
               </div>
-              <div style="display:flex;gap:8px;align-items:center;width:100%">
-                <label style="white-space:nowrap">Número:</label>
-                <input id="p_num" maxlength="5" inputmode="numeric" pattern="\d*" placeholder="00000" style="width:90px;padding:8px;border-radius:8px" />
-                <label style="white-space:nowrap">Complemento:</label>
-                <input id="p_comp" placeholder="Ex: Apt 101" style="flex:1;min-width:120px;padding:8px;border-radius:8px" />
+              <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;width:100%">
+                <div style="flex:1;display:flex;align-items:center;gap:8px;min-width:220px">
+                  <label style="white-space:nowrap">Cidade:</label>
+                  <input id="p_city" style="flex:1;padding:8px;border-radius:8px" />
+                </div>
+                <div style="flex:1;display:flex;align-items:center;gap:8px;min-width:220px">
+                  <label style="white-space:nowrap">Estado:</label>
+                  <input id="p_state" maxlength="2" placeholder="UF" style="width:90px;padding:8px;border-radius:8px;text-transform:uppercase" />
+                </div>
               </div>
 
-              <div style="display:flex;align-items:center;gap:8px">
-                <label style="white-space:nowrap">Profissão:</label>
-                <input id="p_prof" style="flex:1;padding:8px;border-radius:8px" />
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <div style="flex:1;display:flex;align-items:center;gap:8px;min-width:260px">
+                  <label style="white-space:nowrap">Contato de emergência:</label>
+                  <input id="p_emergency_contact" style="flex:1;padding:8px;border-radius:8px" />
+                </div>
+                <div style="flex:1;display:flex;align-items:center;gap:8px;min-width:220px">
+                  <label style="white-space:nowrap">Telefone do contato:</label>
+                  <input id="p_emergency_phone" inputmode="numeric" maxlength="15" style="flex:1" />
+                </div>
               </div>
 
-              <div style="display:flex;gap:8px">
-                <div style="flex:1;display:flex;align-items:center;gap:8px">
-                  <label style="white-space:nowrap">Idade:</label>
-                  <input id="p_age" type="number" min="0" style="width:120px;padding:8px;border-radius:8px" />
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <div style="flex:1;display:flex;align-items:center;gap:8px;min-width:220px">
+                  <label style="white-space:nowrap">Parentesco:</label>
+                  <input id="p_emergency_relationship" style="flex:1;padding:8px;border-radius:8px" />
                 </div>
-                <div style="flex:1;display:flex;align-items:center;gap:8px">
-                  <label style="white-space:nowrap">Peso (kg):</label>
-                  <input id="p_weight" type="number" step="0.1" style="width:140px;padding:8px;border-radius:8px" />
+                <div style="flex:1;display:flex;align-items:center;gap:8px;min-width:220px">
+                  <label style="white-space:nowrap">Convênio:</label>
+                  <input id="p_insurance" style="flex:1;padding:8px;border-radius:8px" />
                 </div>
-                <div style="flex:1;display:flex;align-items:center;gap:8px">
-                  <label style="white-space:nowrap">Altura (m):</label>
-                  <input id="p_height" type="number" step="0.01" style="width:140px;padding:8px;border-radius:8px" />
+                <div style="flex:1;display:flex;align-items:center;gap:8px;min-width:220px">
+                  <label style="white-space:nowrap">Carteirinha:</label>
+                  <input id="p_insurance_number" style="flex:1;padding:8px;border-radius:8px" />
                 </div>
+              </div>
+
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <div style="flex:1;display:flex;align-items:center;gap:8px;min-width:220px">
+                  <label style="white-space:nowrap">Paciente particular:</label>
+                  <select id="p_private_patient" style="flex:1;padding:8px;border-radius:8px">
+                    <option value="">Selecione</option>
+                    <option value="sim">Sim</option>
+                    <option value="nao">Não</option>
+                  </select>
+                </div>
+                <div style="flex:1;display:flex;align-items:center;gap:8px;min-width:220px">
+                  <label style="white-space:nowrap">Responsável legal:</label>
+                  <input id="p_legal_guardian" style="flex:1;padding:8px;border-radius:8px" />
+                </div>
+              </div>
+
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <div style="flex:1;display:flex;align-items:center;gap:8px;min-width:220px">
+                  <label style="white-space:nowrap">CPF do responsável:</label>
+                  <input id="p_legal_guardian_cpf" maxlength="14" inputmode="numeric" oninput="this.value = (function(v){ v = String(v||'').replace(/\D/g,'').slice(0,11); return formatCPF(v); })(this.value)" style="flex:1;padding:8px;border-radius:8px" />
+                </div>
+                <div style="flex:1;display:flex;align-items:center;gap:8px;min-width:220px">
+                  <label style="white-space:nowrap">Telefone do responsável:</label>
+                  <input id="p_legal_guardian_phone" inputmode="numeric" maxlength="15" style="flex:1" />
+                </div>
+              </div>
+
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <div style="flex:1;display:flex;align-items:center;gap:8px;min-width:220px">
+                  <label style="white-space:nowrap">Médico responsável:</label>
+                  <input id="p_doctor_name" style="flex:1;padding:8px;border-radius:8px" />
+                </div>
+                <div style="flex:1;display:flex;align-items:center;gap:8px;min-width:220px">
+                  <label style="white-space:nowrap">CRM:</label>
+                  <input id="p_doctor_crm" style="flex:1;padding:8px;border-radius:8px" />
+                </div>
+              </div>
+
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <div style="flex:2;display:flex;align-items:center;gap:8px;min-width:260px">
+                  <label style="white-space:nowrap">Diagnóstico médico:</label>
+                  <input id="p_medical_diagnosis" style="flex:1;padding:8px;border-radius:8px" />
+                </div>
+                <div style="flex:1;display:flex;align-items:center;gap:8px;min-width:180px">
+                  <label style="white-space:nowrap">CID:</label>
+                  <input id="p_cid" style="flex:1;padding:8px;border-radius:8px" />
+                </div>
+              </div>
+
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <div style="flex:1;display:flex;align-items:center;gap:8px;min-width:220px">
+                  <label style="white-space:nowrap">Data da avaliação:</label>
+                  <input id="p_evaluation_date" type="date" style="flex:1;padding:8px;border-radius:8px" />
+                </div>
+                <div style="flex:1;display:flex;align-items:center;gap:8px;min-width:260px">
+                  <label style="white-space:nowrap">Modalidade:</label>
+                  <select id="p_care_modality" style="flex:1;padding:8px;border-radius:8px">
+                    <option value="">Selecione</option>
+                    <option value="clinica">Clínica</option>
+                    <option value="domiciliar">Domiciliar</option>
+                    <option value="hospitalar">Hospitalar</option>
+                    <option value="online">Online</option>
+                    <option value="outro">Outro</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <div style="flex:1;display:flex;align-items:center;gap:8px;min-width:220px">
+                  <label style="white-space:nowrap">Unidade/local:</label>
+                  <input id="p_care_location" style="flex:1;padding:8px;border-radius:8px" />
+                </div>
+                <div style="flex:1;display:flex;align-items:center;gap:8px;min-width:220px">
+                  <label style="white-space:nowrap">Fisioterapeuta:</label>
+                  <input id="p_physiotherapist_name" style="flex:1;padding:8px;border-radius:8px" />
+                </div>
+                <div style="flex:1;display:flex;align-items:center;gap:8px;min-width:180px">
+                  <label style="white-space:nowrap">CREFITO:</label>
+                  <input id="p_physiotherapist_crefito" style="flex:1;padding:8px;border-radius:8px" />
+                </div>
+              </div>
+
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <label>Observações cadastrais</label>
+                <textarea id="p_registration_notes" rows="3" style="width:100%;padding:8px;border-radius:8px"></textarea>
               </div>
 
             </div>
@@ -924,6 +1052,28 @@
         return el ? String(el.value||'').trim() : '';
       }
 
+      function setInputValue(id, value){
+        const el = document.getElementById(id);
+        if(el) el.value = value == null ? '' : value;
+      }
+
+      function calculateAgeFromBirthDate(value){
+        if(!value) return '';
+        const birth = new Date(value + 'T00:00:00');
+        if(Number.isNaN(birth.getTime())) return '';
+        const today = new Date();
+        let age = today.getFullYear() - birth.getFullYear();
+        const monthDiff = today.getMonth() - birth.getMonth();
+        const dayDiff = today.getDate() - birth.getDate();
+        if(monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) age -= 1;
+        return age >= 0 ? String(age) : '';
+      }
+
+      function syncAgeFromBirthDate(){
+        const birthDate = getInputValue('p_birth_date');
+        setInputValue('p_age', calculateAgeFromBirthDate(birthDate));
+      }
+
       function getFinanceiroText(){
         const el = document.getElementById('financeiro-content');
         if(!el) return 'Sem dados financeiros.';
@@ -936,20 +1086,39 @@
         const patientCpf = getInputValue('p_cpf') || 'Não informado';
         const dados = [
           `Nome: ${patientName}`,
-          `CPF: ${patientCpf}`,
-          `Telefone residencial: ${getInputValue('p_tel_home') || 'Não informado'}`,
-          `Telefone celular: ${getInputValue('p_tel_cell') || 'Não informado'}`,
-          `Telefone recado: ${getInputValue('p_tel_msg') || 'Não informado'}`,
-          `Contato de recado: ${getInputValue('p_contact_name') || 'Não informado'}`,
-          `E-mail: ${getInputValue('p_email') || 'Não informado'}`,
-          `CEP: ${getInputValue('p_cep') || 'Não informado'}`,
-          `Logradouro: ${getInputValue('p_address') || 'Não informado'}`,
-          `Número: ${getInputValue('p_num') || 'Não informado'}`,
-          `Complemento: ${getInputValue('p_comp') || 'Não informado'}`,
-          `Profissão: ${getInputValue('p_prof') || 'Não informado'}`,
+          `Data de nascimento: ${getInputValue('p_birth_date') || 'Não informado'}`,
           `Idade: ${getInputValue('p_age') || 'Não informado'}`,
-          `Peso (kg): ${getInputValue('p_weight') || 'Não informado'}`,
-          `Altura (m): ${getInputValue('p_height') || 'Não informado'}`
+          `Sexo: ${getInputValue('p_sex') || 'Não informado'}`,
+          `Gênero: ${getInputValue('p_gender') || 'Não informado'}`,
+          `CPF: ${patientCpf}`,
+          `Estado civil: ${getInputValue('p_marital_status') || 'Não informado'}`,
+          `Profissão: ${getInputValue('p_profession') || 'Não informado'}`,
+          `Telefone: ${getInputValue('p_phone') || 'Não informado'}`,
+          `WhatsApp: ${getInputValue('p_whatsapp') || 'Não informado'}`,
+          `E-mail: ${getInputValue('p_email') || 'Não informado'}`,
+          `Endereço: ${getInputValue('p_address') || 'Não informado'}`,
+          `Cidade: ${getInputValue('p_city') || 'Não informado'}`,
+          `Estado: ${getInputValue('p_state') || 'Não informado'}`,
+          `CEP: ${getInputValue('p_cep') || 'Não informado'}`,
+          `Contato de emergência: ${getInputValue('p_emergency_contact') || 'Não informado'}`,
+          `Telefone do contato: ${getInputValue('p_emergency_phone') || 'Não informado'}`,
+          `Parentesco: ${getInputValue('p_emergency_relationship') || 'Não informado'}`,
+          `Convênio: ${getInputValue('p_insurance') || 'Não informado'}`,
+          `Carteirinha: ${getInputValue('p_insurance_number') || 'Não informado'}`,
+          `Paciente particular: ${getInputValue('p_private_patient') || 'Não informado'}`,
+          `Responsável legal: ${getInputValue('p_legal_guardian') || 'Não informado'}`,
+          `CPF do responsável legal: ${getInputValue('p_legal_guardian_cpf') || 'Não informado'}`,
+          `Telefone do responsável legal: ${getInputValue('p_legal_guardian_phone') || 'Não informado'}`,
+          `Médico responsável: ${getInputValue('p_doctor_name') || 'Não informado'}`,
+          `CRM: ${getInputValue('p_doctor_crm') || 'Não informado'}`,
+          `Diagnóstico médico: ${getInputValue('p_medical_diagnosis') || 'Não informado'}`,
+          `CID: ${getInputValue('p_cid') || 'Não informado'}`,
+          `Data da avaliação: ${getInputValue('p_evaluation_date') || 'Não informado'}`,
+          `Modalidade: ${getInputValue('p_care_modality') || 'Não informado'}`,
+          `Unidade/local: ${getInputValue('p_care_location') || 'Não informado'}`,
+          `Fisioterapeuta responsável: ${getInputValue('p_physiotherapist_name') || 'Não informado'}`,
+          `CREFITO: ${getInputValue('p_physiotherapist_crefito') || 'Não informado'}`,
+          `Observações cadastrais: ${getInputValue('p_registration_notes') || 'Não informado'}`
         ];
 
         const anamnese = [
@@ -1621,7 +1790,7 @@
       }
 
       function clearPatientForm(){
-        ['p_id','p_cpf','p_name','p_tel_home','p_tel_cell','p_tel_msg','p_contact_name','p_email','p_cep','p_address','p_num','p_comp','p_prof','p_age','p_weight','p_height'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+        ['p_id','p_cpf','p_name','p_birth_date','p_age','p_sex','p_gender','p_marital_status','p_profession','p_phone','p_whatsapp','p_email','p_address','p_city','p_state','p_cep','p_emergency_contact','p_emergency_phone','p_emergency_relationship','p_insurance','p_insurance_number','p_private_patient','p_legal_guardian','p_legal_guardian_cpf','p_legal_guardian_phone','p_doctor_name','p_doctor_crm','p_medical_diagnosis','p_cid','p_evaluation_date','p_care_modality','p_care_location','p_physiotherapist_name','p_physiotherapist_crefito','p_registration_notes'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
         ACTIVE_PRONTUARIO_ID = '';
         updateProntuarioSwitchButton('');
         const cm = document.getElementById('cpf-msg'); if(cm) cm.style.display='none'; const pm = document.getElementById('patient-msg'); if(pm) pm.textContent='';
@@ -1641,22 +1810,41 @@
       function populatePatientForm(id){
         const list = window._patientsCache || [];
         const p = list.find(x=>String(x.id)===String(id)); if(!p) return;
-        document.getElementById('p_id').value = p.id || '';
-        document.getElementById('p_cpf').value = p.cpf||'';
-        document.getElementById('p_name').value = p.name||'';
-        document.getElementById('p_tel_home').value = p.tel_home ? formatPhone(String(p.tel_home).replace(/\D/g,'')) : '';
-        document.getElementById('p_tel_cell').value = p.tel_cell ? formatPhone(String(p.tel_cell).replace(/\D/g,'')) : '';
-        document.getElementById('p_tel_msg').value = p.tel_msg ? formatPhone(String(p.tel_msg).replace(/\D/g,'')) : '';
-        document.getElementById('p_contact_name').value = p.contact_name || '';
-        document.getElementById('p_email').value = p.email||'';
-        document.getElementById('p_cep').value = p.cep||'';
-        document.getElementById('p_address').value = p.address||'';
-        document.getElementById('p_num').value = p.number||'';
-        document.getElementById('p_comp').value = p.complement||'';
-        document.getElementById('p_prof').value = p.prof||'';
-        document.getElementById('p_age').value = p.age||'';
-        document.getElementById('p_weight').value = p.weight||'';
-        document.getElementById('p_height').value = p.height||'';
+        setInputValue('p_id', p.id || '');
+        setInputValue('p_cpf', p.cpf || '');
+        setInputValue('p_name', p.name || '');
+        setInputValue('p_birth_date', p.birth_date || '');
+        setInputValue('p_age', p.age || calculateAgeFromBirthDate(p.birth_date || ''));
+        setInputValue('p_sex', p.sex || '');
+        setInputValue('p_gender', p.gender || '');
+        setInputValue('p_marital_status', p.marital_status || '');
+        setInputValue('p_profession', p.profession || p.prof || '');
+        setInputValue('p_phone', p.phone ? formatPhone(String(p.phone).replace(/\D/g,'')) : (p.tel_home ? formatPhone(String(p.tel_home).replace(/\D/g,'')) : ''));
+        setInputValue('p_whatsapp', p.whatsapp ? formatPhone(String(p.whatsapp).replace(/\D/g,'')) : (p.tel_msg ? formatPhone(String(p.tel_msg).replace(/\D/g,'')) : ''));
+        setInputValue('p_email', p.email || '');
+        setInputValue('p_address', p.address || '');
+        setInputValue('p_city', p.city || '');
+        setInputValue('p_state', p.state || '');
+        setInputValue('p_cep', p.cep || '');
+        setInputValue('p_emergency_contact', p.emergency_contact || p.contact_name || '');
+        setInputValue('p_emergency_phone', p.emergency_phone ? formatPhone(String(p.emergency_phone).replace(/\D/g,'')) : '');
+        setInputValue('p_emergency_relationship', p.emergency_relationship || '');
+        setInputValue('p_insurance', p.insurance || '');
+        setInputValue('p_insurance_number', p.insurance_number || '');
+        setInputValue('p_private_patient', p.private_patient || '');
+        setInputValue('p_legal_guardian', p.legal_guardian || '');
+        setInputValue('p_legal_guardian_cpf', p.legal_guardian_cpf || '');
+        setInputValue('p_legal_guardian_phone', p.legal_guardian_phone ? formatPhone(String(p.legal_guardian_phone).replace(/\D/g,'')) : '');
+        setInputValue('p_doctor_name', p.doctor_name || '');
+        setInputValue('p_doctor_crm', p.doctor_crm || '');
+        setInputValue('p_medical_diagnosis', p.medical_diagnosis || '');
+        setInputValue('p_cid', p.cid || '');
+        setInputValue('p_evaluation_date', p.evaluation_date || '');
+        setInputValue('p_care_modality', p.care_modality || '');
+        setInputValue('p_care_location', p.care_location || '');
+        setInputValue('p_physiotherapist_name', p.physiotherapist_name || '');
+        setInputValue('p_physiotherapist_crefito', p.physiotherapist_crefito || '');
+        setInputValue('p_registration_notes', p.registration_notes || '');
         // set anamnese patient-id and load saved anamnese and other panel data
         const aId = document.getElementById('a_p_id'); if(aId) aId.value = p.id || '';
         ACTIVE_PRONTUARIO_ID = '';
@@ -1674,23 +1862,41 @@
         window._patientsCache = window._patientsCache || [];
         const idx = window._patientsCache.findIndex(x=>String(x.id)===String(p.id));
         if(idx===-1){ window._patientsCache.push(p); } else { window._patientsCache[idx] = p; }
-        document.getElementById('p_id').value = p.id || '';
-        document.getElementById('p_cpf').value = p.cpf||'';
-        document.getElementById('p_name').value = p.name||'';
-        document.getElementById('p_tel_home').value = p.tel_home ? formatPhone(String(p.tel_home).replace(/\D/g,'')) : '';
-        document.getElementById('p_tel_cell').value = p.tel_cell ? formatPhone(String(p.tel_cell).replace(/\D/g,'')) : '';
-        document.getElementById('p_tel_msg').value = p.tel_msg ? formatPhone(String(p.tel_msg).replace(/\D/g,'')) : '';
-        document.getElementById('p_contact_name').value = p.contact_name || '';
-        document.getElementById('p_contact_name').value = p.contact_name || '';
-        document.getElementById('p_email').value = p.email||'';
-        document.getElementById('p_cep').value = p.cep||'';
-        document.getElementById('p_address').value = p.address||'';
-        document.getElementById('p_num').value = p.number||'';
-        document.getElementById('p_comp').value = p.complement||'';
-        document.getElementById('p_prof').value = p.prof||'';
-        document.getElementById('p_age').value = p.age||'';
-        document.getElementById('p_weight').value = p.weight||'';
-        document.getElementById('p_height').value = p.height||'';
+        setInputValue('p_id', p.id || '');
+        setInputValue('p_cpf', p.cpf || '');
+        setInputValue('p_name', p.name || '');
+        setInputValue('p_birth_date', p.birth_date || '');
+        setInputValue('p_age', p.age || calculateAgeFromBirthDate(p.birth_date || ''));
+        setInputValue('p_sex', p.sex || '');
+        setInputValue('p_gender', p.gender || '');
+        setInputValue('p_marital_status', p.marital_status || '');
+        setInputValue('p_profession', p.profession || p.prof || '');
+        setInputValue('p_phone', p.phone ? formatPhone(String(p.phone).replace(/\D/g,'')) : (p.tel_home ? formatPhone(String(p.tel_home).replace(/\D/g,'')) : ''));
+        setInputValue('p_whatsapp', p.whatsapp ? formatPhone(String(p.whatsapp).replace(/\D/g,'')) : (p.tel_msg ? formatPhone(String(p.tel_msg).replace(/\D/g,'')) : ''));
+        setInputValue('p_email', p.email || '');
+        setInputValue('p_address', p.address || '');
+        setInputValue('p_city', p.city || '');
+        setInputValue('p_state', p.state || '');
+        setInputValue('p_cep', p.cep || '');
+        setInputValue('p_emergency_contact', p.emergency_contact || p.contact_name || '');
+        setInputValue('p_emergency_phone', p.emergency_phone ? formatPhone(String(p.emergency_phone).replace(/\D/g,'')) : '');
+        setInputValue('p_emergency_relationship', p.emergency_relationship || '');
+        setInputValue('p_insurance', p.insurance || '');
+        setInputValue('p_insurance_number', p.insurance_number || '');
+        setInputValue('p_private_patient', p.private_patient || '');
+        setInputValue('p_legal_guardian', p.legal_guardian || '');
+        setInputValue('p_legal_guardian_cpf', p.legal_guardian_cpf || '');
+        setInputValue('p_legal_guardian_phone', p.legal_guardian_phone ? formatPhone(String(p.legal_guardian_phone).replace(/\D/g,'')) : '');
+        setInputValue('p_doctor_name', p.doctor_name || '');
+        setInputValue('p_doctor_crm', p.doctor_crm || '');
+        setInputValue('p_medical_diagnosis', p.medical_diagnosis || '');
+        setInputValue('p_cid', p.cid || '');
+        setInputValue('p_evaluation_date', p.evaluation_date || '');
+        setInputValue('p_care_modality', p.care_modality || '');
+        setInputValue('p_care_location', p.care_location || '');
+        setInputValue('p_physiotherapist_name', p.physiotherapist_name || '');
+        setInputValue('p_physiotherapist_crefito', p.physiotherapist_crefito || '');
+        setInputValue('p_registration_notes', p.registration_notes || '');
         const aId = document.getElementById('a_p_id'); if(aId) aId.value = p.id || '';
         ACTIVE_PRONTUARIO_ID = '';
         if(shouldPromptProntuario){
@@ -1726,25 +1932,44 @@
         const id = document.getElementById('p_id').value || '';
         const cpf = (document.getElementById('p_cpf').value||'').trim();
         const name = (document.getElementById('p_name').value||'').trim();
-        const tel_home = (document.getElementById('p_tel_home').value||'').trim();
-        const tel_cell = (document.getElementById('p_tel_cell').value||'').trim();
-        const tel_msg = (document.getElementById('p_tel_msg').value||'').trim();
-        const contact_name = (document.getElementById('p_contact_name').value||'').trim();
+        const birth_date = getInputValue('p_birth_date');
+        const age = getInputValue('p_age');
+        const sex = getInputValue('p_sex');
+        const gender = getInputValue('p_gender');
+        const marital_status = getInputValue('p_marital_status');
+        const profession = getInputValue('p_profession');
+        const phone = getInputValue('p_phone');
+        const whatsapp = getInputValue('p_whatsapp');
         const email = (document.getElementById('p_email').value||'').trim();
+        const address = getInputValue('p_address');
+        const city = getInputValue('p_city');
+        const state = getInputValue('p_state').toUpperCase();
         const cep = (document.getElementById('p_cep').value||'').trim();
-        const address = (document.getElementById('p_address').value||'').trim();
-        const number = (document.getElementById('p_num').value||'').trim();
-        const complement = (document.getElementById('p_comp').value||'').trim();
-        const prof = (document.getElementById('p_prof').value||'').trim();
-        const age = (document.getElementById('p_age').value||'').trim();
-        const weight = (document.getElementById('p_weight').value||'').trim();
-        const height = (document.getElementById('p_height').value||'').trim();
+        const emergency_contact = getInputValue('p_emergency_contact');
+        const emergency_phone = getInputValue('p_emergency_phone');
+        const emergency_relationship = getInputValue('p_emergency_relationship');
+        const insurance = getInputValue('p_insurance');
+        const insurance_number = getInputValue('p_insurance_number');
+        const private_patient = getInputValue('p_private_patient');
+        const legal_guardian = getInputValue('p_legal_guardian');
+        const legal_guardian_cpf = getInputValue('p_legal_guardian_cpf');
+        const legal_guardian_phone = getInputValue('p_legal_guardian_phone');
+        const doctor_name = getInputValue('p_doctor_name');
+        const doctor_crm = getInputValue('p_doctor_crm');
+        const medical_diagnosis = getInputValue('p_medical_diagnosis');
+        const cid = getInputValue('p_cid');
+        const evaluation_date = getInputValue('p_evaluation_date');
+        const care_modality = getInputValue('p_care_modality');
+        const care_location = getInputValue('p_care_location');
+        const physiotherapist_name = getInputValue('p_physiotherapist_name');
+        const physiotherapist_crefito = getInputValue('p_physiotherapist_crefito');
+        const registration_notes = getInputValue('p_registration_notes');
         const msgEl = document.getElementById('patient-msg'); msgEl.style.color='var(--muted)';
         if(!cpf){ document.getElementById('cpf-msg').textContent='CPF obrigatório.'; document.getElementById('cpf-msg').style.display='block'; return }
         if(!validateCPF(cpf)){ document.getElementById('cpf-msg').textContent='CPF inválido.'; document.getElementById('cpf-msg').style.display='block'; return }
         document.getElementById('cpf-msg').style.display='none';
         // only include `id` in payload when updating an existing patient
-        const payload = { cpf, name, tel_home, tel_cell, tel_msg, contact_name, email, cep, address, number, complement, prof, age, weight, height };
+        const payload = { cpf, name, birth_date, age, sex, gender, marital_status, profession, phone, whatsapp, email, address, city, state, cep, emergency_contact, emergency_phone, emergency_relationship, insurance, insurance_number, private_patient, legal_guardian, legal_guardian_cpf, legal_guardian_phone, doctor_name, doctor_crm, medical_diagnosis, cid, evaluation_date, care_modality, care_location, physiotherapist_name, physiotherapist_crefito, registration_notes };
         if(id){ payload.id = id; }
         const result = await savePatientToServer(payload);
         if(!result){ msgEl.style.color='red'; msgEl.textContent='Erro ao salvar.'; return }
@@ -1813,14 +2038,18 @@
         }
         const btnCep = document.getElementById('btn-cep'); if(btnCep) btnCep.onclick = async ()=>{
           const cep = document.getElementById('p_cep').value||''; const res = await lookupCEP(cep);
-          if(res){ document.getElementById('p_address').value = res.logradouro || ''; }
+          if(res){
+            setInputValue('p_address', [res.logradouro, res.bairro].filter(Boolean).join(' - '));
+            setInputValue('p_city', res.localidade || '');
+            setInputValue('p_state', (res.uf || '').toUpperCase());
+          }
         };
         const pCep = document.getElementById('p_cep');
         if(pCep){
           pCep.addEventListener('input', (e)=>{ const raw = (e.target.value||'').replace(/\D/g,'').slice(0,8); e.target.value = formatCEP(raw); });
         }
         // phone fields masking (DDD + number) + numeric-only enforcement
-        ['p_tel_home','p_tel_cell','p_tel_msg'].forEach(id=>{
+        ['p_phone','p_whatsapp','p_emergency_phone','p_legal_guardian_phone'].forEach(id=>{
           const el = document.getElementById(id);
           if(!el) return;
           el.addEventListener('input', (e)=>{ const raw = (e.target.value||'').replace(/\D/g,'').slice(0,11); e.target.value = formatPhone(raw); });
@@ -1834,6 +2063,15 @@
             el.value = formatPhone(raw);
           });
         });
+        const birthDateInput = document.getElementById('p_birth_date');
+        if(birthDateInput){
+          birthDateInput.addEventListener('input', syncAgeFromBirthDate);
+          birthDateInput.addEventListener('change', syncAgeFromBirthDate);
+        }
+        const stateInput = document.getElementById('p_state');
+        if(stateInput){
+          stateInput.addEventListener('input', (e)=>{ e.target.value = String(e.target.value || '').replace(/[^a-zA-Z]/g, '').slice(0,2).toUpperCase(); });
+        }
         // search / new controls (CPF search)
         const pSearch = document.getElementById('p_search_cpf');
         const pSearchBtn = document.getElementById('p_search_btn');
