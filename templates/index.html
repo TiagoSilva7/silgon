@@ -535,8 +535,11 @@
 
               <div style="display:flex;gap:8px">
                 <div style="flex:1">
-                  <label>Histórico cirúrgico</label>
-                  <textarea id="a_historico_cirurgico" rows="2" style="width:100%;padding:8px;border-radius:8px"></textarea>
+                  <label style="display:flex;align-items:center;gap:8px"><input id="a_cirurgia_previa" type="checkbox" /> Cirurgia prévia</label>
+                  <div id="a_cirurgia_previa_section" style="display:none;flex-direction:column;gap:6px;margin-top:6px">
+                    <input id="a_historico_cirurgico" placeholder="Tipo de cirurgia" style="width:100%;padding:8px;border-radius:8px" />
+                    <input id="a_cirurgia_data" type="date" style="width:100%;padding:8px;border-radius:8px" />
+                  </div>
                 </div>
                 <div style="flex:1">
                   <label>Histórico de traumas</label>
@@ -582,9 +585,13 @@
                 <textarea id="a_tratamentos_anteriores" rows="2" style="width:100%;padding:8px;border-radius:8px"></textarea>
               </div>
 
-              <div style="display:flex;gap:8px">
+              <div style="display:flex;flex-direction:column;gap:6px">
                 <label style="display:flex;align-items:center;gap:8px"><input id="a_fisioterapia_anterior" type="checkbox" /> Fisioterapia anterior</label>
-                <input id="a_resultado_fisio_anterior" placeholder="Resultado (se aplicável)" style="flex:1;padding:8px;border-radius:8px" />
+                <div id="a_fisioterapia_anterior_section" style="display:none;grid-template-columns:repeat(3,minmax(180px,1fr));gap:8px">
+                  <input id="a_fisio_anterior_quando" placeholder="Quando" style="width:100%;padding:8px;border-radius:8px" />
+                  <input id="a_fisio_anterior_onde" placeholder="Onde" style="width:100%;padding:8px;border-radius:8px" />
+                  <input id="a_resultado_fisio_anterior" placeholder="Resultado" style="width:100%;padding:8px;border-radius:8px" />
+                </div>
               </div>
 
               <div style="display:flex;gap:8px">
@@ -670,6 +677,8 @@
                 <input id="a_dor_local" placeholder="Local da dor" style="flex:1;padding:8px;border-radius:8px" />
               </div>
 
+              <div id="a_dor_details" style="display:none;flex-direction:column;gap:8px">
+
               <div style="margin-top:8px">
                 <label>Mapa corporal / Regiões (marque as que se aplicam)</label>
                 <div class="check-grid">
@@ -683,7 +692,11 @@
                   <label><input type="checkbox" class="a_dor_regiao" value="joelho" /> Joelho</label>
                   <label><input type="checkbox" class="a_dor_regiao" value="tornozelo" /> Tornozelo/Pé</label>
                   <label><input type="checkbox" class="a_dor_regiao" value="outro" id="a_dor_regiao_outro_check" /> Outro</label>
-                  <input id="a_dor_regiao_outro" placeholder="Especifique outra região" style="display:none;padding:6px;border-radius:6px" />
+                </div>
+                <div id="a_dor_regiao_outro_section" style="display:none;grid-template-columns:repeat(3,minmax(180px,1fr));gap:8px;margin-top:8px">
+                  <input id="a_dor_regiao_outro_nome" placeholder="Nome (outro)" style="width:100%;padding:6px;border-radius:6px" />
+                  <input id="a_dor_regiao_outro_resultado" placeholder="Resultado" style="width:100%;padding:6px;border-radius:6px" />
+                  <input id="a_dor_regiao_outro_observacao" placeholder="Observação" style="width:100%;padding:6px;border-radius:6px" />
                 </div>
               </div>
 
@@ -731,7 +744,11 @@
                   <label><input type="checkbox" class="a_dor_tipo" value="superficial" /> Dor superficial</label>
                   <label><input type="checkbox" class="a_dor_tipo" value="irradiada" /> Dor irradiada</label>
                   <label><input type="checkbox" class="a_dor_tipo" value="outro" id="a_dor_tipo_outro_check" /> Outro</label>
-                  <input id="a_dor_tipo_outro" placeholder="Especifique outro tipo" style="display:none;padding:6px;border-radius:6px" />
+                </div>
+                <div id="a_dor_tipo_outro_section" style="display:none;grid-template-columns:repeat(3,minmax(180px,1fr));gap:8px;margin-top:8px">
+                  <input id="a_dor_tipo_outro_nome" placeholder="Nome (outro tipo)" style="width:100%;padding:6px;border-radius:6px" />
+                  <input id="a_dor_tipo_outro_resultado" placeholder="Resultado" style="width:100%;padding:6px;border-radius:6px" />
+                  <input id="a_dor_tipo_outro_observacao" placeholder="Observação" style="width:100%;padding:6px;border-radius:6px" />
                 </div>
               </div>
 
@@ -764,6 +781,8 @@
               <div id="a_dor_obs_section" style="margin-top:8px">
                 <label>Observações sobre a dor</label>
                 <textarea id="a_dor_observacoes" rows="3" style="width:100%;padding:8px;border-radius:8px"></textarea>
+              </div>
+
               </div>
 
               <hr />
@@ -809,6 +828,8 @@
               <div id="a_alertas_det_section" style="display:none;margin-top:8px">
                 <label>Detalhe os sinais de alerta (obrigatório se algum marcado)</label>
                 <textarea id="a_alertas_detalhe" rows="3" style="width:100%;padding:8px;border-radius:8px"></textarea>
+                <label style="margin-top:8px">Recomendação (obrigatória)</label>
+                <textarea id="a_alertas_recomendacao" rows="2" style="width:100%;padding:8px;border-radius:8px"></textarea>
               </div>
 
             </div>
@@ -1348,16 +1369,20 @@
       function avRenderStandardTestCard(sectionKey, testName, extrasHtml){
         const slug = avSlug(testName);
         const base = `${sectionKey}.${slug}`;
+        const isOtherTest = /^outro\b/i.test(String(testName || ''));
+        const otherField = isOtherTest ? avField('Nome do teste', `<input type="text" data-av-key="${base}.nome_teste" />`) : '';
         return `<div class="av-test-card">
           <div class="av-test-title">${escapeHtmlText(testName)}</div>
           <div class="av-grid-tight">
             ${avField('Realizado', avRadioGroup(`${base}.realizado`, [['sim','Sim'],['nao','Não']], 'nao'))}
-            ${avField('Resultado', `<select data-av-key="${base}.resultado"><option value="">Selecione</option>${avOptionHtml(AV_STANDARD_RESULTS)}</select>`)}
-            ${avField('Lateralidade', `<select data-av-key="${base}.lateralidade"><option value="">Selecione</option>${avOptionHtml(AV_LATERALIDADE)}</select>`)}
-            ${avField('Dor', avRadioGroup(`${base}.dor`, [['sim','Sim'],['nao','Não']], 'nao'))}
+            <div class="av-field av-hidden" data-av-show-when-key="${base}.realizado" data-av-show-when-value="sim"><label>Resultado</label><select data-av-key="${base}.resultado"><option value="">Selecione</option>${avOptionHtml(AV_STANDARD_RESULTS)}</select></div>
+            <div class="av-field av-hidden" data-av-show-when-key="${base}.realizado" data-av-show-when-value="sim"><label>Lateralidade</label><select data-av-key="${base}.lateralidade"><option value="">Selecione</option>${avOptionHtml(AV_LATERALIDADE)}</select></div>
+            <div class="av-field av-hidden" data-av-show-when-key="${base}.realizado" data-av-show-when-value="sim"><label>Dor</label>${avRadioGroup(`${base}.dor`, [['sim','Sim'],['nao','Não']], 'nao')}</div>
             <div class="av-field av-hidden" data-av-show-when-key="${base}.dor" data-av-show-when-value="sim"><label>Intensidade da dor (0-10)</label><input type="number" min="0" max="10" data-av-key="${base}.dor_intensidade" /></div>
           </div>
+          <div class="av-grid" style="margin-top:8px">${otherField}</div>
           ${extrasHtml || ''}
+          <div class="av-field av-hidden" data-av-show-when-key="${base}.resultado" data-av-show-when-value="positivo"><label>Descrever achado (obrigatório se positivo)</label><textarea data-av-key="${base}.achado_positivo"></textarea></div>
           <div class="av-grid" style="margin-top:8px">
             ${avField('Observação', `<textarea data-av-key="${base}.observacao"></textarea>`)}
             ${avField('Interpretação clínica', `<textarea data-av-key="${base}.interpretacao"></textarea>`)}
@@ -2736,8 +2761,53 @@
         const anSave = document.getElementById('anamnese-save'); if(anSave) anSave.onclick = saveAnamnese;
         const anClear = document.getElementById('anamnese-clear'); if(anClear) anClear.onclick = clearAnamnese;
         // anamnese conditional visibility wiring
-        const dorRegiaoOutroCheck = document.getElementById('a_dor_regiao_outro_check'); if(dorRegiaoOutroCheck) dorRegiaoOutroCheck.onchange = (e)=>{ document.getElementById('a_dor_regiao_outro').style.display = e.target.checked ? 'inline-block' : 'none'; if(!e.target.checked) document.getElementById('a_dor_regiao_outro').value=''; };
-        const dorTipoOutroCheck = document.getElementById('a_dor_tipo_outro_check'); if(dorTipoOutroCheck) dorTipoOutroCheck.onchange = (e)=>{ document.getElementById('a_dor_tipo_outro').style.display = e.target.checked ? 'inline-block' : 'none'; if(!e.target.checked) document.getElementById('a_dor_tipo_outro').value=''; };
+        const dorPresence = document.getElementById('a_dor_presenca');
+        const dorDetails = document.getElementById('a_dor_details');
+        const updateDorDetails = ()=>{
+          if(!dorDetails || !dorPresence) return;
+          const show = !!dorPresence.checked;
+          dorDetails.style.display = show ? 'flex' : 'none';
+        };
+        if(dorPresence){ dorPresence.onchange = updateDorDetails; updateDorDetails(); }
+
+        const fisioAnteriorCheck = document.getElementById('a_fisioterapia_anterior');
+        const fisioAnteriorSection = document.getElementById('a_fisioterapia_anterior_section');
+        const updateFisioAnterior = ()=>{
+          if(!fisioAnteriorCheck || !fisioAnteriorSection) return;
+          const show = !!fisioAnteriorCheck.checked;
+          fisioAnteriorSection.style.display = show ? 'grid' : 'none';
+          if(!show){
+            ['a_fisio_anterior_quando','a_fisio_anterior_onde','a_resultado_fisio_anterior'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+          }
+        };
+        if(fisioAnteriorCheck){ fisioAnteriorCheck.onchange = updateFisioAnterior; updateFisioAnterior(); }
+
+        const cirurgiaPreviaCheck = document.getElementById('a_cirurgia_previa');
+        const cirurgiaPreviaSection = document.getElementById('a_cirurgia_previa_section');
+        const updateCirurgiaPrevia = ()=>{
+          if(!cirurgiaPreviaCheck || !cirurgiaPreviaSection) return;
+          const show = !!cirurgiaPreviaCheck.checked;
+          cirurgiaPreviaSection.style.display = show ? 'flex' : 'none';
+          if(!show){ ['a_historico_cirurgico','a_cirurgia_data'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; }); }
+        };
+        if(cirurgiaPreviaCheck){ cirurgiaPreviaCheck.onchange = updateCirurgiaPrevia; updateCirurgiaPrevia(); }
+
+        const dorRegiaoOutroCheck = document.getElementById('a_dor_regiao_outro_check');
+        const dorRegiaoOutroSection = document.getElementById('a_dor_regiao_outro_section');
+        if(dorRegiaoOutroCheck) dorRegiaoOutroCheck.onchange = (e)=>{
+          if(!dorRegiaoOutroSection) return;
+          dorRegiaoOutroSection.style.display = e.target.checked ? 'grid' : 'none';
+          if(!e.target.checked){ ['a_dor_regiao_outro_nome','a_dor_regiao_outro_resultado','a_dor_regiao_outro_observacao'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; }); }
+        };
+
+        const dorTipoOutroCheck = document.getElementById('a_dor_tipo_outro_check');
+        const dorTipoOutroSection = document.getElementById('a_dor_tipo_outro_section');
+        if(dorTipoOutroCheck) dorTipoOutroCheck.onchange = (e)=>{
+          if(!dorTipoOutroSection) return;
+          dorTipoOutroSection.style.display = e.target.checked ? 'grid' : 'none';
+          if(!e.target.checked){ ['a_dor_tipo_outro_nome','a_dor_tipo_outro_resultado','a_dor_tipo_outro_observacao'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; }); }
+        };
+
         const dorIrrad = document.getElementById('a_dor_irrad'); if(dorIrrad) dorIrrad.onchange = (e)=>{ document.getElementById('a_dor_local_irrad').style.display = e.target.checked ? 'inline-block' : 'none'; if(!e.target.checked) document.getElementById('a_dor_local_irrad').value=''; };
         // show details when certain pain flags are checked
         const pioraNoturna = document.getElementById('a_piora_noturna'); if(pioraNoturna) pioraNoturna.onchange = (e)=>{ document.getElementById('a_piora_noturna_det').style.display = e.target.checked ? 'block' : 'none'; if(!e.target.checked) document.getElementById('a_piora_noturna_det').value=''; };
@@ -2746,7 +2816,7 @@
         // sintomas associated detail toggles
         document.querySelectorAll('.a_symp').forEach(ch=>{ ch.onchange = (e)=>{ const det=document.querySelector('.a_symp_det[data-symp="'+e.target.value+'"]'); if(det) det.style.display = e.target.checked ? 'block' : 'none'; }; });
         // sinais de alerta toggle
-        document.querySelectorAll('.a_alert').forEach(ch=>{ ch.onchange = ()=>{ const any=Array.from(document.querySelectorAll('.a_alert')).some(x=>x.checked); document.getElementById('a_alertas_det_section').style.display = any ? 'block' : 'none'; if(!any) document.getElementById('a_alertas_detalhe').value=''; }; });
+        document.querySelectorAll('.a_alert').forEach(ch=>{ ch.onchange = ()=>{ const any=Array.from(document.querySelectorAll('.a_alert')).some(x=>x.checked); document.getElementById('a_alertas_det_section').style.display = any ? 'block' : 'none'; if(!any){ document.getElementById('a_alertas_detalhe').value=''; document.getElementById('a_alertas_recomendacao').value=''; } }; });
         // avaliacao save/clear and field wiring
         const avSave = document.getElementById('avaliacao-save'); if(avSave) avSave.onclick = saveAvaliacao;
         const avClear = document.getElementById('avaliacao-clear'); if(avClear) avClear.onclick = clearAvaliacao;
@@ -2821,9 +2891,16 @@
           return;
         }
 
-        // If any alert is checked, require details
+        // If any alert is checked, require details and recommendation
         const anyAlert = Array.from(document.querySelectorAll('.a_alert')).some(ch=>ch.checked);
-        if(anyAlert){ const det = document.getElementById('a_alertas_detalhe'); if(!det || !det.value.trim()){ if(msgEl){ msgEl.style.color='red'; msgEl.textContent='Detalhe os sinais de alerta antes de salvar.'; } return; } }
+        if(anyAlert){
+          const det = document.getElementById('a_alertas_detalhe');
+          const rec = document.getElementById('a_alertas_recomendacao');
+          if(!det || !det.value.trim() || !rec || !rec.value.trim()){
+            if(msgEl){ msgEl.style.color='red'; msgEl.textContent='Preencha detalhe e recomendação dos sinais de alerta antes de salvar.'; }
+            return;
+          }
+        }
 
         const collectChecked = (selector)=> Array.from(document.querySelectorAll(selector)).filter(i=>i.checked).map(i=>i.value);
 
@@ -2832,7 +2909,9 @@
           historia_molestia: (document.getElementById('a_historia_molestia').value||'').trim(),
           historia_medica: (document.getElementById('a_historia_medica').value||'').trim(),
           historia_familiar: (document.getElementById('a_historia_familiar').value||'').trim(),
+          cirurgia_previa: !!document.getElementById('a_cirurgia_previa').checked,
           historico_cirurgico: (document.getElementById('a_historico_cirurgico').value||'').trim(),
+          cirurgia_data: (document.getElementById('a_cirurgia_data').value||'').trim(),
           historico_traumas: (document.getElementById('a_historico_traumas').value||'').trim(),
           diagnosticos_previos: (document.getElementById('a_diagnosticos_previos').value||'').trim(),
           doencas_comorbidades: (document.getElementById('a_doencas_comorbidades').value||'').trim(),
@@ -2842,6 +2921,8 @@
           exames_pendentes: (document.getElementById('a_exames_pendentes').value||'').trim(),
           tratamentos_anteriores: (document.getElementById('a_tratamentos_anteriores').value||'').trim(),
           fisioterapia_anterior: !!document.getElementById('a_fisioterapia_anterior').checked,
+          fisio_anterior_quando: (document.getElementById('a_fisio_anterior_quando').value||'').trim(),
+          fisio_anterior_onde: (document.getElementById('a_fisio_anterior_onde').value||'').trim(),
           resultado_fisio_anterior: (document.getElementById('a_resultado_fisio_anterior').value||'').trim(),
           atividade_fisica: !!document.getElementById('a_atividade_fisica').checked,
           tipo_atividade: (document.getElementById('a_tipo_atividade').value||'').trim(),
@@ -2865,7 +2946,9 @@
             presenca: !!document.getElementById('a_dor_presenca').checked,
             local: (document.getElementById('a_dor_local').value||'').trim(),
             regioes: collectChecked('.a_dor_regiao'),
-            regioes_outro: (document.getElementById('a_dor_regiao_outro').value||'').trim(),
+            regioes_outro_nome: (document.getElementById('a_dor_regiao_outro_nome').value||'').trim(),
+            regioes_outro_resultado: (document.getElementById('a_dor_regiao_outro_resultado').value||'').trim(),
+            regioes_outro_observacao: (document.getElementById('a_dor_regiao_outro_observacao').value||'').trim(),
             inicio: (document.getElementById('a_dor_inicio').value||'').trim(),
             tempo: (document.getElementById('a_dor_tempo').value||'').trim(),
             tipo_inicio: (document.getElementById('a_dor_tipo_inicio').value||''),
@@ -2873,7 +2956,9 @@
             pior: (document.getElementById('a_dor_pior').value||''),
             melhor: (document.getElementById('a_dor_melhor').value||''),
             tipos: collectChecked('.a_dor_tipo'),
-            tipos_outro: (document.getElementById('a_dor_tipo_outro').value||'').trim(),
+            tipos_outro_nome: (document.getElementById('a_dor_tipo_outro_nome').value||'').trim(),
+            tipos_outro_resultado: (document.getElementById('a_dor_tipo_outro_resultado').value||'').trim(),
+            tipos_outro_observacao: (document.getElementById('a_dor_tipo_outro_observacao').value||'').trim(),
             irradiacao: !!document.getElementById('a_dor_irrad').checked,
             local_irrad: (document.getElementById('a_dor_local_irrad').value||'').trim(),
             fatores_piora: (document.getElementById('a_dor_fatores_piora').value||'').trim(),
@@ -2892,7 +2977,8 @@
 
           sinais_alerta: {
             itens: collectChecked('.a_alert'),
-            detalhe: (document.getElementById('a_alertas_detalhe').value||'').trim()
+            detalhe: (document.getElementById('a_alertas_detalhe').value||'').trim(),
+            recomendacao: (document.getElementById('a_alertas_recomendacao').value||'').trim()
           }
         };
 
@@ -2909,13 +2995,16 @@
       }
 
       function clearAnamnese(){
-        const ids = ['a_queixa_principal','a_historia_molestia','a_historia_medica','a_historia_familiar','a_historico_cirurgico','a_historico_traumas','a_diagnosticos_previos','a_doencas_comorbidades','a_medicamentos','a_alergias','a_exames_realizados','a_exames_pendentes','a_tratamentos_anteriores','a_resultado_fisio_anterior','a_tipo_atividade','a_freq_semanal','a_sono','a_alimentacao','a_hidratacao','a_rotina_ocupacional','a_atividades_domesticas','a_avds_prejudicadas','a_limitacoes_funcionais','a_expectativas','a_objetivos','a_observacoes','a_dor_local','a_dor_inicio','a_dor_tempo','a_dor_intensidade_atual','a_dor_pior','a_dor_melhor','a_dor_fatores_piora','a_dor_fatores_melhora','a_dor_observacoes','a_dor_regiao_outro','a_dor_tipo_outro','a_dor_local_irrad','a_alertas_detalhe'];
+        const ids = ['a_queixa_principal','a_historia_molestia','a_historia_medica','a_historia_familiar','a_historico_cirurgico','a_cirurgia_data','a_historico_traumas','a_diagnosticos_previos','a_doencas_comorbidades','a_medicamentos','a_alergias','a_exames_realizados','a_exames_pendentes','a_tratamentos_anteriores','a_fisio_anterior_quando','a_fisio_anterior_onde','a_resultado_fisio_anterior','a_tipo_atividade','a_freq_semanal','a_sono','a_alimentacao','a_hidratacao','a_rotina_ocupacional','a_atividades_domesticas','a_avds_prejudicadas','a_limitacoes_funcionais','a_expectativas','a_objetivos','a_observacoes','a_dor_local','a_dor_inicio','a_dor_tempo','a_dor_intensidade_atual','a_dor_pior','a_dor_melhor','a_dor_fatores_piora','a_dor_fatores_melhora','a_dor_observacoes','a_dor_regiao_outro_nome','a_dor_regiao_outro_resultado','a_dor_regiao_outro_observacao','a_dor_tipo_outro_nome','a_dor_tipo_outro_resultado','a_dor_tipo_outro_observacao','a_dor_local_irrad','a_alertas_detalhe','a_alertas_recomendacao'];
         ids.forEach(id=>{ const el=document.getElementById(id); if(el){ if(el.type==='checkbox' || el.type==='radio') el.checked=false; else el.value=''; } });
         // uncheck grouped checkboxes
         document.querySelectorAll('.a_dor_regiao,.a_dor_tipo,.a_symp,.a_alert').forEach(ch=>{ if(ch) ch.checked=false; });
         // hide conditional inputs
-        document.getElementById('a_dor_regiao_outro').style.display='none';
-        document.getElementById('a_dor_tipo_outro').style.display='none';
+        document.getElementById('a_dor_details').style.display='none';
+        document.getElementById('a_fisioterapia_anterior_section').style.display='none';
+        document.getElementById('a_cirurgia_previa_section').style.display='none';
+        document.getElementById('a_dor_regiao_outro_section').style.display='none';
+        document.getElementById('a_dor_tipo_outro_section').style.display='none';
         document.getElementById('a_dor_local_irrad').style.display='none';
         document.getElementById('a_alertas_det_section').style.display='none';
         document.querySelectorAll('.a_symp_det').forEach(inp=>{ inp.style.display='none'; inp.value=''; });
@@ -2940,7 +3029,9 @@
           setVal('a_historia_molestia', obj.historia_molestia||'');
           setVal('a_historia_medica', obj.historia_medica||'');
           setVal('a_historia_familiar', obj.historia_familiar||'');
+          setVal('a_cirurgia_previa', obj.cirurgia_previa || !!obj.historico_cirurgico || !!obj.cirurgia_data);
           setVal('a_historico_cirurgico', obj.historico_cirurgico||'');
+          setVal('a_cirurgia_data', obj.cirurgia_data||'');
           setVal('a_historico_traumas', obj.historico_traumas||'');
           setVal('a_diagnosticos_previos', obj.diagnosticos_previos||'');
           setVal('a_doencas_comorbidades', obj.doencas_comorbidades||'');
@@ -2950,6 +3041,8 @@
           setVal('a_exames_pendentes', obj.exames_pendentes||'');
           setVal('a_tratamentos_anteriores', obj.tratamentos_anteriores||'');
           setVal('a_fisioterapia_anterior', obj.fisioterapia_anterior||false);
+          setVal('a_fisio_anterior_quando', obj.fisio_anterior_quando||'');
+          setVal('a_fisio_anterior_onde', obj.fisio_anterior_onde||'');
           setVal('a_resultado_fisio_anterior', obj.resultado_fisio_anterior||'');
           setVal('a_atividade_fisica', obj.atividade_fisica||false);
           setVal('a_tipo_atividade', obj.tipo_atividade||'');
@@ -2972,13 +3065,20 @@
           // pain
           if(obj.dor){
             setVal('a_dor_presenca', obj.dor.presenca||false);
+            document.getElementById('a_dor_details').style.display = obj.dor.presenca ? 'flex' : 'none';
             setVal('a_dor_local', obj.dor.local||'');
             document.querySelectorAll('.a_dor_regiao').forEach(ch=>{ ch.checked = (obj.dor.regioes||[]).includes(ch.value); });
-            setVal('a_dor_regiao_outro', obj.dor.regioes_outro||''); if(obj.dor.regioes_outro) document.getElementById('a_dor_regiao_outro').style.display='inline-block';
+            setVal('a_dor_regiao_outro_nome', obj.dor.regioes_outro_nome || obj.dor.regioes_outro || '');
+            setVal('a_dor_regiao_outro_resultado', obj.dor.regioes_outro_resultado || '');
+            setVal('a_dor_regiao_outro_observacao', obj.dor.regioes_outro_observacao || '');
+            if((obj.dor.regioes||[]).includes('outro')) document.getElementById('a_dor_regiao_outro_section').style.display='grid';
             setVal('a_dor_inicio', obj.dor.inicio||''); setVal('a_dor_tempo', obj.dor.tempo||''); setVal('a_dor_tipo_inicio', obj.dor.tipo_inicio||'');
             setVal('a_dor_intensidade_atual', obj.dor.intensidade_atual||''); setVal('a_dor_pior', obj.dor.pior||''); setVal('a_dor_melhor', obj.dor.melhor||'');
             document.querySelectorAll('.a_dor_tipo').forEach(ch=>{ ch.checked = (obj.dor.tipos||[]).includes(ch.value); });
-            setVal('a_dor_tipo_outro', obj.dor.tipos_outro||''); if(obj.dor.tipos_outro) document.getElementById('a_dor_tipo_outro').style.display='inline-block';
+            setVal('a_dor_tipo_outro_nome', obj.dor.tipos_outro_nome || obj.dor.tipos_outro || '');
+            setVal('a_dor_tipo_outro_resultado', obj.dor.tipos_outro_resultado || '');
+            setVal('a_dor_tipo_outro_observacao', obj.dor.tipos_outro_observacao || '');
+            if((obj.dor.tipos||[]).includes('outro')) document.getElementById('a_dor_tipo_outro_section').style.display='grid';
             setVal('a_dor_irrad', obj.dor.irradiacao||false); setVal('a_dor_local_irrad', obj.dor.local_irrad||''); if(obj.dor.irradiacao) document.getElementById('a_dor_local_irrad').style.display='inline-block';
             setVal('a_dor_fatores_piora', obj.dor.fatores_piora||''); setVal('a_dor_fatores_melhora', obj.dor.fatores_melhora||'');
             setVal('a_piora_noturna', obj.dor.piora_noturna||false); setVal('a_dor_repouso', obj.dor.dor_repouso||false); setVal('a_dor_movimento', obj.dor.dor_movimento||false);
@@ -2998,8 +3098,11 @@
           if(obj.sinais_alerta){
             const itens = obj.sinais_alerta.itens || [];
             document.querySelectorAll('.a_alert').forEach(ch=>{ ch.checked = itens.includes(ch.value); });
-            if(itens.length>0){ document.getElementById('a_alertas_det_section').style.display='block'; document.getElementById('a_alertas_detalhe').value = obj.sinais_alerta.detalhe||''; }
+            if(itens.length>0){ document.getElementById('a_alertas_det_section').style.display='block'; document.getElementById('a_alertas_detalhe').value = obj.sinais_alerta.detalhe||''; document.getElementById('a_alertas_recomendacao').value = obj.sinais_alerta.recomendacao||''; }
           }
+
+          document.getElementById('a_fisioterapia_anterior_section').style.display = obj.fisioterapia_anterior ? 'grid' : 'none';
+          document.getElementById('a_cirurgia_previa_section').style.display = obj.cirurgia_previa || !!obj.historico_cirurgico || !!obj.cirurgia_data ? 'flex' : 'none';
 
         }catch(e){ console.error('loadAnamneseErr', e); }
       }
@@ -3014,6 +3117,19 @@
           if(msg){ msg.style.color='red'; msg.textContent='Selecione ou crie o prontuário para salvar.'; }
           return;
         }
+
+        const positivosSemAchado = Array.from(document.querySelectorAll('#avaliacao-form select[data-av-key$=".resultado"]')).some(sel=>{
+          if(String(sel.value || '') !== 'positivo') return false;
+          const key = String(sel.getAttribute('data-av-key') || '');
+          const achadoKey = key.replace(/\.resultado$/, '.achado_positivo');
+          const achado = document.querySelector(`#avaliacao-form textarea[data-av-key="${achadoKey}"]`);
+          return !achado || !String(achado.value || '').trim();
+        });
+        if(positivosSemAchado){
+          if(msg){ msg.style.color='red'; msg.textContent='Descreva o achado clínico em todos os testes com resultado positivo.'; }
+          return;
+        }
+
         const payload = avSerializePayload();
         try{
           localStorage.setItem('avaliacao_'+prontuarioId, JSON.stringify(payload));
