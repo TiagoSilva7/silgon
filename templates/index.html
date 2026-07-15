@@ -209,6 +209,22 @@
       #patient-panels select, #patient-panels option { font-size:14px; }
       /* Force small width for the gender input so the label remains visible */
       #p_gender{ flex:0 0 100px !important; width:100px !important; max-width:100px !important; box-sizing:border-box !important; }
+
+      /* Pain assessment alignment helpers */
+      #panel-anamnese input[type="checkbox"]{margin:0;vertical-align:middle}
+      #panel-anamnese .inline-check-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+      #panel-anamnese .triple-fields{display:grid;grid-template-columns:minmax(220px,2fr) minmax(150px,1fr) minmax(180px,1fr);gap:8px;margin-top:8px}
+      #panel-anamnese .score-fields{display:grid;grid-template-columns:repeat(3,minmax(140px,160px));gap:8px;margin-top:8px;align-items:end}
+      #panel-anamnese .check-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px 14px;margin-top:6px}
+      #panel-anamnese .check-grid > label{display:inline-flex;align-items:center;gap:8px;margin:0;font-weight:600;color:#1d2a20}
+      #panel-anamnese .symptom-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px 12px}
+      #panel-anamnese .symptom-grid > div{width:auto !important}
+      #panel-anamnese .symptom-grid > div > label{display:inline-flex;align-items:center;gap:8px;margin:0;font-weight:600;color:#1d2a20}
+      #panel-anamnese .symptom-grid .a_symp_det{margin-top:6px}
+      @media (max-width:760px){
+        #panel-anamnese .triple-fields{grid-template-columns:1fr}
+        #panel-anamnese .score-fields{grid-template-columns:repeat(3,minmax(0,1fr))}
+      }
     </style>
   </head>
   <body>
@@ -629,14 +645,14 @@
 
               <hr />
               <h3>Avaliação da Dor</h3>
-              <div style="display:flex;gap:8px;align-items:center">
+              <div class="inline-check-row">
                 <label style="display:flex;align-items:center;gap:8px"><input id="a_dor_presenca" type="checkbox" /> Presença de dor</label>
                 <input id="a_dor_local" placeholder="Local da dor" style="flex:1;padding:8px;border-radius:8px" />
               </div>
 
               <div style="margin-top:8px">
                 <label>Mapa corporal / Regiões (marque as que se aplicam)</label>
-                <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px">
+                <div class="check-grid">
                   <label><input type="checkbox" class="a_dor_regiao" value="cervical" /> Cervical</label>
                   <label><input type="checkbox" class="a_dor_regiao" value="toracica" /> Torácica</label>
                   <label><input type="checkbox" class="a_dor_regiao" value="lumbar" /> Lombar</label>
@@ -647,11 +663,11 @@
                   <label><input type="checkbox" class="a_dor_regiao" value="joelho" /> Joelho</label>
                   <label><input type="checkbox" class="a_dor_regiao" value="tornozelo" /> Tornozelo/Pé</label>
                   <label><input type="checkbox" class="a_dor_regiao" value="outro" id="a_dor_regiao_outro_check" /> Outro</label>
-                  <input id="a_dor_regiao_outro" placeholder="Especifique outra região" style="display:none;padding:6px;border-radius:6px;margin-left:6px" />
+                  <input id="a_dor_regiao_outro" placeholder="Especifique outra região" style="display:none;padding:6px;border-radius:6px" />
                 </div>
               </div>
 
-              <div style="display:flex;gap:8px;margin-top:8px">
+              <div class="triple-fields">
                 <div style="flex:1">
                   <label>Início da dor</label>
                   <input id="a_dor_inicio" placeholder="Ex: após trauma / insidioso" style="width:100%;padding:8px;border-radius:8px" />
@@ -673,7 +689,7 @@
                 </div>
               </div>
 
-              <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+              <div class="score-fields">
                 <div style="width:160px"><label>Intensidade atual (0-10)</label><input id="a_dor_intensidade_atual" type="number" min="0" max="10" style="width:100%;padding:8px;border-radius:8px" /></div>
                 <div style="width:160px"><label>Pior dor (0-10)</label><input id="a_dor_pior" type="number" min="0" max="10" style="width:100%;padding:8px;border-radius:8px" /></div>
                 <div style="width:160px"><label>Melhor dor (0-10)</label><input id="a_dor_melhor" type="number" min="0" max="10" style="width:100%;padding:8px;border-radius:8px" /></div>
@@ -681,7 +697,7 @@
 
               <div style="margin-top:8px">
                 <label>Tipo de dor (marque as que aplicam)</label>
-                <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px">
+                <div class="check-grid">
                   <label><input type="checkbox" class="a_dor_tipo" value="pontada" /> Pontada</label>
                   <label><input type="checkbox" class="a_dor_tipo" value="queimacao" /> Queimação</label>
                   <label><input type="checkbox" class="a_dor_tipo" value="choque" /> Choque</label>
@@ -695,7 +711,7 @@
                   <label><input type="checkbox" class="a_dor_tipo" value="superficial" /> Dor superficial</label>
                   <label><input type="checkbox" class="a_dor_tipo" value="irradiada" /> Dor irradiada</label>
                   <label><input type="checkbox" class="a_dor_tipo" value="outro" id="a_dor_tipo_outro_check" /> Outro</label>
-                  <input id="a_dor_tipo_outro" placeholder="Especifique outro tipo" style="display:none;padding:6px;border-radius:6px;margin-left:6px" />
+                  <input id="a_dor_tipo_outro" placeholder="Especifique outro tipo" style="display:none;padding:6px;border-radius:6px" />
                 </div>
               </div>
 
@@ -709,7 +725,7 @@
                 <div style="flex:1"><label>Fatores de melhora</label><input id="a_dor_fatores_melhora" style="width:100%;padding:8px;border-radius:8px" /></div>
               </div>
 
-              <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+              <div class="check-grid" style="margin-top:8px">
                 <label><input id="a_piora_noturna" type="checkbox" /> Piora noturna</label>
                 <label><input id="a_dor_repouso" type="checkbox" /> Dor ao repouso</label>
                 <label><input id="a_dor_movimento" type="checkbox" /> Dor ao movimento</label>
@@ -732,7 +748,7 @@
 
               <hr />
               <h3>Sintomas associados</h3>
-              <div style="display:flex;flex-wrap:wrap;gap:8px">
+              <div class="symptom-grid">
                 <!-- for each symptom: checkbox and conditional detail -->
                 <div style="width:200px"><label><input type="checkbox" class="a_symp" value="dormencia" /> Dormência</label><input class="a_symp_det" data-symp="dormencia" placeholder="Detalhe" style="display:none;padding:6px;border-radius:6px;width:100%" /></div>
                 <div style="width:200px"><label><input type="checkbox" class="a_symp" value="formigamento" /> Formigamento</label><input class="a_symp_det" data-symp="formigamento" placeholder="Detalhe" style="display:none;padding:6px;border-radius:6px;width:100%" /></div>
@@ -754,7 +770,7 @@
 
               <hr />
               <h3>Sinais de alerta</h3>
-              <div style="display:flex;flex-wrap:wrap;gap:8px">
+              <div class="check-grid">
                 <label><input type="checkbox" class="a_alert" value="dor_noturna_intensa" /> Dor noturna intensa sem alívio</label>
                 <label><input type="checkbox" class="a_alert" value="febre_associada" /> Febre associada à dor</label>
                 <label><input type="checkbox" class="a_alert" value="perda_peso" /> Perda de peso inexplicada</label>
