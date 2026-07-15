@@ -260,6 +260,7 @@
         <div class="tabs">
           <div id="tab-agendamento" class="tab active" onclick="showTab('agendamento')">Agendamento</div>
           <div id="tab-paciente" class="tab" onclick="showTab('paciente')">Paciente</div>
+          <div id="tab-base" class="tab" onclick="showTab('base')">BASE</div>
         </div>
 
         <div id="panel-agendamento" class="panel active card">
@@ -274,6 +275,19 @@
           </div>
 
           <div id="calendar" class="calendar"></div>
+        </div>
+
+        <div id="panel-base" class="panel card">
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <h2 style="margin:0;color:var(--primary-800)">BASE</h2>
+            <div style="color:var(--muted)">Exporte toda a base para um arquivo de backup e importe esse arquivo quando precisar restaurar os dados.</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button id="base-export" type="button">Salvar base em arquivo</button>
+              <button id="base-import" type="button" class="secondary">Importar arquivo da base</button>
+              <input id="base-import-file" type="file" accept="application/json,.json" style="display:none" />
+            </div>
+            <div id="base-msg" style="font-size:13px;color:var(--muted)"></div>
+          </div>
         </div>
 
       </div>
@@ -961,6 +975,7 @@
         document.getElementById('panel-'+name).classList.add('active');
         if(name==='agendamento') loadAppointments();
         if(name==='paciente') initPatientUI();
+        if(name==='base') initBaseUI();
       }
 
       // Patient tab helpers
@@ -1021,6 +1036,203 @@
           if(!res.ok) return null;
           return j;
         }catch(e){ return null; }
+      }
+
+      function initBaseUI(){
+        if(window._baseInit) return;
+        window._baseInit = true;
+        const btnExport = document.getElementById('base-export');
+        const btnImport = document.getElementById('base-import');
+        const inputFile = document.getElementById('base-import-file');
+        if(btnExport) btnExport.onclick = exportEntireBaseToFile;
+        if(btnImport && inputFile) btnImport.onclick = ()=> inputFile.click();
+        if(inputFile){
+          inputFile.onchange = async (ev)=>{
+            const file = ev && ev.target && ev.target.files ? ev.target.files[0] : null;
+            if(!file) return;
+            await importEntireBaseFromFile(file);
+            inputFile.value = '';
+          };
+        }
+      }
+
+      function setBaseMessage(text, color){
+        const el = document.getElementById('base-msg');
+        if(!el) return;
+        el.style.color = color || 'var(--muted)';
+        el.textContent = text || '';
+      }
+
+      function getBasePatientPayload(source, explicitId){
+        const src = source || {};
+        const fields = [
+          'cpf','name','birth_date','age','sex','gender','marital_status','profession','phone','whatsapp','email','address','city','state','cep',
+          'emergency_contact','emergency_phone','emergency_relationship','insurance','insurance_number','private_patient','legal_guardian',
+          'legal_guardian_cpf','legal_guardian_phone','doctor_name','doctor_crm','medical_diagnosis','cid','evaluation_date','care_modality',
+          'care_location','physiotherapist_name','physiotherapist_crefito','registration_notes'
+        ];
+        const payload = {};
+        fields.forEach(key=>{ payload[key] = src[key] == null ? '' : src[key]; });
+        if(explicitId) payload.id = explicitId;
+        return payload;
+      }
+
+      function downloadJsonFile(fileName, data){
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+
+      async function exportEntireBaseToFile(){
+        setBaseMessage('Gerando arquivo de backup completo da base...', 'var(--muted)');
+        try{
+          const patients = await fetchPatients();
+          const appointmentsRes = await fetch('/api/appointments');
+          const appointments = appointmentsRes.ok ? await appointmentsRes.json() : [];
+
+          const exportedPatients = [];
+          for(const p of (patients || [])){
+            const records = await fetchProntuariosForPatient(p.id);
+            const patientPayload = getBasePatientPayload(p, null);
+            exportedPatients.push({
+              patient: patientPayload,
+              source_patient_id: p.id,
+              records: (records || []).map(r=>({
+                label: r.label || 'Prontuário',
+                anamnese: r.anamnese || {},
+                avaliacao: r.avaliacao || {},
+                plano: r.plano || {},
+                financeiro_html: String(r.financeiro_html || ''),
+                created_at: r.created_at || null,
+                updated_at: r.updated_at || null
+              }))
+            });
+          }
+
+          const exportData = {
+            backup_type: 'silgon_base_backup',
+            schema_version: 1,
+            exported_at: new Date().toISOString(),
+            patients: exportedPatients,
+            appointments: Array.isArray(appointments) ? appointments.map(a=>({
+              patient_name: a.patient_name || '',
+              date: a.date || '',
+              time: a.time || '',
+              reason: a.reason || ''
+            })) : []
+          };
+
+          const stamp = new Date().toISOString().replace(/[:T]/g, '-').slice(0, 19);
+          const fileName = `silgon_base_backup_${stamp}.json`;
+          downloadJsonFile(fileName, exportData);
+          setBaseMessage(`Backup gerado com sucesso (${exportedPatients.length} pacientes e ${(exportData.appointments || []).length} agendamentos).`, 'green');
+        }catch(e){
+          console.error('Falha ao exportar base:', e);
+          setBaseMessage('Erro ao exportar base. Verifique o console e tente novamente.', 'red');
+        }
+      }
+
+      async function importEntireBaseFromFile(file){
+        if(!file){ setBaseMessage('Selecione um arquivo JSON para importar.', 'red'); return; }
+        setBaseMessage('Importando base completa. Aguarde...', 'var(--muted)');
+        try{
+          const text = await file.text();
+          const payload = JSON.parse(text);
+          const patients = Array.isArray(payload && payload.patients) ? payload.patients : [];
+          const appointments = Array.isArray(payload && payload.appointments) ? payload.appointments : [];
+          if(!patients.length && !appointments.length){
+            setBaseMessage('Arquivo inválido: não há pacientes nem agendamentos para importar.', 'red');
+            return;
+          }
+
+          let upsertedPatients = 0;
+          let importedRecords = 0;
+          let importedAppointments = 0;
+
+          for(const entry of patients){
+            const sourcePatient = entry && entry.patient ? entry.patient : entry;
+            if(!sourcePatient || !sourcePatient.name) continue;
+
+            let pid = null;
+            const cpf = String(sourcePatient.cpf || '').trim();
+            if(cpf){
+              try{
+                const r = await fetch('/api/patients?cpf=' + encodeURIComponent(cpf));
+                const arr = r.ok ? await r.json() : [];
+                if(Array.isArray(arr) && arr.length){
+                  pid = arr[0].id;
+                }
+              }catch(e){}
+            }
+
+            const patientPayload = getBasePatientPayload(sourcePatient, pid || null);
+            const saved = await savePatientToServer(patientPayload);
+            if(saved && (saved.id || (saved.patient && saved.patient.id))){
+              pid = saved.id || saved.patient.id;
+              upsertedPatients += 1;
+            }
+            if(!pid) continue;
+
+            const records = Array.isArray(entry && entry.records) ? entry.records : [];
+            for(const rec of records){
+              try{
+                const res = await fetch(`/api/patients/${encodeURIComponent(pid)}/records`, {
+                  method: 'POST',
+                  headers: { 'Content-Type':'application/json' },
+                  body: JSON.stringify({
+                    label: String((rec && rec.label) || 'Prontuário importado').trim(),
+                    anamnese: rec && rec.anamnese ? rec.anamnese : {},
+                    avaliacao: rec && rec.avaliacao ? rec.avaliacao : {},
+                    plano: rec && rec.plano ? rec.plano : {},
+                    financeiro_html: rec && rec.financeiro_html ? String(rec.financeiro_html) : ''
+                  })
+                });
+                if(res.ok || res.status === 409) importedRecords += 1;
+              }catch(e){}
+            }
+          }
+
+          let existingAppointments = [];
+          try{
+            const res = await fetch('/api/appointments');
+            existingAppointments = res.ok ? await res.json() : [];
+          }catch(e){ existingAppointments = []; }
+          const appointmentKeys = new Set((existingAppointments || []).map(a=>`${a.date||''}|${a.time||''}|${a.patient_name||''}`));
+
+          for(const appt of appointments){
+            const key = `${appt && appt.date ? appt.date : ''}|${appt && appt.time ? appt.time : ''}|${appt && appt.patient_name ? appt.patient_name : ''}`;
+            if(!appt || !appt.patient_name || !appt.date || !appt.time || appointmentKeys.has(key)) continue;
+            try{
+              const res = await fetch('/api/appointments', {
+                method: 'POST',
+                headers: { 'Content-Type':'application/json' },
+                body: JSON.stringify({
+                  patient_name: appt.patient_name,
+                  date: appt.date,
+                  time: appt.time,
+                  reason: appt.reason || ''
+                })
+              });
+              if(res.ok){
+                importedAppointments += 1;
+                appointmentKeys.add(key);
+              }
+            }catch(e){}
+          }
+
+          setBaseMessage(`Importação concluída: ${upsertedPatients} pacientes atualizados/criados, ${importedRecords} prontuários importados e ${importedAppointments} agendamentos novos.`, 'green');
+          try{ await fetchPatients(); }catch(e){}
+          try{ await loadAppointments(); }catch(e){}
+        }catch(e){
+          console.error('Falha ao importar base:', e);
+          setBaseMessage('Erro ao importar arquivo da base. Confira se o JSON está no formato correto.', 'red');
+        }
       }
 
       function validateCPF(cpf){
