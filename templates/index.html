@@ -474,36 +474,307 @@
                 <button id="anamnese-save" type="button">Salvar Anamnese</button>
               </div>
               <div id="anamnese-msg" style="margin-top:6px;font-size:13px;color:var(--muted)"></div>
-              <div>
-                <label>História clínica</label>
-                <textarea id="a_historia" rows="3" style="width:100%;padding:8px;border-radius:8px"></textarea>
-              </div>
-              <div style="display:flex;gap:8px">
-                <div style="flex:1">
-                  <label>HMB (História da moléstia de base)</label>
-                  <textarea id="a_hmb" rows="2" style="width:100%;padding:8px;border-radius:8px"></textarea>
-                </div>
-                <div style="flex:1">
-                  <label>HMP (Histórico médico pregresso)</label>
-                  <textarea id="a_hmp" rows="2" style="width:100%;padding:8px;border-radius:8px"></textarea>
-                </div>
-              </div>
-              <div>
-                <label>Antecedentes pessoais e familiares</label>
-                <textarea id="a_antec" rows="2" style="width:100%;padding:8px;border-radius:8px"></textarea>
-              </div>
+
+              <h3>Dados Gerais</h3>
               <div>
                 <label>Queixa principal</label>
-                <textarea id="a_queixa" rows="2" style="width:100%;padding:8px;border-radius:8px"></textarea>
+                <textarea id="a_queixa_principal" rows="2" style="width:100%;padding:8px;border-radius:8px"></textarea>
               </div>
+
               <div>
-                <label>Hábitos de vida</label>
-                <textarea id="a_habitos" rows="2" style="width:100%;padding:8px;border-radius:8px"></textarea>
+                <label>História da moléstia atual</label>
+                <textarea id="a_historia_molestia" rows="3" style="width:100%;padding:8px;border-radius:8px"></textarea>
               </div>
+
+              <div style="display:flex;gap:8px">
+                <div style="flex:1">
+                  <label>História médica pregressa</label>
+                  <textarea id="a_historia_medica" rows="2" style="width:100%;padding:8px;border-radius:8px"></textarea>
+                </div>
+                <div style="flex:1">
+                  <label>História familiar</label>
+                  <textarea id="a_historia_familiar" rows="2" style="width:100%;padding:8px;border-radius:8px"></textarea>
+                </div>
+              </div>
+
+              <div style="display:flex;gap:8px">
+                <div style="flex:1">
+                  <label>Histórico cirúrgico</label>
+                  <textarea id="a_historico_cirurgico" rows="2" style="width:100%;padding:8px;border-radius:8px"></textarea>
+                </div>
+                <div style="flex:1">
+                  <label>Histórico de traumas</label>
+                  <textarea id="a_historico_traumas" rows="2" style="width:100%;padding:8px;border-radius:8px"></textarea>
+                </div>
+              </div>
+
+              <div style="display:flex;gap:8px">
+                <div style="flex:1">
+                  <label>Diagnósticos prévios</label>
+                  <textarea id="a_diagnosticos_previos" rows="2" style="width:100%;padding:8px;border-radius:8px"></textarea>
+                </div>
+                <div style="flex:1">
+                  <label>Doenças associadas / Comorbidades</label>
+                  <textarea id="a_doencas_comorbidades" rows="2" style="width:100%;padding:8px;border-radius:8px"></textarea>
+                </div>
+              </div>
+
+              <div style="display:flex;gap:8px">
+                <div style="flex:1">
+                  <label>Medicações em uso</label>
+                  <textarea id="a_medicamentos" rows="2" style="width:100%;padding:8px;border-radius:8px"></textarea>
+                </div>
+                <div style="flex:1">
+                  <label>Alergias</label>
+                  <textarea id="a_alergias" rows="2" style="width:100%;padding:8px;border-radius:8px"></textarea>
+                </div>
+              </div>
+
+              <div style="display:flex;gap:8px">
+                <div style="flex:1">
+                  <label>Exames realizados</label>
+                  <textarea id="a_exames_realizados" rows="2" style="width:100%;padding:8px;border-radius:8px"></textarea>
+                </div>
+                <div style="flex:1">
+                  <label>Exames pendentes / agendados</label>
+                  <textarea id="a_exames_pendentes" rows="2" style="width:100%;padding:8px;border-radius:8px"></textarea>
+                </div>
+              </div>
+
               <div>
-                <label>Tratamentos realizados</label>
-                <textarea id="a_tratamentos" rows="2" style="width:100%;padding:8px;border-radius:8px"></textarea>
+                <label>Tratamentos anteriores</label>
+                <textarea id="a_tratamentos_anteriores" rows="2" style="width:100%;padding:8px;border-radius:8px"></textarea>
               </div>
+
+              <div style="display:flex;gap:8px">
+                <label style="display:flex;align-items:center;gap:8px"><input id="a_fisioterapia_anterior" type="checkbox" /> Fisioterapia anterior</label>
+                <input id="a_resultado_fisio_anterior" placeholder="Resultado (se aplicável)" style="flex:1;padding:8px;border-radius:8px" />
+              </div>
+
+              <div style="display:flex;gap:8px">
+                <label style="display:flex;align-items:center;gap:8px"><input id="a_atividade_fisica" type="checkbox" /> Atividade física</label>
+                <input id="a_tipo_atividade" placeholder="Tipo de atividade" style="flex:1;padding:8px;border-radius:8px" />
+                <input id="a_freq_semanal" placeholder="Frequência semanal" style="width:160px;padding:8px;border-radius:8px" />
+              </div>
+
+              <div style="display:flex;gap:8px">
+                <div style="flex:1">
+                  <label>Nível de sedentarismo</label>
+                  <select id="a_nivel_sedentarismo" style="padding:8px;border-radius:8px;width:100%">
+                    <option value="">Selecione</option>
+                    <option value="baixo">Baixo</option>
+                    <option value="moderado">Moderado</option>
+                    <option value="alto">Alto</option>
+                  </select>
+                </div>
+                <div style="flex:1">
+                  <label>Sono</label>
+                  <input id="a_sono" placeholder="Resumo do sono" style="width:100%;padding:8px;border-radius:8px" />
+                </div>
+              </div>
+
+              <div style="display:flex;gap:8px">
+                <div style="flex:1">
+                  <label>Alimentação</label>
+                  <input id="a_alimentacao" placeholder="Descrição" style="width:100%;padding:8px;border-radius:8px" />
+                </div>
+                <div style="flex:1">
+                  <label>Hidratação</label>
+                  <input id="a_hidratacao" placeholder="Descrição" style="width:100%;padding:8px;border-radius:8px" />
+                </div>
+              </div>
+
+              <div style="display:flex;gap:8px">
+                <label style="display:flex;align-items:center;gap:8px"><input id="a_tabagismo" type="checkbox" /> Tabagismo</label>
+                <label style="display:flex;align-items:center;gap:8px"><input id="a_etilismo" type="checkbox" /> Etilismo</label>
+                <label style="display:flex;align-items:center;gap:8px"><input id="a_outras_substancias" type="checkbox" /> Uso de outras substâncias</label>
+              </div>
+
+              <div>
+                <label>Rotina ocupacional</label>
+                <textarea id="a_rotina_ocupacional" rows="2" style="width:100%;padding:8px;border-radius:8px"></textarea>
+              </div>
+
+              <div style="display:flex;gap:8px">
+                <div style="flex:1">
+                  <label>Atividades domésticas</label>
+                  <textarea id="a_atividades_domesticas" rows="2" style="width:100%;padding:8px;border-radius:8px"></textarea>
+                </div>
+                <div style="flex:1">
+                  <label>Atividades de vida diária prejudicadas</label>
+                  <textarea id="a_avds_prejudicadas" rows="2" style="width:100%;padding:8px;border-radius:8px"></textarea>
+                </div>
+              </div>
+
+              <div>
+                <label>Limitações funcionais relatadas</label>
+                <textarea id="a_limitacoes_funcionais" rows="2" style="width:100%;padding:8px;border-radius:8px"></textarea>
+              </div>
+
+              <div style="display:flex;gap:8px">
+                <div style="flex:1">
+                  <label>Expectativas do paciente</label>
+                  <textarea id="a_expectativas" rows="2" style="width:100%;padding:8px;border-radius:8px"></textarea>
+                </div>
+                <div style="flex:1">
+                  <label>Objetivos do paciente</label>
+                  <textarea id="a_objetivos" rows="2" style="width:100%;padding:8px;border-radius:8px"></textarea>
+                </div>
+              </div>
+
+              <div>
+                <label>Observações gerais da anamnese</label>
+                <textarea id="a_observacoes" rows="3" style="width:100%;padding:8px;border-radius:8px"></textarea>
+              </div>
+
+              <hr />
+              <h3>Avaliação da Dor</h3>
+              <div style="display:flex;gap:8px;align-items:center">
+                <label style="display:flex;align-items:center;gap:8px"><input id="a_dor_presenca" type="checkbox" /> Presença de dor</label>
+                <input id="a_dor_local" placeholder="Local da dor" style="flex:1;padding:8px;border-radius:8px" />
+              </div>
+
+              <div style="margin-top:8px">
+                <label>Mapa corporal / Regiões (marque as que se aplicam)</label>
+                <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px">
+                  <label><input type="checkbox" class="a_dor_regiao" value="cervical" /> Cervical</label>
+                  <label><input type="checkbox" class="a_dor_regiao" value="toracica" /> Torácica</label>
+                  <label><input type="checkbox" class="a_dor_regiao" value="lumbar" /> Lombar</label>
+                  <label><input type="checkbox" class="a_dor_regiao" value="ombro" /> Ombro</label>
+                  <label><input type="checkbox" class="a_dor_regiao" value="cotovelo" /> Cotovelo</label>
+                  <label><input type="checkbox" class="a_dor_regiao" value="punho" /> Punho/Mão</label>
+                  <label><input type="checkbox" class="a_dor_regiao" value="quadril" /> Quadril</label>
+                  <label><input type="checkbox" class="a_dor_regiao" value="joelho" /> Joelho</label>
+                  <label><input type="checkbox" class="a_dor_regiao" value="tornozelo" /> Tornozelo/Pé</label>
+                  <label><input type="checkbox" class="a_dor_regiao" value="outro" id="a_dor_regiao_outro_check" /> Outro</label>
+                  <input id="a_dor_regiao_outro" placeholder="Especifique outra região" style="display:none;padding:6px;border-radius:6px;margin-left:6px" />
+                </div>
+              </div>
+
+              <div style="display:flex;gap:8px;margin-top:8px">
+                <div style="flex:1">
+                  <label>Início da dor</label>
+                  <input id="a_dor_inicio" placeholder="Ex: após trauma / insidioso" style="width:100%;padding:8px;border-radius:8px" />
+                </div>
+                <div style="width:200px">
+                  <label>Tempo de evolução</label>
+                  <input id="a_dor_tempo" placeholder="Tempo" style="width:100%;padding:8px;border-radius:8px" />
+                </div>
+                <div style="width:220px">
+                  <label>Tipo de início</label>
+                  <select id="a_dor_tipo_inicio" style="width:100%;padding:8px;border-radius:8px">
+                    <option value="">Selecione</option>
+                    <option value="subito">Súbito</option>
+                    <option value="progressivo">Progressivo</option>
+                    <option value="traumatico">Traumático</option>
+                    <option value="insidioso">Insidioso</option>
+                    <option value="pos_operatorio">Pós-operatório</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+                <div style="width:160px"><label>Intensidade atual (0-10)</label><input id="a_dor_intensidade_atual" type="number" min="0" max="10" style="width:100%;padding:8px;border-radius:8px" /></div>
+                <div style="width:160px"><label>Pior dor (0-10)</label><input id="a_dor_pior" type="number" min="0" max="10" style="width:100%;padding:8px;border-radius:8px" /></div>
+                <div style="width:160px"><label>Melhor dor (0-10)</label><input id="a_dor_melhor" type="number" min="0" max="10" style="width:100%;padding:8px;border-radius:8px" /></div>
+              </div>
+
+              <div style="margin-top:8px">
+                <label>Tipo de dor (marque as que aplicam)</label>
+                <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px">
+                  <label><input type="checkbox" class="a_dor_tipo" value="pontada" /> Pontada</label>
+                  <label><input type="checkbox" class="a_dor_tipo" value="queimacao" /> Queimação</label>
+                  <label><input type="checkbox" class="a_dor_tipo" value="choque" /> Choque</label>
+                  <label><input type="checkbox" class="a_dor_tipo" value="peso" /> Peso</label>
+                  <label><input type="checkbox" class="a_dor_tipo" value="aperto" /> Aperto</label>
+                  <label><input type="checkbox" class="a_dor_tipo" value="latejante" /> Latejante</label>
+                  <label><input type="checkbox" class="a_dor_tipo" value="formigamento" /> Formigamento</label>
+                  <label><input type="checkbox" class="a_dor_tipo" value="dormencia" /> Dormência</label>
+                  <label><input type="checkbox" class="a_dor_tipo" value="cambriga" /> Cãimbra</label>
+                  <label><input type="checkbox" class="a_dor_tipo" value="profunda" /> Dor profunda</label>
+                  <label><input type="checkbox" class="a_dor_tipo" value="superficial" /> Dor superficial</label>
+                  <label><input type="checkbox" class="a_dor_tipo" value="irradiada" /> Dor irradiada</label>
+                  <label><input type="checkbox" class="a_dor_tipo" value="outro" id="a_dor_tipo_outro_check" /> Outro</label>
+                  <input id="a_dor_tipo_outro" placeholder="Especifique outro tipo" style="display:none;padding:6px;border-radius:6px;margin-left:6px" />
+                </div>
+              </div>
+
+              <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+                <label style="display:flex;align-items:center;gap:8px"><input id="a_dor_irrad" type="checkbox" /> Irradiação</label>
+                <input id="a_dor_local_irrad" placeholder="Local da irradiação" style="flex:1;padding:8px;border-radius:8px;display:none" />
+              </div>
+
+              <div style="display:flex;gap:8px;margin-top:8px">
+                <div style="flex:1"><label>Fatores de piora</label><input id="a_dor_fatores_piora" style="width:100%;padding:8px;border-radius:8px" /></div>
+                <div style="flex:1"><label>Fatores de melhora</label><input id="a_dor_fatores_melhora" style="width:100%;padding:8px;border-radius:8px" /></div>
+              </div>
+
+              <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+                <label><input id="a_piora_noturna" type="checkbox" /> Piora noturna</label>
+                <label><input id="a_dor_repouso" type="checkbox" /> Dor ao repouso</label>
+                <label><input id="a_dor_movimento" type="checkbox" /> Dor ao movimento</label>
+                <label><input id="a_dor_esforco" type="checkbox" /> Dor ao esforço</label>
+                <label><input id="a_dor_tossir" type="checkbox" /> Dor ao tossir/espirrar</label>
+                <label><input id="a_dor_trabalho" type="checkbox" /> Dor relacionada ao trabalho</label>
+                <label><input id="a_dor_esporte" type="checkbox" /> Dor relacionada ao esporte</label>
+              </div>
+
+              <div id="a_dor_specifics" style="display:flex;flex-direction:column;gap:6px;margin-top:6px">
+                <textarea id="a_piora_noturna_det" rows="2" placeholder="Detalhe piora noturna" style="display:none;width:100%;padding:8px;border-radius:8px"></textarea>
+                <textarea id="a_dor_repouso_det" rows="2" placeholder="Detalhe dor ao repouso" style="display:none;width:100%;padding:8px;border-radius:8px"></textarea>
+                <textarea id="a_dor_tossir_det" rows="2" placeholder="Detalhe dor ao tossir/espirrar" style="display:none;width:100%;padding:8px;border-radius:8px"></textarea>
+              </div>
+
+              <div id="a_dor_obs_section" style="margin-top:8px">
+                <label>Observações sobre a dor</label>
+                <textarea id="a_dor_observacoes" rows="3" style="width:100%;padding:8px;border-radius:8px"></textarea>
+              </div>
+
+              <hr />
+              <h3>Sintomas associados</h3>
+              <div style="display:flex;flex-wrap:wrap;gap:8px">
+                <!-- for each symptom: checkbox and conditional detail -->
+                <div style="width:200px"><label><input type="checkbox" class="a_symp" value="dormencia" /> Dormência</label><input class="a_symp_det" data-symp="dormencia" placeholder="Detalhe" style="display:none;padding:6px;border-radius:6px;width:100%" /></div>
+                <div style="width:200px"><label><input type="checkbox" class="a_symp" value="formigamento" /> Formigamento</label><input class="a_symp_det" data-symp="formigamento" placeholder="Detalhe" style="display:none;padding:6px;border-radius:6px;width:100%" /></div>
+                <div style="width:200px"><label><input type="checkbox" class="a_symp" value="choque" /> Choque</label><input class="a_symp_det" data-symp="choque" placeholder="Detalhe" style="display:none;padding:6px;border-radius:6px;width:100%" /></div>
+                <div style="width:200px"><label><input type="checkbox" class="a_symp" value="queimacao" /> Queimação</label><input class="a_symp_det" data-symp="queimacao" placeholder="Detalhe" style="display:none;padding:6px;border-radius:6px;width:100%" /></div>
+                <div style="width:200px"><label><input type="checkbox" class="a_symp" value="perda_forca" /> Perda de força</label><input class="a_symp_det" data-symp="perda_forca" placeholder="Detalhe" style="display:none;padding:6px;border-radius:6px;width:100%" /></div>
+                <div style="width:200px"><label><input type="checkbox" class="a_symp" value="perda_equilibrio" /> Perda de equilíbrio</label><input class="a_symp_det" data-symp="perda_equilibrio" placeholder="Detalhe" style="display:none;padding:6px;border-radius:6px;width:100%" /></div>
+                <div style="width:200px"><label><input type="checkbox" class="a_symp" value="tontura" /> Tontura</label><input class="a_symp_det" data-symp="tontura" placeholder="Detalhe" style="display:none;padding:6px;border-radius:6px;width:100%" /></div>
+                <div style="width:200px"><label><input type="checkbox" class="a_symp" value="nausea" /> Náusea</label><input class="a_symp_det" data-symp="nausea" placeholder="Detalhe" style="display:none;padding:6px;border-radius:6px;width:100%" /></div>
+                <div style="width:200px"><label><input type="checkbox" class="a_symp" value="cefaleia" /> Cefaleia</label><input class="a_symp_det" data-symp="cefaleia" placeholder="Detalhe" style="display:none;padding:6px;border-radius:6px;width:100%" /></div>
+                <div style="width:200px"><label><input type="checkbox" class="a_symp" value="alteracao_visual" /> Alteração visual</label><input class="a_symp_det" data-symp="alteracao_visual" placeholder="Detalhe" style="display:none;padding:6px;border-radius:6px;width:100%" /></div>
+                <div style="width:200px"><label><input type="checkbox" class="a_symp" value="zumbido" /> Zumbido</label><input class="a_symp_det" data-symp="zumbido" placeholder="Detalhe" style="display:none;padding:6px;border-radius:6px;width:100%" /></div>
+                <div style="width:200px"><label><input type="checkbox" class="a_symp" value="falta_ar" /> Falta de ar</label><input class="a_symp_det" data-symp="falta_ar" placeholder="Detalhe" style="display:none;padding:6px;border-radius:6px;width:100%" /></div>
+                <div style="width:200px"><label><input type="checkbox" class="a_symp" value="dor_toracica" /> Dor torácica</label><input class="a_symp_det" data-symp="dor_toracica" placeholder="Detalhe" style="display:none;padding:6px;border-radius:6px;width:100%" /></div>
+                <div style="width:200px"><label><input type="checkbox" class="a_symp" value="palpitacao" /> Palpitação</label><input class="a_symp_det" data-symp="palpitacao" placeholder="Detalhe" style="display:none;padding:6px;border-radius:6px;width:100%" /></div>
+                <div style="width:200px"><label><input type="checkbox" class="a_symp" value="edema" /> Edema</label><input class="a_symp_det" data-symp="edema" placeholder="Detalhe" style="display:none;padding:6px;border-radius:6px;width:100%" /></div>
+                <div style="width:200px"><label><input type="checkbox" class="a_symp" value="rigidez" /> Rigidez</label><input class="a_symp_det" data-symp="rigidez" placeholder="Detalhe" style="display:none;padding:6px;border-radius:6px;width:100%" /></div>
+              </div>
+
+              <hr />
+              <h3>Sinais de alerta</h3>
+              <div style="display:flex;flex-wrap:wrap;gap:8px">
+                <label><input type="checkbox" class="a_alert" value="dor_noturna_intensa" /> Dor noturna intensa sem alívio</label>
+                <label><input type="checkbox" class="a_alert" value="febre_associada" /> Febre associada à dor</label>
+                <label><input type="checkbox" class="a_alert" value="perda_peso" /> Perda de peso inexplicada</label>
+                <label><input type="checkbox" class="a_alert" value="historico_cancer" /> Histórico de câncer</label>
+                <label><input type="checkbox" class="a_alert" value="trauma_recente" /> Trauma recente importante</label>
+                <label><input type="checkbox" class="a_alert" value="corticoide_prolongado" /> Uso prolongado de corticoide</label>
+                <label><input type="checkbox" class="a_alert" value="imunossupressao" /> Imunossupressão</label>
+                <label><input type="checkbox" class="a_alert" value="retencao_urinaria" /> Retenção urinária</label>
+                <label><input type="checkbox" class="a_alert" value="incontinencia_urinaria" /> Incontinência urinária</label>
+                <label><input type="checkbox" class="a_alert" value="incontinencia_fecal" /> Incontinência fecal</label>
+                <label><input type="checkbox" class="a_alert" value="perda_forca_progressiva" /> Perda progressiva de força</label>
+                <label><input type="checkbox" class="a_alert" value="pe_caido" /> Pé caído</label>
+                <label><input type="checkbox" class="a_alert" value="alteracao_neurologica" /> Alteração neurológica progressiva</label>
+                <label><input type="checkbox" class="a_alert" value="dor_toracica_alert" /> Dor torácica</label>
+              </div>
+              <div id="a_alertas_det_section" style="display:none;margin-top:8px">
+                <label>Detalhe os sinais de alerta (obrigatório se algum marcado)</label>
+                <textarea id="a_alertas_detalhe" rows="3" style="width:100%;padding:8px;border-radius:8px"></textarea>
+              </div>
+
             </div>
           </div>
         </div>
@@ -2146,6 +2417,18 @@
         // anamnese save/clear (store per-patient in localStorage)
         const anSave = document.getElementById('anamnese-save'); if(anSave) anSave.onclick = saveAnamnese;
         const anClear = document.getElementById('anamnese-clear'); if(anClear) anClear.onclick = clearAnamnese;
+        // anamnese conditional visibility wiring
+        const dorRegiaoOutroCheck = document.getElementById('a_dor_regiao_outro_check'); if(dorRegiaoOutroCheck) dorRegiaoOutroCheck.onchange = (e)=>{ document.getElementById('a_dor_regiao_outro').style.display = e.target.checked ? 'inline-block' : 'none'; if(!e.target.checked) document.getElementById('a_dor_regiao_outro').value=''; };
+        const dorTipoOutroCheck = document.getElementById('a_dor_tipo_outro_check'); if(dorTipoOutroCheck) dorTipoOutroCheck.onchange = (e)=>{ document.getElementById('a_dor_tipo_outro').style.display = e.target.checked ? 'inline-block' : 'none'; if(!e.target.checked) document.getElementById('a_dor_tipo_outro').value=''; };
+        const dorIrrad = document.getElementById('a_dor_irrad'); if(dorIrrad) dorIrrad.onchange = (e)=>{ document.getElementById('a_dor_local_irrad').style.display = e.target.checked ? 'inline-block' : 'none'; if(!e.target.checked) document.getElementById('a_dor_local_irrad').value=''; };
+        // show details when certain pain flags are checked
+        const pioraNoturna = document.getElementById('a_piora_noturna'); if(pioraNoturna) pioraNoturna.onchange = (e)=>{ document.getElementById('a_piora_noturna_det').style.display = e.target.checked ? 'block' : 'none'; if(!e.target.checked) document.getElementById('a_piora_noturna_det').value=''; };
+        const dorRepouso = document.getElementById('a_dor_repouso'); if(dorRepouso) dorRepouso.onchange = (e)=>{ document.getElementById('a_dor_repouso_det').style.display = e.target.checked ? 'block' : 'none'; if(!e.target.checked) document.getElementById('a_dor_repouso_det').value=''; };
+        const dorTossir = document.getElementById('a_dor_tossir'); if(dorTossir) dorTossir.onchange = (e)=>{ document.getElementById('a_dor_tossir_det').style.display = e.target.checked ? 'block' : 'none'; if(!e.target.checked) document.getElementById('a_dor_tossir_det').value=''; };
+        // sintomas associated detail toggles
+        document.querySelectorAll('.a_symp').forEach(ch=>{ ch.onchange = (e)=>{ const det=document.querySelector('.a_symp_det[data-symp="'+e.target.value+'"]'); if(det) det.style.display = e.target.checked ? 'block' : 'none'; }; });
+        // sinais de alerta toggle
+        document.querySelectorAll('.a_alert').forEach(ch=>{ ch.onchange = ()=>{ const any=Array.from(document.querySelectorAll('.a_alert')).some(x=>x.checked); document.getElementById('a_alertas_det_section').style.display = any ? 'block' : 'none'; if(!any) document.getElementById('a_alertas_detalhe').value=''; }; });
         // avaliacao save/clear and field wiring
         const avSave = document.getElementById('avaliacao-save'); if(avSave) avSave.onclick = saveAvaliacao;
         const avClear = document.getElementById('avaliacao-clear'); if(avClear) avClear.onclick = clearAvaliacao;
@@ -2219,15 +2502,82 @@
           if(msgEl) { msgEl.style.color='red'; msgEl.textContent='Selecione ou crie o prontuário para salvar.'; }
           return;
         }
+
+        // If any alert is checked, require details
+        const anyAlert = Array.from(document.querySelectorAll('.a_alert')).some(ch=>ch.checked);
+        if(anyAlert){ const det = document.getElementById('a_alertas_detalhe'); if(!det || !det.value.trim()){ if(msgEl){ msgEl.style.color='red'; msgEl.textContent='Detalhe os sinais de alerta antes de salvar.'; } return; } }
+
+        const collectChecked = (selector)=> Array.from(document.querySelectorAll(selector)).filter(i=>i.checked).map(i=>i.value);
+
         const payload = {
-          historia: (document.getElementById('a_historia').value||'').trim(),
-          hmb: (document.getElementById('a_hmb').value||'').trim(),
-          hmp: (document.getElementById('a_hmp').value||'').trim(),
-          antecedentes: (document.getElementById('a_antec').value||'').trim(),
-          queixa: (document.getElementById('a_queixa').value||'').trim(),
-          habitos: (document.getElementById('a_habitos').value||'').trim(),
-          tratamentos: (document.getElementById('a_tratamentos').value||'').trim(),
+          queixa_principal: (document.getElementById('a_queixa_principal').value||'').trim(),
+          historia_molestia: (document.getElementById('a_historia_molestia').value||'').trim(),
+          historia_medica: (document.getElementById('a_historia_medica').value||'').trim(),
+          historia_familiar: (document.getElementById('a_historia_familiar').value||'').trim(),
+          historico_cirurgico: (document.getElementById('a_historico_cirurgico').value||'').trim(),
+          historico_traumas: (document.getElementById('a_historico_traumas').value||'').trim(),
+          diagnosticos_previos: (document.getElementById('a_diagnosticos_previos').value||'').trim(),
+          doencas_comorbidades: (document.getElementById('a_doencas_comorbidades').value||'').trim(),
+          medicamentos: (document.getElementById('a_medicamentos').value||'').trim(),
+          alergias: (document.getElementById('a_alergias').value||'').trim(),
+          exames_realizados: (document.getElementById('a_exames_realizados').value||'').trim(),
+          exames_pendentes: (document.getElementById('a_exames_pendentes').value||'').trim(),
+          tratamentos_anteriores: (document.getElementById('a_tratamentos_anteriores').value||'').trim(),
+          fisioterapia_anterior: !!document.getElementById('a_fisioterapia_anterior').checked,
+          resultado_fisio_anterior: (document.getElementById('a_resultado_fisio_anterior').value||'').trim(),
+          atividade_fisica: !!document.getElementById('a_atividade_fisica').checked,
+          tipo_atividade: (document.getElementById('a_tipo_atividade').value||'').trim(),
+          freq_semanal: (document.getElementById('a_freq_semanal').value||'').trim(),
+          nivel_sedentarismo: (document.getElementById('a_nivel_sedentarismo').value||''),
+          sono: (document.getElementById('a_sono').value||'').trim(),
+          alimentacao: (document.getElementById('a_alimentacao').value||'').trim(),
+          hidratacao: (document.getElementById('a_hidratacao').value||'').trim(),
+          tabagismo: !!document.getElementById('a_tabagismo').checked,
+          etilismo: !!document.getElementById('a_etilismo').checked,
+          outras_substancias: !!document.getElementById('a_outras_substancias').checked,
+          rotina_ocupacional: (document.getElementById('a_rotina_ocupacional').value||'').trim(),
+          atividades_domesticas: (document.getElementById('a_atividades_domesticas').value||'').trim(),
+          avds_prejudicadas: (document.getElementById('a_avds_prejudicadas').value||'').trim(),
+          limitacoes_funcionais: (document.getElementById('a_limitacoes_funcionais').value||'').trim(),
+          expectativas: (document.getElementById('a_expectativas').value||'').trim(),
+          objetivos: (document.getElementById('a_objetivos').value||'').trim(),
+          observacoes: (document.getElementById('a_observacoes').value||'').trim(),
+
+          dor: {
+            presenca: !!document.getElementById('a_dor_presenca').checked,
+            local: (document.getElementById('a_dor_local').value||'').trim(),
+            regioes: collectChecked('.a_dor_regiao'),
+            regioes_outro: (document.getElementById('a_dor_regiao_outro').value||'').trim(),
+            inicio: (document.getElementById('a_dor_inicio').value||'').trim(),
+            tempo: (document.getElementById('a_dor_tempo').value||'').trim(),
+            tipo_inicio: (document.getElementById('a_dor_tipo_inicio').value||''),
+            intensidade_atual: (document.getElementById('a_dor_intensidade_atual').value||''),
+            pior: (document.getElementById('a_dor_pior').value||''),
+            melhor: (document.getElementById('a_dor_melhor').value||''),
+            tipos: collectChecked('.a_dor_tipo'),
+            tipos_outro: (document.getElementById('a_dor_tipo_outro').value||'').trim(),
+            irradiacao: !!document.getElementById('a_dor_irrad').checked,
+            local_irrad: (document.getElementById('a_dor_local_irrad').value||'').trim(),
+            fatores_piora: (document.getElementById('a_dor_fatores_piora').value||'').trim(),
+            fatores_melhora: (document.getElementById('a_dor_fatores_melhora').value||'').trim(),
+            piora_noturna: !!document.getElementById('a_piora_noturna').checked,
+            dor_repouso: !!document.getElementById('a_dor_repouso').checked,
+            dor_movimento: !!document.getElementById('a_dor_movimento').checked,
+            dor_esforco: !!document.getElementById('a_dor_esforco').checked,
+            dor_tossir: !!document.getElementById('a_dor_tossir').checked,
+            dor_trabalho: !!document.getElementById('a_dor_trabalho').checked,
+            dor_esporte: !!document.getElementById('a_dor_esporte').checked,
+            observacoes: (document.getElementById('a_dor_observacoes').value||'').trim()
+          },
+
+          sintomas_associados: Array.from(document.querySelectorAll('.a_symp')).map(ch=>({ name: ch.value, present: ch.checked, detail: (document.querySelector('.a_symp_det[data-symp="'+ch.value+'"]').value||'').trim() })),
+
+          sinais_alerta: {
+            itens: collectChecked('.a_alert'),
+            detalhe: (document.getElementById('a_alertas_detalhe').value||'').trim()
+          }
         };
+
         try{
           localStorage.setItem('anamnese_'+prontuarioId, JSON.stringify(payload));
           const result = await saveProntuarioRecord(pid, { id: prontuarioId, anamnese: payload });
@@ -2240,9 +2590,100 @@
         }catch(e){ if(msgEl){ msgEl.style.color='red'; msgEl.textContent='Erro ao salvar anamnese.'; } }
       }
 
-      function clearAnamnese(){ ['a_historia','a_hmb','a_hmp','a_antec','a_queixa','a_habitos','a_tratamentos'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; }); const msg=document.getElementById('anamnese-msg'); if(msg) msg.textContent=''; }
+      function clearAnamnese(){
+        const ids = ['a_queixa_principal','a_historia_molestia','a_historia_medica','a_historia_familiar','a_historico_cirurgico','a_historico_traumas','a_diagnosticos_previos','a_doencas_comorbidades','a_medicamentos','a_alergias','a_exames_realizados','a_exames_pendentes','a_tratamentos_anteriores','a_resultado_fisio_anterior','a_tipo_atividade','a_freq_semanal','a_sono','a_alimentacao','a_hidratacao','a_rotina_ocupacional','a_atividades_domesticas','a_avds_prejudicadas','a_limitacoes_funcionais','a_expectativas','a_objetivos','a_observacoes','a_dor_local','a_dor_inicio','a_dor_tempo','a_dor_intensidade_atual','a_dor_pior','a_dor_melhor','a_dor_fatores_piora','a_dor_fatores_melhora','a_dor_observacoes','a_dor_regiao_outro','a_dor_tipo_outro','a_dor_local_irrad','a_alertas_detalhe'];
+        ids.forEach(id=>{ const el=document.getElementById(id); if(el){ if(el.type==='checkbox' || el.type==='radio') el.checked=false; else el.value=''; } });
+        // uncheck grouped checkboxes
+        document.querySelectorAll('.a_dor_regiao,.a_dor_tipo,.a_symp,.a_alert').forEach(ch=>{ if(ch) ch.checked=false; });
+        // hide conditional inputs
+        document.getElementById('a_dor_regiao_outro').style.display='none';
+        document.getElementById('a_dor_tipo_outro').style.display='none';
+        document.getElementById('a_dor_local_irrad').style.display='none';
+        document.getElementById('a_alertas_det_section').style.display='none';
+        document.querySelectorAll('.a_symp_det').forEach(inp=>{ inp.style.display='none'; inp.value=''; });
+        const msg=document.getElementById('anamnese-msg'); if(msg) msg.textContent='';
+      }
 
-      function loadAnamneseForPatient(pid){ if(!pid) return; try{ const prontuarioId = getActiveProntuarioId(pid); if(!prontuarioId){ clearAnamnese(); return; } const record = getActiveProntuarioObject(pid); if(record && record.anamnese){ try{ localStorage.setItem('anamnese_'+prontuarioId, JSON.stringify(record.anamnese || {})); }catch(e){} } const raw = localStorage.getItem('anamnese_'+prontuarioId); if(!raw){ clearAnamnese(); return; } const obj = JSON.parse(raw); if(!obj){ clearAnamnese(); return; } document.getElementById('a_historia').value = obj.historia||''; document.getElementById('a_hmb').value = obj.hmb||''; document.getElementById('a_hmp').value = obj.hmp||''; document.getElementById('a_antec').value = obj.antecedentes||''; document.getElementById('a_queixa').value = obj.queixa||''; document.getElementById('a_habitos').value = obj.habitos||''; document.getElementById('a_tratamentos').value = obj.tratamentos||''; }catch(e){}
+      function loadAnamneseForPatient(pid){
+        if(!pid) return;
+        try{
+          const prontuarioId = getActiveProntuarioId(pid);
+          if(!prontuarioId){ clearAnamnese(); return; }
+          const record = getActiveProntuarioObject(pid);
+          if(record && record.anamnese){ try{ localStorage.setItem('anamnese_'+prontuarioId, JSON.stringify(record.anamnese || {})); }catch(e){} }
+          const raw = localStorage.getItem('anamnese_'+prontuarioId);
+          if(!raw){ clearAnamnese(); return; }
+          const obj = JSON.parse(raw);
+          if(!obj){ clearAnamnese(); return; }
+
+          // populate simple fields
+          const setVal=(id,val)=>{ const el=document.getElementById(id); if(!el) return; if(el.type==='checkbox') el.checked=!!val; else el.value=val||''; };
+          setVal('a_queixa_principal', obj.queixa_principal||'');
+          setVal('a_historia_molestia', obj.historia_molestia||'');
+          setVal('a_historia_medica', obj.historia_medica||'');
+          setVal('a_historia_familiar', obj.historia_familiar||'');
+          setVal('a_historico_cirurgico', obj.historico_cirurgico||'');
+          setVal('a_historico_traumas', obj.historico_traumas||'');
+          setVal('a_diagnosticos_previos', obj.diagnosticos_previos||'');
+          setVal('a_doencas_comorbidades', obj.doencas_comorbidades||'');
+          setVal('a_medicamentos', obj.medicamentos||'');
+          setVal('a_alergias', obj.alergias||'');
+          setVal('a_exames_realizados', obj.exames_realizados||'');
+          setVal('a_exames_pendentes', obj.exames_pendentes||'');
+          setVal('a_tratamentos_anteriores', obj.tratamentos_anteriores||'');
+          setVal('a_fisioterapia_anterior', obj.fisioterapia_anterior||false);
+          setVal('a_resultado_fisio_anterior', obj.resultado_fisio_anterior||'');
+          setVal('a_atividade_fisica', obj.atividade_fisica||false);
+          setVal('a_tipo_atividade', obj.tipo_atividade||'');
+          setVal('a_freq_semanal', obj.freq_semanal||'');
+          setVal('a_nivel_sedentarismo', obj.nivel_sedentarismo||'');
+          setVal('a_sono', obj.sono||'');
+          setVal('a_alimentacao', obj.alimentacao||'');
+          setVal('a_hidratacao', obj.hidratacao||'');
+          setVal('a_tabagismo', obj.tabagismo||false);
+          setVal('a_etilismo', obj.etilismo||false);
+          setVal('a_outras_substancias', obj.outras_substancias||false);
+          setVal('a_rotina_ocupacional', obj.rotina_ocupacional||'');
+          setVal('a_atividades_domesticas', obj.atividades_domesticas||'');
+          setVal('a_avds_prejudicadas', obj.avds_prejudicadas||'');
+          setVal('a_limitacoes_funcionais', obj.limitacoes_funcionais||'');
+          setVal('a_expectativas', obj.expectativas||'');
+          setVal('a_objetivos', obj.objetivos||'');
+          setVal('a_observacoes', obj.observacoes||'');
+
+          // pain
+          if(obj.dor){
+            setVal('a_dor_presenca', obj.dor.presenca||false);
+            setVal('a_dor_local', obj.dor.local||'');
+            document.querySelectorAll('.a_dor_regiao').forEach(ch=>{ ch.checked = (obj.dor.regioes||[]).includes(ch.value); });
+            setVal('a_dor_regiao_outro', obj.dor.regioes_outro||''); if(obj.dor.regioes_outro) document.getElementById('a_dor_regiao_outro').style.display='inline-block';
+            setVal('a_dor_inicio', obj.dor.inicio||''); setVal('a_dor_tempo', obj.dor.tempo||''); setVal('a_dor_tipo_inicio', obj.dor.tipo_inicio||'');
+            setVal('a_dor_intensidade_atual', obj.dor.intensidade_atual||''); setVal('a_dor_pior', obj.dor.pior||''); setVal('a_dor_melhor', obj.dor.melhor||'');
+            document.querySelectorAll('.a_dor_tipo').forEach(ch=>{ ch.checked = (obj.dor.tipos||[]).includes(ch.value); });
+            setVal('a_dor_tipo_outro', obj.dor.tipos_outro||''); if(obj.dor.tipos_outro) document.getElementById('a_dor_tipo_outro').style.display='inline-block';
+            setVal('a_dor_irrad', obj.dor.irradiacao||false); setVal('a_dor_local_irrad', obj.dor.local_irrad||''); if(obj.dor.irradiacao) document.getElementById('a_dor_local_irrad').style.display='inline-block';
+            setVal('a_dor_fatores_piora', obj.dor.fatores_piora||''); setVal('a_dor_fatores_melhora', obj.dor.fatores_melhora||'');
+            setVal('a_piora_noturna', obj.dor.piora_noturna||false); setVal('a_dor_repouso', obj.dor.dor_repouso||false); setVal('a_dor_movimento', obj.dor.dor_movimento||false);
+            setVal('a_dor_esforco', obj.dor.dor_esforco||false); setVal('a_dor_tossir', obj.dor.dor_tossir||false); setVal('a_dor_trabalho', obj.dor.dor_trabalho||false); setVal('a_dor_esporte', obj.dor.dor_esporte||false);
+            setVal('a_dor_observacoes', obj.dor.observacoes||'');
+          }
+
+          // sintomas
+          if(Array.isArray(obj.sintomas_associados)){
+            obj.sintomas_associados.forEach(s=>{
+              const ch = document.querySelector('.a_symp[value="'+s.name+'"]'); if(ch) ch.checked = !!s.present;
+              const det = document.querySelector('.a_symp_det[data-symp="'+s.name+'"]'); if(det){ det.value = s.detail||''; det.style.display = ch && ch.checked ? 'block' : 'none'; }
+            });
+          }
+
+          // alertas
+          if(obj.sinais_alerta){
+            const itens = obj.sinais_alerta.itens || [];
+            document.querySelectorAll('.a_alert').forEach(ch=>{ ch.checked = itens.includes(ch.value); });
+            if(itens.length>0){ document.getElementById('a_alertas_det_section').style.display='block'; document.getElementById('a_alertas_detalhe').value = obj.sinais_alerta.detalhe||''; }
+          }
+
+        }catch(e){ console.error('loadAnamneseErr', e); }
       }
 
       /* Avaliação: save/load per-patient in localStorage */
