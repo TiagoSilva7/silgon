@@ -925,10 +925,6 @@
               <label>Prévia do relatório (editável)</label>
               <textarea id="report-preview-editor" rows="16" style="width:100%;padding:10px;border-radius:8px"></textarea>
             </div>
-            <div>
-              <label>Assinatura digital (opcional)</label>
-              <input id="report-digital-signature" type="text" placeholder="Ex.: Assinado digitalmente por Dr(a). Nome" style="width:100%;padding:10px;border-radius:8px" />
-            </div>
             <div id="report-msg" style="font-size:13px;color:var(--muted)"></div>
           </div>
         </div>
@@ -1720,11 +1716,6 @@
         });
       }
 
-      function getReportDigitalSignatureText(){
-        const el = document.getElementById('report-digital-signature');
-        return el ? String(el.value || '').trim() : '';
-      }
-
       function buildClinicalReportPreviewText(pid, prontuario){
         const patientName = getInputValue('p_name') || 'Paciente sem nome';
         const age = getInputValue('p_age');
@@ -1944,14 +1935,13 @@
         const pageHeight = doc.internal.pageSize.getHeight();
         const therapist = getInputValue('p_physiotherapist_name') || 'David Francisco da Silva';
         const crefito = getInputValue('p_physiotherapist_crefito') || '453418-F';
-        const digitalSignature = getReportDigitalSignatureText() || 'Não informada';
         const issuedAt = new Date().toLocaleString('pt-BR');
 
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(8.5);
         doc.setTextColor(90, 90, 90);
         doc.text(`Fisioterapeuta: ${therapist}`, pageWidth / 2, pageHeight - 13, { align: 'center' });
-        doc.text(`CREFITO: ${crefito} | Assinatura digital: ${digitalSignature}`, pageWidth / 2, pageHeight - 8, { align: 'center' });
+        doc.text(`CREFITO: ${crefito}`, pageWidth / 2, pageHeight - 8, { align: 'center' });
         doc.text(`Data de emissão: ${issuedAt}`, pageWidth / 2, pageHeight - 3, { align: 'center' });
         doc.setTextColor(33, 50, 38);
       }
