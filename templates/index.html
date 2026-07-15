@@ -1732,10 +1732,7 @@
         const diagnosis = getInputValue('p_medical_diagnosis');
         const cid = getInputValue('p_cid');
         const evalDate = getInputValue('p_evaluation_date');
-        const therapist = getInputValue('p_physiotherapist_name');
-        const crefito = getInputValue('p_physiotherapist_crefito');
         const issuedAt = new Date().toLocaleString('pt-BR');
-        const digitalSignature = getReportDigitalSignatureText();
 
         const anamnese = getJsonFromStorage('anamnese_' + String((prontuario && prontuario.id) ? prontuario.id : '')) || {};
         const avaliacao = getJsonFromStorage('avaliacao_' + String((prontuario && prontuario.id) ? prontuario.id : '')) || {};
@@ -1864,11 +1861,6 @@
 
         lines.push('PLANO TERAPÊUTICO');
         lines.push(planParagraphs.length ? planParagraphs.join('\n\n') : 'Sem plano terapêutico registrado.');
-        lines.push('');
-        lines.push('RESPONSABILIDADE TÉCNICA');
-        lines.push(`- Fisioterapeuta: ${therapist || 'Não informado'}`);
-        lines.push(`- CREFITO: ${crefito || 'Não informado'}`);
-        lines.push(`- Assinatura digital: ${digitalSignature || 'Não informada'}`);
 
         return lines.join('\n');
       }
@@ -2010,84 +2002,115 @@
         const maxY = 270;
         const lineHeight = 5.2;
         const titleLine = String(reportText || '').split('\n')[0] || 'RELATÓRIO CLÍNICO FISIOTERAPÊUTICO';
-        const lines = String(reportText || '').split('\n').map(l=> String(l || ''));
-        let y = 16;
-        let pageIndex = 0;
+        const sectionTitles = [
+          'DADOS DO PACIENTE',
+          'CONTEXTO CLÍNICO',
+          'ANAMNESE',
+          'AVALIAÇÃO FISIOTERAPÊUTICA',
+          'SINAIS DE ALERTA E CONDUTA',
+          'PLANO TERAPÊUTICO'
+        ];
+        const sectionSet = new Set(sectionTitles);
+        const allLines = String(reportText || '').split('\n').map(l=> String(l || '').trim());
+        const sections = [];
+        let activeSection = null;
 
-        const startPage = ()=>{
+        allLines.forEach(line=>{
+          if(!line) return;
+          if(sectionSet.has(line)){
+            activeSection = { title: line, lines: [] };
+            sections.push(activeSection);
+            return;
+          }
+          if(activeSection) activeSection.lines.push(line);
+        });
+
+        if(!sections.length){
+          sections.push({ title: 'RELATÓRIO', lines: allLines.filter(Boolean) });
+        }
+
+        let y = 16;
+        let pageCounter = 0;
+
+        const startPage = (sectionTitle, isContinuation)=>{
           renderPdfWatermark(doc, logoDataUrl);
-          y = 14;
+          y = 12;
 
           if(logoDataUrl){
             try{
-              doc.addImage(logoDataUrl, 'PNG', marginX, y - 6, 20, 20, undefined, 'FAST');
+              doc.addImage(logoDataUrl, 'PNG', marginX, y - 1, 10, 10, undefined, 'FAST');
             }catch(e){}
           }
 
           doc.setFont('helvetica', 'bold');
           doc.setFontSize(13);
-          doc.text(pageIndex === 0 ? titleLine : `${titleLine} (continuação)`, marginX + 24, y + 2);
-          y += 8;
+          doc.text(isContinuation ? `${titleLine} (continuação)` : titleLine, marginX + 14, y + 6);
+          y += 12;
 
           doc.setFont('helvetica', 'normal');
           doc.setFontSize(10);
-          if(pageIndex === 0){
-            doc.text(`Paciente: ${patientName}`, marginX, y); y += 5;
-            doc.text(`Prontuário: ${prontuario.label || 'Sem nome'}`, marginX, y); y += 5;
-            doc.text(`Data de emissão: ${generatedAt}`, marginX, y); y += 7;
-          }else{
-            y += 2;
-          }
+          doc.text(`Paciente: ${patientName}`, marginX, y); y += 5;
+          doc.text(`Prontuário: ${prontuario.label || 'Sem nome'}`, marginX, y); y += 5;
+          doc.text(`Data de emissão: ${generatedAt}`, marginX, y); y += 7;
+
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(11.5);
+          doc.text(sectionTitle, marginX, y);
+          y += 7;
         };
 
-        startPage();
-        lines.forEach(rawLine=>{
-          const line = String(rawLine || '').trim();
-
-          if(!line){
-            y += 2.4;
-            return;
+        sections.forEach((section, idx)=>{
+          if(idx > 0){
+            renderPdfFooter(doc);
+            doc.addPage('a4', 'p');
+            pageCounter += 1;
           }
+          startPage(section.title, false);
 
-          const isHeading = /^[A-ZÁÉÍÓÚÃÕÇ0-9\s\-]+$/.test(line) && !line.startsWith('-');
-          const isBullet = line.startsWith('- ');
-          const text = isBullet ? line.slice(2).trim() : line;
+          section.lines.forEach(rawLine=>{
+            const line = String(rawLine || '').trim();
+            if(!line){ y += 2.3; return; }
 
-          if(isHeading){
-            if(y + lineHeight > maxY){
-              renderPdfFooter(doc);
-              doc.addPage('a4', 'p');
-              pageIndex += 1;
-              startPage();
-            }
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(11.2);
-            doc.text(text, marginX, y);
-            y += 6;
-            return;
-          }
+            const isSubHeading = /^[A-ZÁÉÍÓÚÃÕÇ0-9\s\-]+$/.test(line) && !line.startsWith('-');
+            const isBullet = line.startsWith('- ');
+            const text = isBullet ? line.slice(2).trim() : line;
 
-          doc.setFont('helvetica', 'normal');
-          doc.setFontSize(10);
-          const wraps = doc.splitTextToSize(text, maxWidth - (isBullet ? 5 : 0));
-          wraps.forEach((wrapped, idx)=>{
-            if(y + lineHeight > maxY){
-              renderPdfFooter(doc);
-              doc.addPage('a4', 'p');
-              pageIndex += 1;
-              startPage();
-              doc.setFont('helvetica', 'normal');
-              doc.setFontSize(10);
+            if(isSubHeading){
+              if(y + lineHeight > maxY){
+                renderPdfFooter(doc);
+                doc.addPage('a4', 'p');
+                pageCounter += 1;
+                startPage(section.title, true);
+              }
+              doc.setFont('helvetica', 'bold');
+              doc.setFontSize(10.8);
+              doc.text(text, marginX, y);
+              y += 6;
+              return;
             }
-            if(isBullet && idx === 0){
-              doc.text('•', marginX, y);
-              doc.text(wrapped, marginX + 4, y);
-            }else{
-              doc.text(wrapped, marginX + (isBullet ? 4 : 0), y);
-            }
-            y += lineHeight;
+
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(10);
+            const wraps = doc.splitTextToSize(text, maxWidth - (isBullet ? 5 : 0));
+            wraps.forEach((wrapped, wIdx)=>{
+              if(y + lineHeight > maxY){
+                renderPdfFooter(doc);
+                doc.addPage('a4', 'p');
+                pageCounter += 1;
+                startPage(section.title, true);
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(10);
+              }
+              if(isBullet && wIdx === 0){
+                doc.text('•', marginX, y);
+                doc.text(wrapped, marginX + 4, y);
+              }else{
+                doc.text(wrapped, marginX + (isBullet ? 4 : 0), y);
+              }
+              y += lineHeight;
+            });
+            y += 1.1;
           });
-          y += 1.2;
         });
 
         renderPdfFooter(doc);
