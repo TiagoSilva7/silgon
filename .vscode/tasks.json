@@ -1,0 +1,68 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "SILGON: Install requirements",
+      "type": "shell",
+      "command": "python",
+      "args": [
+        "-m",
+        "pip",
+        "install",
+        "-r",
+        "SILGON/requirements.txt"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "group": "build"
+    },
+    {
+      "label": "SILGON: Run Flask app",
+      "type": "shell",
+      "command": "python",
+      "args": [
+        "SILGON/app.py"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "SILGON: Run portable server",
+      "type": "shell",
+      "command": "python",
+      "args": [
+        "SILGON/portable_server.py"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "SILGON: API smoke test",
+      "type": "shell",
+      "command": "python",
+      "args": [
+        "SILGON/test_post.py"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "group": "test"
+    },
+    {
+      "label": "SILGON: Build portable",
+      "type": "shell",
+      "command": "SILGON/build_portable.bat",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "group": "build"
+    }
+  ]
+}

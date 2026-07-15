@@ -1,0 +1,11 @@
+{
+  "generated_at_utc": "2026-03-13T18:42:24.037759+00:00",
+  "base_url": "http://10.14.203.158:8080/SEFADEVLIB",
+  "project_id": "239BC40211E8B1E3626F0080EF95EED2",
+  "attributes": [],
+  "freeform_sql_reports_with_cpf_or_cnpj": [],
+  "summary": {
+    "attributes_count": 0,
+    "reports_count": 0
+  }
+}

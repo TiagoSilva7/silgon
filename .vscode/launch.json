@@ -1,0 +1,21 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "SILGON: Flask",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/SILGON/app.py",
+      "cwd": "${workspaceFolder}/SILGON",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "SILGON: Portable server",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/SILGON/portable_server.py",
+      "cwd": "${workspaceFolder}/SILGON",
+      "console": "integratedTerminal"
+    }
+  ]
+}
