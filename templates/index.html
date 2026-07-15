@@ -925,6 +925,10 @@
               <label>Prévia do relatório (editável)</label>
               <textarea id="report-preview-editor" rows="16" style="width:100%;padding:10px;border-radius:8px"></textarea>
             </div>
+            <div>
+              <label>Assinatura digital (opcional)</label>
+              <input id="report-digital-signature" type="text" placeholder="Ex.: Assinado digitalmente por Dr(a). Nome" style="width:100%;padding:10px;border-radius:8px" />
+            </div>
             <div id="report-msg" style="font-size:13px;color:var(--muted)"></div>
           </div>
         </div>
@@ -1716,6 +1720,11 @@
         });
       }
 
+      function getReportDigitalSignatureText(){
+        const el = document.getElementById('report-digital-signature');
+        return el ? String(el.value || '').trim() : '';
+      }
+
       function buildClinicalReportPreviewText(pid, prontuario){
         const patientName = getInputValue('p_name') || 'Paciente sem nome';
         const age = getInputValue('p_age');
@@ -1725,12 +1734,18 @@
         const evalDate = getInputValue('p_evaluation_date');
         const therapist = getInputValue('p_physiotherapist_name');
         const crefito = getInputValue('p_physiotherapist_crefito');
+        const issuedAt = new Date().toLocaleString('pt-BR');
+        const digitalSignature = getReportDigitalSignatureText();
 
         const anamnese = getJsonFromStorage('anamnese_' + String((prontuario && prontuario.id) ? prontuario.id : '')) || {};
         const avaliacao = getJsonFromStorage('avaliacao_' + String((prontuario && prontuario.id) ? prontuario.id : '')) || {};
         const plano = getJsonFromStorage('plano_' + String((prontuario && prontuario.id) ? prontuario.id : '')) || {};
 
-        const paragraphs = [];
+        const contextParagraphs = [];
+        const anamnesisParagraphs = [];
+        const assessmentParagraphs = [];
+        const planParagraphs = [];
+        const warningParagraphs = [];
 
         let intro = `Paciente ${patientName}`;
         if(age) intro += `, ${age} anos`;
@@ -1740,7 +1755,7 @@
         if(cid) intro += ` (CID ${cid})`;
         intro += '.';
         if(evalDate) intro += ` Avaliação registrada em ${evalDate}.`;
-        paragraphs.push(intro);
+        contextParagraphs.push(intro);
 
         const queixa = String(anamnese.queixa_principal || '').trim();
         const hma = String(anamnese.historia_molestia || '').trim();
@@ -1784,7 +1799,7 @@
           anamneseParts.push(dorText);
         }
 
-        if(anamneseParts.length) paragraphs.push(anamneseParts.join(' '));
+        if(anamneseParts.length) anamnesisParagraphs.push(anamneseParts.join(' '));
 
         const positiveFindings = [];
         collectPositiveTestsFromAvaliacao(avaliacao, [], positiveFindings);
@@ -1797,7 +1812,7 @@
           avalParts.push(`Destacam-se os seguintes achados positivos na avaliação: ${positiveFindings.slice(0, 10).join(' ')}`);
         }
         if(eva) avalParts.push(`Escala Visual Analógica registrada em ${eva}/10.`);
-        if(avalParts.length) paragraphs.push(avalParts.join(' '));
+        if(avalParts.length) assessmentParagraphs.push(avalParts.join(' '));
 
         const alertas = anamnese.sinais_alerta || {};
         if(Array.isArray(alertas.itens) && alertas.itens.length){
@@ -1805,7 +1820,7 @@
           if(alertas.detalhe) alertText += `, com descrição: ${alertas.detalhe}`;
           if(alertas.recomendacao) alertText += `. Conduta orientada: ${alertas.recomendacao}`;
           if(!alertText.endsWith('.')) alertText += '.';
-          paragraphs.push(alertText);
+          warningParagraphs.push(alertText);
         }
 
         const planoParts = [];
@@ -1818,21 +1833,44 @@
           const last = plano.evolutions[plano.evolutions.length - 1];
           if(last && last.text) planoParts.push(`Última evolução registrada (${last.ts || 'sem data'}): ${last.text}.`);
         }
-        if(planoParts.length) paragraphs.push(planoParts.join(' '));
+        if(planoParts.length) planParagraphs.push(planoParts.join(' '));
 
-        let assinatura = 'Relatório emitido via SILGON.';
-        if(therapist) assinatura += ` Responsável técnico: ${therapist}`;
-        if(crefito) assinatura += `, CREFITO ${crefito}`;
-        assinatura += '.';
-        paragraphs.push(assinatura);
-
-        return [
+        const lines = [
           'RELATÓRIO CLÍNICO FISIOTERAPÊUTICO',
-          `Paciente: ${patientName}`,
-          `Prontuário: ${prontuario && prontuario.label ? prontuario.label : 'Sem nome'}`,
           '',
-          paragraphs.join('\n\n')
-        ].join('\n');
+          'DADOS DO PACIENTE',
+          `- Nome: ${patientName}`,
+          `- Prontuário: ${prontuario && prontuario.label ? prontuario.label : 'Sem nome'}`,
+          `- CPF: ${getInputValue('p_cpf') || 'Não informado'}`,
+          `- Data da avaliação: ${evalDate || 'Não informada'}`,
+          `- Data de emissão: ${issuedAt}`,
+          '',
+          'CONTEXTO CLÍNICO',
+          contextParagraphs.length ? contextParagraphs.join('\n\n') : 'Sem informações clínicas iniciais registradas.',
+          '',
+          'ANAMNESE',
+          anamnesisParagraphs.length ? anamnesisParagraphs.join('\n\n') : 'Sem dados de anamnese registrados.',
+          '',
+          'AVALIAÇÃO FISIOTERAPÊUTICA',
+          assessmentParagraphs.length ? assessmentParagraphs.join('\n\n') : 'Sem achados de avaliação registrados.',
+          ''
+        ];
+
+        if(warningParagraphs.length){
+          lines.push('SINAIS DE ALERTA E CONDUTA');
+          lines.push(warningParagraphs.join('\n\n'));
+          lines.push('');
+        }
+
+        lines.push('PLANO TERAPÊUTICO');
+        lines.push(planParagraphs.length ? planParagraphs.join('\n\n') : 'Sem plano terapêutico registrado.');
+        lines.push('');
+        lines.push('RESPONSABILIDADE TÉCNICA');
+        lines.push(`- Fisioterapeuta: ${therapist || 'Não informado'}`);
+        lines.push(`- CREFITO: ${crefito || 'Não informado'}`);
+        lines.push(`- Assinatura digital: ${digitalSignature || 'Não informada'}`);
+
+        return lines.join('\n');
       }
 
       function generateReportPreviewText(){
@@ -1912,11 +1950,17 @@
       function renderPdfFooter(doc){
         const pageWidth = doc.internal.pageSize.getWidth();
         const pageHeight = doc.internal.pageSize.getHeight();
+        const therapist = getInputValue('p_physiotherapist_name') || 'David Francisco da Silva';
+        const crefito = getInputValue('p_physiotherapist_crefito') || '453418-F';
+        const digitalSignature = getReportDigitalSignatureText() || 'Não informada';
+        const issuedAt = new Date().toLocaleString('pt-BR');
+
         doc.setFont('helvetica', 'normal');
-        doc.setFontSize(9);
+        doc.setFontSize(8.5);
         doc.setTextColor(90, 90, 90);
-        doc.text('David Francisco da Silva', pageWidth / 2, pageHeight - 10, { align: 'center' });
-        doc.text('CREFITO: 453418-F.', pageWidth / 2, pageHeight - 5, { align: 'center' });
+        doc.text(`Fisioterapeuta: ${therapist}`, pageWidth / 2, pageHeight - 13, { align: 'center' });
+        doc.text(`CREFITO: ${crefito} | Assinatura digital: ${digitalSignature}`, pageWidth / 2, pageHeight - 8, { align: 'center' });
+        doc.text(`Data de emissão: ${issuedAt}`, pageWidth / 2, pageHeight - 3, { align: 'center' });
         doc.setTextColor(33, 50, 38);
       }
 
@@ -1963,38 +2007,70 @@
 
         const marginX = 14;
         const maxWidth = 182;
-        const maxY = 274;
+        const maxY = 270;
         const lineHeight = 5.2;
-        const paragraphs = reportText.split(/\n{2,}/).map(p=> String(p||'').trim()).filter(Boolean);
+        const titleLine = String(reportText || '').split('\n')[0] || 'RELATÓRIO CLÍNICO FISIOTERAPÊUTICO';
+        const lines = String(reportText || '').split('\n').map(l=> String(l || ''));
         let y = 16;
         let pageIndex = 0;
 
         const startPage = ()=>{
           renderPdfWatermark(doc, logoDataUrl);
-          y = 16;
+          y = 14;
+
+          if(logoDataUrl){
+            try{
+              doc.addImage(logoDataUrl, 'PNG', marginX, y - 6, 20, 20, undefined, 'FAST');
+            }catch(e){}
+          }
+
           doc.setFont('helvetica', 'bold');
-          doc.setFontSize(12);
-          doc.text(pageIndex === 0 ? 'SILGON - Relatório Clínico' : 'SILGON - Relatório Clínico (continuação)', marginX, y);
-          y += 6;
+          doc.setFontSize(13);
+          doc.text(pageIndex === 0 ? titleLine : `${titleLine} (continuação)`, marginX + 24, y + 2);
+          y += 8;
 
           doc.setFont('helvetica', 'normal');
           doc.setFontSize(10);
           if(pageIndex === 0){
             doc.text(`Paciente: ${patientName}`, marginX, y); y += 5;
             doc.text(`Prontuário: ${prontuario.label || 'Sem nome'}`, marginX, y); y += 5;
-            doc.text(`Gerado em: ${generatedAt}`, marginX, y); y += 7;
+            doc.text(`Data de emissão: ${generatedAt}`, marginX, y); y += 7;
           }else{
             y += 2;
           }
         };
 
         startPage();
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(10);
+        lines.forEach(rawLine=>{
+          const line = String(rawLine || '').trim();
 
-        paragraphs.forEach(paragraph=>{
-          const wraps = doc.splitTextToSize(paragraph, maxWidth);
-          wraps.forEach(line=>{
+          if(!line){
+            y += 2.4;
+            return;
+          }
+
+          const isHeading = /^[A-ZÁÉÍÓÚÃÕÇ0-9\s\-]+$/.test(line) && !line.startsWith('-');
+          const isBullet = line.startsWith('- ');
+          const text = isBullet ? line.slice(2).trim() : line;
+
+          if(isHeading){
+            if(y + lineHeight > maxY){
+              renderPdfFooter(doc);
+              doc.addPage('a4', 'p');
+              pageIndex += 1;
+              startPage();
+            }
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(11.2);
+            doc.text(text, marginX, y);
+            y += 6;
+            return;
+          }
+
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(10);
+          const wraps = doc.splitTextToSize(text, maxWidth - (isBullet ? 5 : 0));
+          wraps.forEach((wrapped, idx)=>{
             if(y + lineHeight > maxY){
               renderPdfFooter(doc);
               doc.addPage('a4', 'p');
@@ -2003,10 +2079,15 @@
               doc.setFont('helvetica', 'normal');
               doc.setFontSize(10);
             }
-            doc.text(line, marginX, y);
+            if(isBullet && idx === 0){
+              doc.text('•', marginX, y);
+              doc.text(wrapped, marginX + 4, y);
+            }else{
+              doc.text(wrapped, marginX + (isBullet ? 4 : 0), y);
+            }
             y += lineHeight;
           });
-          y += 1.8;
+          y += 1.2;
         });
 
         renderPdfFooter(doc);
