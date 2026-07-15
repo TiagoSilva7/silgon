@@ -916,9 +916,14 @@
         </div>
         <div id="panel-relatorio" class="patient-panel">
           <div style="display:flex;flex-direction:column;gap:10px">
-            <div style="color:var(--muted)">Gera um PDF do prontuário com marca d'água SILGON, em que cada aba vira uma página.</div>
-            <div style="display:flex;justify-content:flex-end;gap:8px">
+            <div style="color:var(--muted)">Gere uma prévia clínica totalmente editável antes de exportar o PDF final.</div>
+            <div style="display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap">
+              <button id="report-generate-preview" type="button" class="secondary">Gerar visualização</button>
               <button id="report-generate-pdf" type="button">Gerar PDF do Prontuário</button>
+            </div>
+            <div>
+              <label>Prévia do relatório (editável)</label>
+              <textarea id="report-preview-editor" rows="16" style="width:100%;padding:10px;border-radius:8px"></textarea>
             </div>
             <div id="report-msg" style="font-size:13px;color:var(--muted)"></div>
           </div>
@@ -1656,104 +1661,202 @@
         return txt || 'Sem dados financeiros.';
       }
 
-      function buildProntuarioPdfSections(pid, prontuario){
-        const patientName = getInputValue('p_name') || 'Paciente sem nome';
-        const patientCpf = getInputValue('p_cpf') || 'Não informado';
-        const dados = [
-          `Nome: ${patientName}`,
-          `Data de nascimento: ${getInputValue('p_birth_date') || 'Não informado'}`,
-          `Idade: ${getInputValue('p_age') || 'Não informado'}`,
-          `Sexo: ${getInputValue('p_sex') || 'Não informado'}`,
-          `Gênero: ${getInputValue('p_gender') || 'Não informado'}`,
-          `CPF: ${patientCpf}`,
-          `Estado civil: ${getInputValue('p_marital_status') || 'Não informado'}`,
-          `Profissão: ${getInputValue('p_profession') || 'Não informado'}`,
-          `Telefone: ${getInputValue('p_phone') || 'Não informado'}`,
-          `WhatsApp: ${getInputValue('p_whatsapp') || 'Não informado'}`,
-          `E-mail: ${getInputValue('p_email') || 'Não informado'}`,
-          `Endereço: ${getInputValue('p_address') || 'Não informado'}`,
-          `Cidade: ${getInputValue('p_city') || 'Não informado'}`,
-          `Estado: ${getInputValue('p_state') || 'Não informado'}`,
-          `CEP: ${getInputValue('p_cep') || 'Não informado'}`,
-          `Contato de emergência: ${getInputValue('p_emergency_contact') || 'Não informado'}`,
-          `Telefone do contato: ${getInputValue('p_emergency_phone') || 'Não informado'}`,
-          `Parentesco: ${getInputValue('p_emergency_relationship') || 'Não informado'}`,
-          `Convênio: ${getInputValue('p_insurance') || 'Não informado'}`,
-          `Carteirinha: ${getInputValue('p_insurance_number') || 'Não informado'}`,
-          `Paciente particular: ${getInputValue('p_private_patient') || 'Não informado'}`,
-          `Responsável legal: ${getInputValue('p_legal_guardian') || 'Não informado'}`,
-          `CPF do responsável legal: ${getInputValue('p_legal_guardian_cpf') || 'Não informado'}`,
-          `Telefone do responsável legal: ${getInputValue('p_legal_guardian_phone') || 'Não informado'}`,
-          `Médico responsável: ${getInputValue('p_doctor_name') || 'Não informado'}`,
-          `CRM: ${getInputValue('p_doctor_crm') || 'Não informado'}`,
-          `Diagnóstico médico: ${getInputValue('p_medical_diagnosis') || 'Não informado'}`,
-          `CID: ${getInputValue('p_cid') || 'Não informado'}`,
-          `Data da avaliação: ${getInputValue('p_evaluation_date') || 'Não informado'}`,
-          `Modalidade: ${getInputValue('p_care_modality') || 'Não informado'}`,
-          `Unidade/local: ${getInputValue('p_care_location') || 'Não informado'}`,
-          `Fisioterapeuta responsável: ${getInputValue('p_physiotherapist_name') || 'Não informado'}`,
-          `CREFITO: ${getInputValue('p_physiotherapist_crefito') || 'Não informado'}`,
-          `Observações cadastrais: ${getInputValue('p_registration_notes') || 'Não informado'}`
-        ];
-
-        const anamnese = [
-          `História clínica: ${getInputValue('a_historia') || 'Não informado'}`,
-          `HMB: ${getInputValue('a_hmb') || 'Não informado'}`,
-          `HMP: ${getInputValue('a_hmp') || 'Não informado'}`,
-          `Antecedentes pessoais e familiares: ${getInputValue('a_antec') || 'Não informado'}`,
-          `Queixa principal: ${getInputValue('a_queixa') || 'Não informado'}`,
-          `Hábitos de vida: ${getInputValue('a_habitos') || 'Não informado'}`,
-          `Tratamentos realizados: ${getInputValue('a_tratamentos') || 'Não informado'}`
-        ];
-
-        let avaliacao = ['Avaliação não preenchida.'];
+      function getJsonFromStorage(key){
         try{
-          const avalKey = 'avaliacao_' + String((prontuario && prontuario.id) ? prontuario.id : '');
-          const avalRaw = localStorage.getItem(avalKey);
-          const avalObj = avalRaw ? JSON.parse(avalRaw) : null;
-          if(avalObj && avalObj.schema_version === AV_SCHEMA_VERSION){
-            const postural = avalObj.postural || {};
-            const posturalAlterados = Object.values(postural).filter(v=> v && v.alteracao && v.alteracao !== 'normal').length;
-            const sintomasNeu = avalObj.neurologica && avalObj.neurologica.sintomas ? Object.values(avalObj.neurologica.sintomas).filter(v=> v && v.presenca === 'sim').length : 0;
-            const cardiorrespSinais = avalObj.cardiorrespiratoria && avalObj.cardiorrespiratoria.sinais ? Object.values(avalObj.cardiorrespiratoria.sinais).filter(v=> v && v.presenca === 'sim').length : 0;
-            const eva = avGetByPath(avalObj, 'escalas.eva_escala_visual_analogica.pontuacao') || 'Não informado';
-            avaliacao = [
-              `Modelo de avaliação: Completo (v2)`,
-              `Estado geral: ${avGetByPath(avalObj, 'inspecao_geral.estado_geral') || 'Não informado'}`,
-              `Alterações posturais registradas: ${posturalAlterados}`,
-              `Sintomas neurológicos presentes: ${sintomasNeu}`,
-              `Sinais cardiorrespiratórios presentes: ${cardiorrespSinais}`,
-              `EVA (escala visual analógica): ${eva}`
-            ];
-          }
-        }catch(e){}
-
-        let evolText = 'Sem evoluções registradas.';
-        try{
-          const key = 'plano_' + String((prontuario && prontuario.id) ? prontuario.id : '');
           const raw = localStorage.getItem(key);
-          const obj = raw ? JSON.parse(raw) : null;
-          const ev = obj && Array.isArray(obj.evolutions) ? obj.evolutions : [];
-          if(ev.length){
-            evolText = ev.map((it, idx)=> `${idx+1}) ${it.ts || ''} - ${it.text || ''}`).join(' | ');
-          }
-        }catch(e){}
+          return raw ? JSON.parse(raw) : null;
+        }catch(e){
+          return null;
+        }
+      }
 
-        const plano = [
-          `Parecer fisioterapêutico: ${getInputValue('pl_parecer') || 'Não informado'}`,
-          `Objetivo terapêutico: ${getInputValue('pl_objetivo') || 'Não informado'}`,
-          `Plano terapêutico: ${getInputValue('pl_plano') || 'Não informado'}`,
-          `Proposta de plano clínico: ${getInputValue('pl_proposta') || 'Não informado'}`,
-          `Local do tratamento: ${getPrestacaoServicoPdfText()}`,
-          `Evoluções: ${evolText}`
-        ];
+      function humanizeSlugLabel(value){
+        return String(value || '')
+          .replace(/[\._-]+/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim()
+          .replace(/\b\w/g, c=> c.toUpperCase());
+      }
+
+      function joinClinicalList(items){
+        const list = (Array.isArray(items) ? items : []).filter(Boolean).map(v=> String(v).trim()).filter(Boolean);
+        if(!list.length) return '';
+        if(list.length === 1) return list[0];
+        if(list.length === 2) return `${list[0]} e ${list[1]}`;
+        return `${list.slice(0, -1).join(', ')} e ${list[list.length - 1]}`;
+      }
+
+      function collectPositiveTestsFromAvaliacao(node, pathParts, out){
+        if(!node || typeof node !== 'object') return;
+        const path = Array.isArray(pathParts) ? pathParts : [];
+        const acc = Array.isArray(out) ? out : [];
+
+        if(String(node.resultado || '') === 'positivo'){
+          const baseName = node.nome_teste || path[path.length - 1] || 'teste';
+          const testName = humanizeSlugLabel(baseName).toLowerCase();
+          let sentence = `Teste de ${testName} positivo`;
+          if(node.lateralidade && node.lateralidade !== 'nao_se_aplica'){
+            sentence += ` à ${String(node.lateralidade).replace(/_/g, ' ')}`;
+          }
+          if(String(node.dor_irradiada || '') === 'sim'){
+            sentence += ', com reprodução de dor irradiada';
+          }
+          if(node.dor_intensidade){
+            sentence += ` e intensidade referida de ${node.dor_intensidade}/10 na Escala Visual Analógica`;
+          }
+          if(node.achado_positivo){
+            sentence += `. Achado clínico: ${String(node.achado_positivo).trim()}`;
+          }
+          if(!sentence.endsWith('.')) sentence += '.';
+          acc.push(sentence);
+        }
+
+        Object.entries(node).forEach(([key, val])=>{
+          if(val && typeof val === 'object') collectPositiveTestsFromAvaliacao(val, path.concat(key), acc);
+        });
+      }
+
+      function buildClinicalReportPreviewText(pid, prontuario){
+        const patientName = getInputValue('p_name') || 'Paciente sem nome';
+        const age = getInputValue('p_age');
+        const sex = getInputValue('p_sex');
+        const diagnosis = getInputValue('p_medical_diagnosis');
+        const cid = getInputValue('p_cid');
+        const evalDate = getInputValue('p_evaluation_date');
+        const therapist = getInputValue('p_physiotherapist_name');
+        const crefito = getInputValue('p_physiotherapist_crefito');
+
+        const anamnese = getJsonFromStorage('anamnese_' + String((prontuario && prontuario.id) ? prontuario.id : '')) || {};
+        const avaliacao = getJsonFromStorage('avaliacao_' + String((prontuario && prontuario.id) ? prontuario.id : '')) || {};
+        const plano = getJsonFromStorage('plano_' + String((prontuario && prontuario.id) ? prontuario.id : '')) || {};
+
+        const paragraphs = [];
+
+        let intro = `Paciente ${patientName}`;
+        if(age) intro += `, ${age} anos`;
+        if(sex) intro += `, sexo ${String(sex).toLowerCase()}`;
+        intro += ', em acompanhamento fisioterapêutico';
+        if(diagnosis) intro += ` por ${diagnosis}`;
+        if(cid) intro += ` (CID ${cid})`;
+        intro += '.';
+        if(evalDate) intro += ` Avaliação registrada em ${evalDate}.`;
+        paragraphs.push(intro);
+
+        const queixa = String(anamnese.queixa_principal || '').trim();
+        const hma = String(anamnese.historia_molestia || '').trim();
+        const comorb = String(anamnese.doencas_comorbidades || '').trim();
+        const meds = String(anamnese.medicamentos || '').trim();
+        const allergies = String(anamnese.alergias || '').trim();
+        const symptoms = (Array.isArray(anamnese.sintomas_associados) ? anamnese.sintomas_associados : []).filter(s=>s && s.present).map(s=> s.detail ? `${s.name} (${s.detail})` : s.name);
+
+        const anamneseParts = [];
+        if(queixa) anamneseParts.push(`Queixa principal: ${queixa}.`);
+        if(hma) anamneseParts.push(`História da moléstia atual: ${hma}.`);
+        if(comorb) anamneseParts.push(`Comorbidades relatadas: ${comorb}.`);
+        if(meds) anamneseParts.push(`Uso atual de medicações: ${meds}.`);
+        if(allergies) anamneseParts.push(`Alergias informadas: ${allergies}.`);
+        if(symptoms.length) anamneseParts.push(`Sintomas associados observados: ${joinClinicalList(symptoms)}.`);
+
+        const dor = anamnese.dor || {};
+        if(dor && dor.presenca){
+          const regioes = Array.isArray(dor.regioes) ? dor.regioes.filter(v=> v !== 'outro').map(humanizeSlugLabel) : [];
+          if(Array.isArray(dor.regioes) && dor.regioes.includes('outro') && dor.regioes_outro_nome){
+            regioes.push(String(dor.regioes_outro_nome).trim());
+          }
+          const tipos = Array.isArray(dor.tipos) ? dor.tipos.filter(v=> v !== 'outro').map(humanizeSlugLabel) : [];
+          if(Array.isArray(dor.tipos) && dor.tipos.includes('outro') && dor.tipos_outro_nome){
+            tipos.push(String(dor.tipos_outro_nome).trim());
+          }
+
+          let dorText = 'Relata quadro álgico';
+          if(dor.local) dorText += ` em ${dor.local}`;
+          if(regioes.length) dorText += `, com distribuição em ${joinClinicalList(regioes).toLowerCase()}`;
+          if(tipos.length) dorText += ` e característica ${joinClinicalList(tipos).toLowerCase()}`;
+          if(dor.irradiacao){
+            dorText += dor.local_irrad ? `, com irradiação para ${dor.local_irrad}` : ', com irradiação';
+          }
+          if(dor.intensidade_atual) dorText += `, intensidade atual ${dor.intensidade_atual}/10`;
+          if(dor.pior) dorText += `, pior dor ${dor.pior}/10`;
+          if(dor.melhor) dorText += ` e melhor dor ${dor.melhor}/10`;
+          if(dor.fatores_piora) dorText += `. Fatores de piora: ${dor.fatores_piora}`;
+          if(dor.fatores_melhora) dorText += `. Fatores de melhora: ${dor.fatores_melhora}`;
+          dorText += '.';
+          anamneseParts.push(dorText);
+        }
+
+        if(anamneseParts.length) paragraphs.push(anamneseParts.join(' '));
+
+        const positiveFindings = [];
+        collectPositiveTestsFromAvaliacao(avaliacao, [], positiveFindings);
+        const estadoGeral = avGetByPath(avaliacao, 'inspecao_geral.estado_geral');
+        const eva = avGetByPath(avaliacao, 'escalas.eva_escala_visual_analogica.pontuacao');
+
+        const avalParts = [];
+        if(estadoGeral) avalParts.push(`Ao exame físico, o estado geral foi descrito como ${String(estadoGeral).toLowerCase()}.`);
+        if(positiveFindings.length){
+          avalParts.push(`Destacam-se os seguintes achados positivos na avaliação: ${positiveFindings.slice(0, 10).join(' ')}`);
+        }
+        if(eva) avalParts.push(`Escala Visual Analógica registrada em ${eva}/10.`);
+        if(avalParts.length) paragraphs.push(avalParts.join(' '));
+
+        const alertas = anamnese.sinais_alerta || {};
+        if(Array.isArray(alertas.itens) && alertas.itens.length){
+          let alertText = `Foram identificados sinais de alerta (${joinClinicalList(alertas.itens.map(humanizeSlugLabel).map(v=>v.toLowerCase()))})`;
+          if(alertas.detalhe) alertText += `, com descrição: ${alertas.detalhe}`;
+          if(alertas.recomendacao) alertText += `. Conduta orientada: ${alertas.recomendacao}`;
+          if(!alertText.endsWith('.')) alertText += '.';
+          paragraphs.push(alertText);
+        }
+
+        const planoParts = [];
+        if(plano.parecer) planoParts.push(`Parecer fisioterapêutico: ${String(plano.parecer).trim()}.`);
+        if(plano.objetivo) planoParts.push(`Objetivos terapêuticos: ${String(plano.objetivo).trim()}.`);
+        if(plano.plano) planoParts.push(`Plano terapêutico proposto: ${String(plano.plano).trim()}.`);
+        if(plano.proposta) planoParts.push(`Proposta clínica complementar: ${String(plano.proposta).trim()}.`);
+        planoParts.push(`Local de tratamento: ${getPrestacaoServicoPdfText()}.`);
+        if(Array.isArray(plano.evolutions) && plano.evolutions.length){
+          const last = plano.evolutions[plano.evolutions.length - 1];
+          if(last && last.text) planoParts.push(`Última evolução registrada (${last.ts || 'sem data'}): ${last.text}.`);
+        }
+        if(planoParts.length) paragraphs.push(planoParts.join(' '));
+
+        let assinatura = 'Relatório emitido via SILGON.';
+        if(therapist) assinatura += ` Responsável técnico: ${therapist}`;
+        if(crefito) assinatura += `, CREFITO ${crefito}`;
+        assinatura += '.';
+        paragraphs.push(assinatura);
 
         return [
-          { tabName: 'Dados do Paciente', lines: dados },
-          { tabName: 'Anamnese', lines: anamnese },
-          { tabName: 'Avaliação', lines: avaliacao },
-          { tabName: 'Plano terapêutico', lines: plano }
-        ];
+          'RELATÓRIO CLÍNICO FISIOTERAPÊUTICO',
+          `Paciente: ${patientName}`,
+          `Prontuário: ${prontuario && prontuario.label ? prontuario.label : 'Sem nome'}`,
+          '',
+          paragraphs.join('\n\n')
+        ].join('\n');
+      }
+
+      function generateReportPreviewText(){
+        const msg = document.getElementById('report-msg');
+        if(msg){ msg.style.color='var(--muted)'; msg.textContent=''; }
+        const pid = getCurrentPatientId();
+        if(!pid){
+          if(msg){ msg.style.color='red'; msg.textContent='Selecione o paciente antes de gerar a visualização.'; }
+          return '';
+        }
+
+        const prontuarioId = getActiveProntuarioId(pid);
+        if(!prontuarioId){
+          askProntuarioForPatient(pid, getInputValue('p_name') || 'paciente');
+          if(msg){ msg.style.color='red'; msg.textContent='Selecione ou crie o prontuário antes de gerar a visualização.'; }
+          return '';
+        }
+
+        const prontuario = getActiveProntuarioObject(pid) || { id: prontuarioId, label: 'Sem nome' };
+        const text = buildClinicalReportPreviewText(pid, prontuario);
+        const editor = document.getElementById('report-preview-editor');
+        if(editor) editor.value = text;
+        if(msg){ msg.style.color='green'; msg.textContent='Prévia gerada. Você pode editar o texto antes de exportar o PDF.'; }
+        return text;
       }
 
       async function getPdfWatermarkLogo(){
@@ -1842,70 +1945,77 @@
         const prontuario = getActiveProntuarioObject(pid) || { id: prontuarioId, label: 'Sem nome' };
         const patientName = getInputValue('p_name') || 'Paciente sem nome';
         const generatedAt = new Date().toLocaleString('pt-BR');
+        const editor = document.getElementById('report-preview-editor');
 
-        const sections = buildProntuarioPdfSections(pid, prontuario);
+        let reportText = editor ? String(editor.value || '').trim() : '';
+        if(!reportText){
+          reportText = generateReportPreviewText();
+          if(editor) reportText = String(editor.value || '').trim();
+        }
+        if(!reportText){
+          if(msg){ msg.style.color='red'; msg.textContent='Não foi possível gerar o conteúdo do relatório.'; }
+          return;
+        }
+
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
         const logoDataUrl = await getPdfWatermarkLogo();
 
-        sections.forEach((section, idx)=>{
-          if(idx>0) doc.addPage('a4', 'p');
+        const marginX = 14;
+        const maxWidth = 182;
+        const maxY = 274;
+        const lineHeight = 5.2;
+        const paragraphs = reportText.split(/\n{2,}/).map(p=> String(p||'').trim()).filter(Boolean);
+        let y = 16;
+        let pageIndex = 0;
+
+        const startPage = ()=>{
           renderPdfWatermark(doc, logoDataUrl);
-
-          const marginX = 14;
-          let y = 16;
-          const maxWidth = 182;
-          const maxY = 274;
-          const lineHeight = 5.3;
-
-          if(idx === 0){
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(12);
-            doc.text('SILGON - Resumo do Prontuário', marginX, y);
-            y += 6;
-
-            doc.setFont('helvetica', 'normal');
-            doc.setFontSize(10);
-            doc.text(`Paciente: ${patientName}`, marginX, y); y += 5;
-            doc.text(`Prontuário: ${prontuario.label || 'Sem nome'}`, marginX, y); y += 5;
-            doc.text(`Gerado em: ${generatedAt}`, marginX, y); y += 7;
-          }
-
+          y = 16;
           doc.setFont('helvetica', 'bold');
-          doc.setFontSize(13);
-          doc.text(`${section.tabName}`, marginX, y);
-          y += 7;
+          doc.setFontSize(12);
+          doc.text(pageIndex === 0 ? 'SILGON - Relatório Clínico' : 'SILGON - Relatório Clínico (continuação)', marginX, y);
+          y += 6;
 
           doc.setFont('helvetica', 'normal');
           doc.setFontSize(10);
-          const lines = section.lines || [];
-          let truncated = false;
+          if(pageIndex === 0){
+            doc.text(`Paciente: ${patientName}`, marginX, y); y += 5;
+            doc.text(`Prontuário: ${prontuario.label || 'Sem nome'}`, marginX, y); y += 5;
+            doc.text(`Gerado em: ${generatedAt}`, marginX, y); y += 7;
+          }else{
+            y += 2;
+          }
+        };
 
-          for(let i=0; i<lines.length; i++){
-            const wraps = doc.splitTextToSize(String(lines[i] || ''), maxWidth);
-            for(let j=0; j<wraps.length; j++){
-              if(y + lineHeight > maxY){ truncated = true; break; }
-              doc.text(wraps[j], marginX, y);
-              y += lineHeight;
+        startPage();
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(10);
+
+        paragraphs.forEach(paragraph=>{
+          const wraps = doc.splitTextToSize(paragraph, maxWidth);
+          wraps.forEach(line=>{
+            if(y + lineHeight > maxY){
+              renderPdfFooter(doc);
+              doc.addPage('a4', 'p');
+              pageIndex += 1;
+              startPage();
+              doc.setFont('helvetica', 'normal');
+              doc.setFontSize(10);
             }
-            if(truncated) break;
-            y += 1.2;
-          }
-
-          if(truncated){
-            doc.setFont('helvetica', 'italic');
-            doc.text('Resumo truncado para manter 1 página por aba.', marginX, maxY);
-            doc.setFont('helvetica', 'normal');
-          }
-
-          renderPdfFooter(doc);
+            doc.text(line, marginX, y);
+            y += lineHeight;
+          });
+          y += 1.8;
         });
+
+        renderPdfFooter(doc);
 
         const safePatient = patientName.replace(/[^a-zA-Z0-9\-_\s]/g, '').trim().replace(/\s+/g, '_') || 'paciente';
         const safeProntuario = String(prontuario.label || 'prontuario').replace(/[^a-zA-Z0-9\-_\s]/g, '').trim().replace(/\s+/g, '_') || 'prontuario';
         doc.save(`SILGON_${safePatient}_${safeProntuario}.pdf`);
 
-        if(msg){ msg.style.color='green'; msg.textContent='PDF gerado com sucesso.'; }
+        if(msg){ msg.style.color='green'; msg.textContent='PDF gerado com sucesso a partir da prévia editável.'; }
       }
 
       function updateProntuarioSwitchButton(pid){
@@ -2872,6 +2982,7 @@
             }
           });
         }
+        const btnPreview = document.getElementById('report-generate-preview'); if(btnPreview) btnPreview.onclick = generateReportPreviewText;
         const btnPdf = document.getElementById('report-generate-pdf'); if(btnPdf) btnPdf.onclick = generateProntuarioPdf;
       }
 
