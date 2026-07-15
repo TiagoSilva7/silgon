@@ -210,6 +210,26 @@
       /* Force small width for the gender input so the label remains visible */
       #p_gender{ flex:0 0 100px !important; width:100px !important; max-width:100px !important; box-sizing:border-box !important; }
 
+      /* Avaliacao tab - complete structured layout */
+      #av-sections-root{display:flex;flex-direction:column;gap:14px}
+      .av-page-note{font-size:13px;color:var(--muted);background:rgba(255,255,255,0.85);border:1px solid rgba(33,50,38,0.08);padding:8px 10px;border-radius:8px}
+      .av-box{border:1px solid rgba(33,50,38,0.10);background:rgba(255,255,255,0.92);border-radius:10px;padding:10px}
+      .av-box h4{margin:0 0 8px 0;color:var(--primary-800);font-size:15px}
+      .av-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px}
+      .av-grid-tight{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px}
+      .av-field label{margin:0 0 4px 0;font-size:13px;font-weight:700;color:#1d2a20}
+      .av-field input,.av-field select,.av-field textarea{width:100%;padding:7px 8px;border-radius:8px;border:1px solid rgba(33,50,38,0.12);background:#fff;font-size:13px}
+      .av-field textarea{min-height:56px;resize:vertical}
+      .av-test-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:10px}
+      .av-test-card{border:1px solid rgba(33,50,38,0.11);border-radius:10px;padding:9px;background:#fff}
+      .av-test-title{font-weight:700;color:#1b3126;font-size:14px;margin-bottom:6px}
+      .av-radio-group{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+      .av-radio-group label{display:inline-flex;align-items:center;gap:5px;margin:0;font-size:12px;font-weight:600;color:#1d2a20}
+      .av-hidden{display:none !important}
+      @media (max-width:760px){
+        .av-test-grid{grid-template-columns:1fr}
+      }
+
       /* Pain assessment alignment helpers */
       #panel-anamnese input[type="checkbox"]{margin:0;vertical-align:middle}
       #panel-anamnese .inline-check-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
@@ -803,82 +823,8 @@
                 <button id="avaliacao-save" type="button">Salvar Avaliação</button>
               </div>
               <div id="avaliacao-msg" style="margin-top:6px;font-size:13px;color:var(--muted)"></div>
-              <div>
-                <label>Exames clínicos e físicos</label>
-                <textarea id="av_exames_clinicos" rows="3" style="width:100%;padding:8px;border-radius:8px"></textarea>
-              </div>
-
-              <div style="display:flex;flex-direction:column;gap:6px">
-                <div style="display:flex;align-items:center;gap:12px">
-                  <label style="margin:0;white-space:nowrap">Testes Específicos</label>
-                  <select id="av_deambulando" style="padding:8px;border-radius:8px;min-width:220px">
-                    <option value="deambulando">Deambulando</option>
-                    <option value="deambulando_apoio">Deambulando com apoio/auxílio</option>
-                    <option value="cadeira">Cadeira de rodas</option>
-                    <option value="internado">Internado</option>
-                    <option value="orientado">Orientado</option>
-                    <option value="outros">Outros</option>
-                  </select>
-                </div>
-                <input id="av_deambulando_outros" placeholder="Especifique outros" style="display:none;margin-top:0;padding:8px;border-radius:8px;width:100%" />
-              </div>
-
-              <div style="display:flex;flex-direction:column;gap:6px">
-                <div style="display:flex;align-items:center;gap:12px">
-                  <label style="margin:0;">Exames complementares</label>
-                  <div style="display:flex;gap:12px;align-items:center">
-                    <label style="font-weight:600;margin:0;display:inline-flex;align-items:center;gap:6px"><input type="radio" name="av_exames_comp" value="sim" /> Sim</label>
-                    <label style="font-weight:600;margin:0;display:inline-flex;align-items:center;gap:6px"><input type="radio" name="av_exames_comp" value="nao" checked /> Não</label>
-                  </div>
-                </div>
-                <textarea id="av_exames_comp_which" rows="2" placeholder="Quais?" style="display:none;width:100%;padding:8px;border-radius:8px;margin-top:0"></textarea>
-              </div>
-
-              <div style="display:flex;flex-direction:column;gap:6px">
-                <div style="display:flex;align-items:center;gap:12px">
-                  <label style="margin:0;">Usa medicamentos?</label>
-                  <div style="display:flex;gap:12px;align-items:center">
-                    <label style="font-weight:600;margin:0;display:inline-flex;align-items:center;gap:6px"><input type="radio" name="av_medicamentos" value="sim" /> Sim</label>
-                    <label style="font-weight:600;margin:0;display:inline-flex;align-items:center;gap:6px"><input type="radio" name="av_medicamentos" value="nao" checked /> Não</label>
-                  </div>
-                </div>
-                <textarea id="av_medicamentos_which" rows="2" placeholder="Quais?" style="display:none;width:100%;padding:8px;border-radius:8px;margin-top:0"></textarea>
-              </div>
-
-              <div style="display:flex;flex-direction:column;gap:6px">
-                <div style="display:flex;align-items:center;gap:12px">
-                  <label style="margin:0;">Realizou cirurgia?</label>
-                  <div style="display:flex;gap:12px;align-items:center">
-                    <label style="font-weight:600;margin:0;display:inline-flex;align-items:center;gap:6px"><input type="radio" name="av_cirurgia" value="sim" /> Sim</label>
-                    <label style="font-weight:600;margin:0;display:inline-flex;align-items:center;gap:6px"><input type="radio" name="av_cirurgia" value="nao" checked /> Não</label>
-                  </div>
-                </div>
-                <textarea id="av_cirurgia_which" rows="2" placeholder="Quais?" style="display:none;width:100%;padding:8px;border-radius:8px;margin-top:0"></textarea>
-              </div>
-
-              <div style="display:flex;flex-direction:column;gap:6px">
-                <div style="display:flex;align-items:center;gap:12px">
-                  <label style="margin:0;white-space:nowrap">Inspeção/Palpação</label>
-                  <select id="av_inspec" style="padding:8px;border-radius:8px;min-width:220px">
-                    <option value="normal">Normal</option>
-                    <option value="edema">Edema</option>
-                    <option value="cicatrizacao_incompleta">Cicatrização incompleta</option>
-                    <option value="eritema">Eritema</option>
-                    <option value="outros">Outros</option>
-                  </select>
-                </div>
-                <input id="av_inspec_outros" placeholder="Especifique outros" style="display:none;margin-top:0;padding:8px;border-radius:8px;width:100%" />
-              </div>
-
-              <div>
-                <label>Observações</label>
-                <textarea id="av_testes" rows="2" style="width:100%;padding:8px;border-radius:8px"></textarea>
-              </div>
-
-              <div>
-                <label>Avaliação de intensidade e dor (EVA)</label>
-                <textarea id="av_eva" rows="2" style="width:100%;padding:8px;border-radius:8px"></textarea>
-              </div>
+              <div class="av-page-note">Avaliação completa por categorias. Campos condicionais aparecem automaticamente conforme as respostas.</div>
+              <div id="av-sections-root"></div>
 
             </div>
           </div>
@@ -992,6 +938,7 @@
         if(window._patientInit) return; window._patientInit = true;
         // default show Dados do Paciente
         showPatientTab('dados');
+        renderAvaliacaoUI();
         // wire form events (do NOT render full patient list here)
         initPatientFormEvents();
       }
@@ -1329,6 +1276,333 @@
         if(el) el.value = value == null ? '' : value;
       }
 
+      const AV_SCHEMA_VERSION = 2;
+      const AV_STANDARD_RESULTS = [
+        ['positivo','Positivo'],
+        ['negativo','Negativo'],
+        ['inconclusivo','Inconclusivo'],
+        ['nao_tolerado','Não tolerado']
+      ];
+      const AV_LATERALIDADE = [
+        ['direito','Direito'],
+        ['esquerdo','Esquerdo'],
+        ['bilateral','Bilateral'],
+        ['nao_se_aplica','Não se aplica']
+      ];
+      const AV_POSTURAL_OPTIONS = [
+        ['normal','Normal'],
+        ['anteriorizacao','Anteriorização'],
+        ['retificacao','Retificação'],
+        ['hipercifose','Hipercifose'],
+        ['hiperlordose','Hiperlordose'],
+        ['escoliose','Escoliose'],
+        ['inclinacao','Inclinação'],
+        ['rotacao','Rotação'],
+        ['valgo','Valgo'],
+        ['varo','Varo'],
+        ['pronacao','Pronação'],
+        ['supinacao','Supinação'],
+        ['outro','Outro']
+      ];
+      const AV_ORTHO_TESTS = {
+        coluna_cervical: ['Spurling','Distração cervical','Compressão cervical','Jackson','Sharp-Purser','Alar Ligament Test','Teste de flexão-rotação cervical','Adson','Roos','ULTT para membro superior','Outro teste cervical'],
+        ombro: ['Neer','Hawkins-Kennedy','Jobe','Patte','Gerber/Lift-off','Belly Press','Drop Arm','Speed','Yergason','O\'Brien','Apprehension','Relocation','Sulcus Sign','Cross Body Adduction','Painful Arc','Outro teste de ombro'],
+        cotovelo: ['Cozen','Mill','Maudsley','Teste de estresse em valgo','Teste de estresse em varo','Tinel no cotovelo','Outro teste de cotovelo'],
+        punho_mao: ['Phalen','Phalen reverso','Tinel no punho','Finkelstein','Teste de compressão carpal','Grind Test do polegar','Allen Test','Outro teste de punho/mão'],
+        coluna_lombar_sacroiliaca: ['Lasègue / Straight Leg Raise','Lasègue cruzado','Slump Test','Teste de estiramento do nervo femoral','Schober','Quadrante lombar','Prone Instability Test','FABER','Gaenslen','Thigh Thrust','Distração sacroilíaca','Compressão sacroilíaca','Sacral Thrust','Outro teste lombar/sacroilíaco'],
+        quadril: ['FABER','FADIR','Log Roll','Scour Test','Thomas','Ober','Trendelenburg','Ely','Teste de impacto femoroacetabular','Outro teste de quadril'],
+        joelho: ['Lachman','Gaveta anterior','Gaveta posterior','Pivot Shift','McMurray','Apley','Thessaly','Estresse em valgo','Estresse em varo','Patellar Grind','Apreensão patelar','Teste de Clarke','Teste de compressão patelar','Outro teste de joelho'],
+        tornozelo_pe: ['Gaveta anterior do tornozelo','Talar Tilt','Thompson','Kleiger','Compressão da sindesmose','Navicular Drop','Windlass','Teste de elevação do calcanhar','Outro teste de tornozelo/pé']
+      };
+
+      function avSlug(text){
+        return String(text||'')
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '_')
+          .replace(/^_+|_+$/g, '') || 'item';
+      }
+
+      function avOptionHtml(options, selected){
+        const arr = Array.isArray(options) ? options : [];
+        return arr.map(([v, lbl])=>`<option value="${escapeHtmlText(v)}"${String(v)===String(selected||'')?' selected':''}>${escapeHtmlText(lbl)}</option>`).join('');
+      }
+
+      function avField(label, controlHtml){
+        return `<div class="av-field"><label>${escapeHtmlText(label)}</label>${controlHtml}</div>`;
+      }
+
+      function avRadioGroup(key, options, defaultValue){
+        const opts = Array.isArray(options) ? options : [];
+        return `<div class="av-radio-group">${opts.map(([v,lbl])=>{
+          const checked = String(v) === String(defaultValue || '') ? ' checked' : '';
+          return `<label><input type="radio" data-av-key="${escapeHtmlText(key)}" data-av-default="${escapeHtmlText(defaultValue || '')}" name="av_${escapeHtmlText(avSlug(key))}" value="${escapeHtmlText(v)}"${checked} /> ${escapeHtmlText(lbl)}</label>`;
+        }).join('')}</div>`;
+      }
+
+      function avRenderStandardTestCard(sectionKey, testName, extrasHtml){
+        const slug = avSlug(testName);
+        const base = `${sectionKey}.${slug}`;
+        return `<div class="av-test-card">
+          <div class="av-test-title">${escapeHtmlText(testName)}</div>
+          <div class="av-grid-tight">
+            ${avField('Realizado', avRadioGroup(`${base}.realizado`, [['sim','Sim'],['nao','Não']], 'nao'))}
+            ${avField('Resultado', `<select data-av-key="${base}.resultado"><option value="">Selecione</option>${avOptionHtml(AV_STANDARD_RESULTS)}</select>`)}
+            ${avField('Lateralidade', `<select data-av-key="${base}.lateralidade"><option value="">Selecione</option>${avOptionHtml(AV_LATERALIDADE)}</select>`)}
+            ${avField('Dor', avRadioGroup(`${base}.dor`, [['sim','Sim'],['nao','Não']], 'nao'))}
+            <div class="av-field av-hidden" data-av-show-when-key="${base}.dor" data-av-show-when-value="sim"><label>Intensidade da dor (0-10)</label><input type="number" min="0" max="10" data-av-key="${base}.dor_intensidade" /></div>
+          </div>
+          ${extrasHtml || ''}
+          <div class="av-grid" style="margin-top:8px">
+            ${avField('Observação', `<textarea data-av-key="${base}.observacao"></textarea>`)}
+            ${avField('Interpretação clínica', `<textarea data-av-key="${base}.interpretacao"></textarea>`)}
+          </div>
+        </div>`;
+      }
+
+      function avSetByPath(obj, path, value){
+        if(!path) return;
+        const parts = String(path).split('.');
+        let ref = obj;
+        for(let i=0;i<parts.length-1;i++){
+          const p = parts[i];
+          if(!ref[p] || typeof ref[p] !== 'object') ref[p] = {};
+          ref = ref[p];
+        }
+        ref[parts[parts.length-1]] = value;
+      }
+
+      function avGetByPath(obj, path){
+        if(!obj || !path) return undefined;
+        return String(path).split('.').reduce((acc, part)=> (acc && Object.prototype.hasOwnProperty.call(acc, part)) ? acc[part] : undefined, obj);
+      }
+
+      function avGetControlValueForKey(key){
+        const all = Array.from(document.querySelectorAll(`#avaliacao-form [data-av-key="${key}"]`));
+        if(!all.length) return '';
+        const first = all[0];
+        if(first.type === 'radio'){
+          const checked = all.find(el=>el.checked);
+          return checked ? String(checked.value||'') : '';
+        }
+        if(first.type === 'checkbox') return !!first.checked;
+        return String(first.value || '');
+      }
+
+      function avRefreshConditionalVisibility(){
+        document.querySelectorAll('#avaliacao-form [data-av-show-when-key]').forEach(box=>{
+          const key = box.getAttribute('data-av-show-when-key') || '';
+          const val = box.getAttribute('data-av-show-when-value') || '';
+          const notVal = box.getAttribute('data-av-show-when-not-value');
+          const cur = avGetControlValueForKey(key);
+          if(notVal != null){
+            if(String(cur) !== String(notVal)) box.classList.remove('av-hidden');
+            else box.classList.add('av-hidden');
+            return;
+          }
+          if(String(cur) === String(val)) box.classList.remove('av-hidden');
+          else box.classList.add('av-hidden');
+        });
+      }
+
+      function avSerializePayload(){
+        const payload = { schema_version: AV_SCHEMA_VERSION };
+        const fields = Array.from(document.querySelectorAll('#avaliacao-form [data-av-key]'));
+        const seenRadio = new Set();
+        fields.forEach(el=>{
+          const key = el.getAttribute('data-av-key') || '';
+          if(!key) return;
+          if(el.type === 'radio'){
+            if(seenRadio.has(key)) return;
+            seenRadio.add(key);
+            avSetByPath(payload, key, avGetControlValueForKey(key));
+            return;
+          }
+          if(el.type === 'checkbox'){ avSetByPath(payload, key, !!el.checked); return; }
+          avSetByPath(payload, key, String(el.value || ''));
+        });
+        return payload;
+      }
+
+      function avApplyPayload(payload){
+        const obj = payload && typeof payload === 'object' ? payload : {};
+        const fields = Array.from(document.querySelectorAll('#avaliacao-form [data-av-key]'));
+        const seenRadio = new Set();
+        fields.forEach(el=>{
+          const key = el.getAttribute('data-av-key') || '';
+          if(!key) return;
+          const value = avGetByPath(obj, key);
+          if(el.type === 'radio'){
+            if(seenRadio.has(key)) return;
+            seenRadio.add(key);
+            const options = Array.from(document.querySelectorAll(`#avaliacao-form input[type="radio"][data-av-key="${key}"]`));
+            options.forEach(r=>{ r.checked = String(r.value||'') === String(value==null?'':value); });
+            return;
+          }
+          if(el.type === 'checkbox'){ el.checked = !!value; return; }
+          el.value = value == null ? '' : String(value);
+        });
+        avRefreshConditionalVisibility();
+      }
+
+      function avResetForm(){
+        document.querySelectorAll('#avaliacao-form [data-av-key]').forEach(el=>{
+          if(el.type === 'radio'){
+            const def = el.getAttribute('data-av-default') || '';
+            el.checked = String(el.value||'') === String(def);
+            return;
+          }
+          if(el.type === 'checkbox'){ el.checked = false; return; }
+          el.value = '';
+        });
+        avRefreshConditionalVisibility();
+      }
+
+      function renderAvaliacaoUI(){
+        if(window._avaliacaoRendered) return;
+        const root = document.getElementById('av-sections-root');
+        if(!root) return;
+
+        const inspecFlags = ['Assimetria','Edema','Hematoma','Cicatriz','Deformidade','Atrofia muscular','Hipertrofia muscular','Alteração de coloração','Alteração de temperatura','Uso de órtese','Uso de prótese','Uso de dispositivo auxiliar'];
+        const posturalSegments = ['Cabeça','Coluna cervical','Ombros','Escápulas','Coluna torácica','Coluna lombar','Pelve','Quadril','Joelhos','Tornozelos','Pés'];
+        const romJoints = ['Cervical','Ombro','Cotovelo','Punho','Mão','Torácica','Lombar','Quadril','Joelho','Tornozelo','Pé'];
+        const forceGroups = ['Cervical','Ombro','Cotovelo','Punho e mão','Tronco','Core','Quadril','Joelho','Tornozelo e pé'];
+        const neuroSymptoms = ['Dormência','Formigamento','Queimação','Choque','Perda de força','Parestesia','Hipoestesia','Hiperestesia','Alodinia','Sensação de peso','Sensação de pé caído','Alteração de marcha','Perda de equilíbrio','Quedas','Dor irradiada','Piora ao tossir','Piora ao espirrar','Piora ao esforço','Outro sintoma neurológico'];
+        const miotomes = ['C5 — abdução de ombro','C6 — flexão de cotovelo/extensão de punho','C7 — extensão de cotovelo/flexão de punho','C8 — flexão dos dedos','T1 — abdução/addução dos dedos','L2 — flexão de quadril','L3 — extensão de joelho','L4 — dorsiflexão de tornozelo','L5 — extensão do hálux','S1 — flexão plantar','S2 — flexão de joelho'];
+        const dermatomes = ['C4','C5','C6','C7','C8','T1','L1','L2','L3','L4','L5','S1','S2'];
+        const reflexes = ['Bicipital — C5/C6','Braquiorradial — C6','Tricipital — C7','Patelar — L3/L4','Aquileu — S1/S2'];
+        const neurodynamic = ['Lasègue','Lasègue cruzado','Slump Test','Teste do nervo femoral','ULTT1 — mediano','ULTT2 — radial','ULTT3 — ulnar','Teste neural tibial','Teste neural fibular','Teste neural sural','Outro teste neurodinâmico'];
+        const functionalTests = ['Sentar e levantar','Timed Up and Go','Teste de caminhada de 6 minutos','Teste de caminhada de 10 metros','Agachamento','Subida e descida de escadas','Equilíbrio unipodal','Alcance funcional','Teste de Romberg','Teste de Berg, se aplicável','Índice de Barthel, se aplicável','Escala de independência funcional, se aplicável','Outro teste funcional'];
+        const scales = ['EVA — Escala Visual Analógica','Escala Numérica de Dor','Oswestry','Roland-Morris','LEFS','DASH','SPADI','WOMAC','Berg','Barthel','TUG','Borg','Escala de Katz','Escala de Lawton','Outra escala'];
+
+        const inspecFlagCards = inspecFlags.map(label=>{
+          const slug = avSlug(label);
+          const key = `inspecao_geral.flags.${slug}.presenca`;
+          const obs = `inspecao_geral.flags.${slug}.observacao`;
+          return `<div class="av-test-card"><div class="av-test-title">${escapeHtmlText(label)}</div>${avField('Presença', avRadioGroup(key, [['sim','Sim'],['nao','Não']], 'nao'))}<div class="av-field av-hidden" data-av-show-when-key="${key}" data-av-show-when-value="sim"><label>Observação</label><textarea data-av-key="${obs}"></textarea></div></div>`;
+        }).join('');
+
+        const posturalCards = posturalSegments.map(label=>{
+          const slug = avSlug(label);
+          const kAlt = `postural.${slug}.alteracao`;
+          const kObs = `postural.${slug}.observacao`;
+          return `<div class="av-test-card"><div class="av-test-title">${escapeHtmlText(label)}</div>${avField('Alteração', `<select data-av-key="${kAlt}">${avOptionHtml(AV_POSTURAL_OPTIONS, 'normal')}</select>`)}<div class="av-field av-hidden" data-av-show-when-key="${kAlt}" data-av-show-when-not-value="normal"><label>Observação</label><textarea data-av-key="${kObs}"></textarea></div></div>`;
+        }).join('');
+
+        const romCards = romJoints.map(label=> avRenderStandardTestCard(`amplitude_movimento.${avSlug(label)}`, label, `<div class="av-grid-tight" style="margin-top:8px">${avField('Movimento avaliado', `<input type="text" data-av-key="amplitude_movimento.${avSlug(label)}.movimento_avaliado" />`)}${avField('Amplitude preservada', avRadioGroup(`amplitude_movimento.${avSlug(label)}.amplitude_preservada`, [['sim','Sim'],['nao','Não']], 'sim'))}${avField('Limitação', `<select data-av-key="amplitude_movimento.${avSlug(label)}.limitacao"><option value="">Selecione</option>${avOptionHtml([['leve','Leve'],['moderada','Moderada'],['importante','Importante']])}</select>`)}${avField('Grau (goniometria)', `<input type="text" data-av-key="amplitude_movimento.${avSlug(label)}.grau" />`)}</div>`)).join('');
+
+        const forceCards = forceGroups.map(label=> avRenderStandardTestCard(`forca_muscular.${avSlug(label)}`, label, `<div class="av-grid-tight" style="margin-top:8px">${avField('Escala de força (0-5) - Direito', `<select data-av-key="forca_muscular.${avSlug(label)}.escala_direito"><option value="">Selecione</option>${avOptionHtml([['0','0'],['1','1'],['2','2'],['3','3'],['4','4'],['5','5']])}</select>`)}${avField('Escala de força (0-5) - Esquerdo', `<select data-av-key="forca_muscular.${avSlug(label)}.escala_esquerdo"><option value="">Selecione</option>${avOptionHtml([['0','0'],['1','1'],['2','2'],['3','3'],['4','4'],['5','5']])}</select>`)}${avField('Compensação', avRadioGroup(`forca_muscular.${avSlug(label)}.compensacao`, [['sim','Sim'],['nao','Não']], 'nao'))}</div>`)).join('');
+
+        const orthoSectionsHtml = Object.entries(AV_ORTHO_TESTS).map(([region, tests])=>{
+          const title = region.replace(/_/g, ' ').replace(/\b\w/g, c=>c.toUpperCase());
+          const cards = tests.map(test=> avRenderStandardTestCard(`testes_ortopedicos.${region}`, test, '')).join('');
+          return `<div class="av-box"><h4>3.5 ${escapeHtmlText(title)}</h4><div class="av-test-grid">${cards}</div></div>`;
+        }).join('');
+
+        const neuroSymptomsHtml = neuroSymptoms.map(label=>{
+          const slug = avSlug(label);
+          const k = `neurologica.sintomas.${slug}.presenca`;
+          return `<div class="av-test-card"><div class="av-test-title">${escapeHtmlText(label)}</div>${avField('Presença', avRadioGroup(k, [['sim','Sim'],['nao','Não']], 'nao'))}<div class="av-field av-hidden" data-av-show-when-key="${k}" data-av-show-when-value="sim"><label>Observação</label><textarea data-av-key="neurologica.sintomas.${slug}.observacao"></textarea></div></div>`;
+        }).join('');
+
+        const miotomesHtml = miotomes.map(label=>{
+          const slug = avSlug(label);
+          return `<div class="av-test-card"><div class="av-test-title">${escapeHtmlText(label)}</div><div class="av-grid-tight">${avField('Direito (0-5)', `<select data-av-key="neurologica.miotomos.${slug}.direito"><option value="">Selecione</option>${avOptionHtml([['0','0'],['1','1'],['2','2'],['3','3'],['4','4'],['5','5']])}</select>`)}${avField('Esquerdo (0-5)', `<select data-av-key="neurologica.miotomos.${slug}.esquerdo"><option value="">Selecione</option>${avOptionHtml([['0','0'],['1','1'],['2','2'],['3','3'],['4','4'],['5','5']])}</select>`)}</div>${avField('Observação', `<textarea data-av-key="neurologica.miotomos.${slug}.observacao"></textarea>`)}</div>`;
+        }).join('');
+
+        const dermatomesHtml = dermatomes.map(label=>{
+          const slug = avSlug(label);
+          return `<div class="av-test-card"><div class="av-test-title">${escapeHtmlText(label)}</div><div class="av-grid-tight">${avField('Sensibilidade', `<select data-av-key="neurologica.dermatomos.${slug}.sensibilidade"><option value="">Selecione</option>${avOptionHtml([['normal','Normal'],['hipoestesia','Hipoestesia'],['hiperestesia','Hiperestesia'],['parestesia','Parestesia'],['anestesia','Anestesia'],['alodinia','Alodinia']])}</select>`)}${avField('Lateralidade', `<select data-av-key="neurologica.dermatomos.${slug}.lateralidade"><option value="">Selecione</option>${avOptionHtml(AV_LATERALIDADE)}</select>`)}</div>${avField('Observação', `<textarea data-av-key="neurologica.dermatomos.${slug}.observacao"></textarea>`)}</div>`;
+        }).join('');
+
+        const reflexesHtml = reflexes.map(label=>{
+          const slug = avSlug(label);
+          const refOpts = [['0','0 — ausente'],['1+','1+ — diminuído'],['2+','2+ — normal'],['3+','3+ — aumentado'],['4+','4+ — clônus/hiperreflexia']];
+          return `<div class="av-test-card"><div class="av-test-title">${escapeHtmlText(label)}</div><div class="av-grid-tight">${avField('Direito', `<select data-av-key="neurologica.reflexos.${slug}.direito"><option value="">Selecione</option>${avOptionHtml(refOpts)}</select>`)}${avField('Esquerdo', `<select data-av-key="neurologica.reflexos.${slug}.esquerdo"><option value="">Selecione</option>${avOptionHtml(refOpts)}</select>`)}</div>${avField('Observação', `<textarea data-av-key="neurologica.reflexos.${slug}.observacao"></textarea>`)}</div>`;
+        }).join('');
+
+        const neurodynamicHtml = neurodynamic.map(test=> avRenderStandardTestCard('neurologica.testes_neurodinamicos', test, '')).join('');
+        const functionalHtml = functionalTests.map(test=> avRenderStandardTestCard('funcional', test, '')).join('');
+        const cardioTestsHtml = ['Teste de caminhada de 6 minutos','Teste de sentar e levantar de 1 minuto','Pico de fluxo expiratório, se aplicável','Outro teste cardiorrespiratório'].map(test=> avRenderStandardTestCard('cardiorrespiratoria.testes', test, '')).join('');
+
+        const cardioSymptomNames = ['Dispneia','Dor torácica','Palpitações','Cianose','Edema','Tosse','Secreção'];
+        const cardioSymptomHtml = cardioSymptomNames.map(label=>{
+          const slug = avSlug(label);
+          const key = `cardiorrespiratoria.sinais.${slug}.presenca`;
+          return `<div class="av-test-card"><div class="av-test-title">${escapeHtmlText(label)}</div>${avField('Presença', avRadioGroup(key, [['sim','Sim'],['nao','Não']], 'nao'))}<div class="av-field av-hidden" data-av-show-when-key="${key}" data-av-show-when-value="sim"><label>Observação</label><textarea data-av-key="cardiorrespiratoria.sinais.${slug}.observacao"></textarea></div></div>`;
+        }).join('');
+
+        const scaleRows = scales.map(label=>{
+          const slug = avSlug(label);
+          const customName = slug === avSlug('Outra escala') ? avField('Nome da escala', `<input type="text" data-av-key="escalas.${slug}.nome" />`) : '';
+          return `<div class="av-test-card"><div class="av-test-title">${escapeHtmlText(label)}</div>${customName}<div class="av-grid-tight">${avField('Pontuação', `<input type="text" data-av-key="escalas.${slug}.pontuacao" />`)}${avField('Data', `<input type="date" data-av-key="escalas.${slug}.data" />`)}</div><div class="av-grid">${avField('Interpretação', `<textarea data-av-key="escalas.${slug}.interpretacao"></textarea>`)}${avField('Observação', `<textarea data-av-key="escalas.${slug}.observacao"></textarea>`)}</div></div>`;
+        }).join('');
+
+        root.innerHTML = `
+          <div class="av-box"><h4>3.1 Inspeção e avaliação geral</h4>
+            <div class="av-grid">
+              ${avField('Estado geral', `<input type="text" data-av-key="inspecao_geral.estado_geral" />`)}
+              ${avField('Nível de consciência', `<input type="text" data-av-key="inspecao_geral.nivel_consciencia" />`)}
+              ${avField('Cooperação', `<input type="text" data-av-key="inspecao_geral.cooperacao" />`)}
+              ${avField('Marcha', `<input type="text" data-av-key="inspecao_geral.marcha" />`)}
+              ${avField('Postura', `<input type="text" data-av-key="inspecao_geral.postura" />`)}
+              ${avField('Compensações observadas', `<textarea data-av-key="inspecao_geral.compensacoes_observadas"></textarea>`)}
+              ${avField('Observações gerais', `<textarea data-av-key="inspecao_geral.observacoes_gerais"></textarea>`)}
+            </div>
+            <div class="av-test-grid" style="margin-top:10px">${inspecFlagCards}</div>
+          </div>
+
+          <div class="av-box"><h4>3.2 Avaliação postural</h4><div class="av-test-grid">${posturalCards}</div></div>
+
+          <div class="av-box"><h4>3.3 Avaliação de amplitude de movimento</h4><div class="av-test-grid">${romCards}</div></div>
+
+          <div class="av-box"><h4>3.4 Avaliação de força muscular</h4><div class="av-test-grid">${forceCards}</div></div>
+
+          <div class="av-box"><h4>3.5 Testes ortopédicos</h4><div style="font-size:12px;color:var(--muted);margin-bottom:8px">Cada teste possui campos de realização, resultado, lateralidade, dor, intensidade, observação e interpretação.</div></div>
+          ${orthoSectionsHtml}
+
+          <div class="av-box"><h4>3.6 Avaliação neurológica</h4><div class="av-test-grid">${neuroSymptomsHtml}</div></div>
+          <div class="av-box"><h4>Miótomos</h4><div class="av-test-grid">${miotomesHtml}</div></div>
+          <div class="av-box"><h4>Dermátomos</h4><div class="av-test-grid">${dermatomesHtml}</div></div>
+          <div class="av-box"><h4>Reflexos</h4><div class="av-test-grid">${reflexesHtml}</div></div>
+          <div class="av-box"><h4>Testes neurodinâmicos</h4><div class="av-test-grid">${neurodynamicHtml}</div></div>
+
+          <div class="av-box"><h4>3.7 Avaliação funcional</h4><div class="av-test-grid">${functionalHtml}</div></div>
+
+          <div class="av-box"><h4>3.8 Avaliação cardiorrespiratória</h4>
+            <div class="av-grid">
+              ${avField('Frequência cardíaca', `<input type="text" data-av-key="cardiorrespiratoria.vitais.frequencia_cardiaca" />`)}
+              ${avField('Frequência respiratória', `<input type="text" data-av-key="cardiorrespiratoria.vitais.frequencia_respiratoria" />`)}
+              ${avField('Pressão arterial', `<input type="text" data-av-key="cardiorrespiratoria.vitais.pressao_arterial" />`)}
+              ${avField('Saturação de oxigênio', `<input type="text" data-av-key="cardiorrespiratoria.vitais.saturacao_oxigenio" />`)}
+              ${avField('Temperatura', `<input type="text" data-av-key="cardiorrespiratoria.vitais.temperatura" />`)}
+              ${avField('Escala de Borg', `<input type="text" data-av-key="cardiorrespiratoria.vitais.borg" />`)}
+              ${avField('Ausculta pulmonar', `<textarea data-av-key="cardiorrespiratoria.vitais.ausculta_pulmonar"></textarea>`)}
+              ${avField('Padrão respiratório', `<textarea data-av-key="cardiorrespiratoria.vitais.padrao_respiratorio"></textarea>`)}
+              ${avField('Expansibilidade torácica', `<textarea data-av-key="cardiorrespiratoria.vitais.expansibilidade_toracica"></textarea>`)}
+              ${avField('Uso de musculatura acessória', `<textarea data-av-key="cardiorrespiratoria.vitais.uso_musculatura_acessoria"></textarea>`)}
+            </div>
+            <div class="av-test-grid" style="margin-top:10px">${cardioSymptomHtml}</div>
+            <div class="av-test-grid" style="margin-top:10px">${cardioTestsHtml}</div>
+          </div>
+
+          <div class="av-box"><h4>3.9 Escalas e questionários</h4><div class="av-test-grid">${scaleRows}</div></div>
+        `;
+
+        const form = document.getElementById('avaliacao-form');
+        if(form){
+          form.addEventListener('change', (ev)=>{
+            const t = ev.target;
+            if(!t || !t.matches || !t.matches('[data-av-key]')) return;
+            avRefreshConditionalVisibility();
+          });
+        }
+
+        window._avaliacaoRendered = true;
+        avResetForm();
+      }
+
       function calculateAgeFromBirthDate(value){
         if(!value) return '';
         const birth = new Date(value + 'T00:00:00');
@@ -1403,24 +1677,27 @@
           `Tratamentos realizados: ${getInputValue('a_tratamentos') || 'Não informado'}`
         ];
 
-        const avExamesComp = getCheckedRadioValue('av_exames_comp');
-        const avMedicamentos = getCheckedRadioValue('av_medicamentos');
-        const avCirurgia = getCheckedRadioValue('av_cirurgia');
-        const avaliacao = [
-          `Exames clínicos e físicos: ${getInputValue('av_exames_clinicos') || 'Não informado'}`,
-          `Testes Específicos: ${getInputValue('av_deambulando') || 'Não informado'}`,
-          `Outros (testes específicos): ${getInputValue('av_deambulando_outros') || 'Não informado'}`,
-          `Exames complementares: ${avExamesComp ? (avExamesComp==='sim' ? 'Sim' : 'Não') : 'Não informado'}`,
-          `Quais exames complementares: ${getInputValue('av_exames_comp_which') || 'Não informado'}`,
-          `Uso de medicamentos: ${avMedicamentos ? (avMedicamentos==='sim' ? 'Sim' : 'Não') : 'Não informado'}`,
-          `Quais medicamentos: ${getInputValue('av_medicamentos_which') || 'Não informado'}`,
-          `Cirurgia: ${avCirurgia ? (avCirurgia==='sim' ? 'Sim' : 'Não') : 'Não informado'}`,
-          `Qual cirurgia: ${getInputValue('av_cirurgia_which') || 'Não informado'}`,
-          `Inspeção: ${getInputValue('av_inspec') || 'Não informado'}`,
-          `Outros (inspeção): ${getInputValue('av_inspec_outros') || 'Não informado'}`,
-          `Observações: ${getInputValue('av_testes') || 'Não informado'}`,
-          `Avaliação de dor (EVA): ${getInputValue('av_eva') || 'Não informado'}`
-        ];
+        let avaliacao = ['Avaliação não preenchida.'];
+        try{
+          const avalKey = 'avaliacao_' + String((prontuario && prontuario.id) ? prontuario.id : '');
+          const avalRaw = localStorage.getItem(avalKey);
+          const avalObj = avalRaw ? JSON.parse(avalRaw) : null;
+          if(avalObj && avalObj.schema_version === AV_SCHEMA_VERSION){
+            const postural = avalObj.postural || {};
+            const posturalAlterados = Object.values(postural).filter(v=> v && v.alteracao && v.alteracao !== 'normal').length;
+            const sintomasNeu = avalObj.neurologica && avalObj.neurologica.sintomas ? Object.values(avalObj.neurologica.sintomas).filter(v=> v && v.presenca === 'sim').length : 0;
+            const cardiorrespSinais = avalObj.cardiorrespiratoria && avalObj.cardiorrespiratoria.sinais ? Object.values(avalObj.cardiorrespiratoria.sinais).filter(v=> v && v.presenca === 'sim').length : 0;
+            const eva = avGetByPath(avalObj, 'escalas.eva_escala_visual_analogica.pontuacao') || 'Não informado';
+            avaliacao = [
+              `Modelo de avaliação: Completo (v2)`,
+              `Estado geral: ${avGetByPath(avalObj, 'inspecao_geral.estado_geral') || 'Não informado'}`,
+              `Alterações posturais registradas: ${posturalAlterados}`,
+              `Sintomas neurológicos presentes: ${sintomasNeu}`,
+              `Sinais cardiorrespiratórios presentes: ${cardiorrespSinais}`,
+              `EVA (escala visual analógica): ${eva}`
+            ];
+          }
+        }catch(e){}
 
         let evolText = 'Sem evoluções registradas.';
         try{
@@ -2724,6 +3001,7 @@
 
       /* Avaliação: save/load per-patient in localStorage */
       async function saveAvaliacao(){
+        renderAvaliacaoUI();
         const pid = getCurrentPatientId(); const prontuarioId = getActiveProntuarioId(pid); const msg = document.getElementById('avaliacao-msg'); if(msg) msg.style.color='var(--muted)';
         if(!pid){ if(msg){ msg.style.color='red'; msg.textContent='Selecione o paciente antes.';} return }
         if(!prontuarioId){
@@ -2731,23 +3009,8 @@
           if(msg){ msg.style.color='red'; msg.textContent='Selecione ou crie o prontuário para salvar.'; }
           return;
         }
-        const payload = {
-          exames_clinicos: (document.getElementById('av_exames_clinicos').value||'').trim(),
-          deambulando: (document.getElementById('av_deambulando').value||''),
-          deambulando_outros: (document.getElementById('av_deambulando_outros').value||'').trim(),
-          exames_comp: (document.querySelector('input[name="av_exames_comp"]:checked')||{value:'nao'}).value,
-          exames_comp_which: (document.getElementById('av_exames_comp_which').value||'').trim(),
-          medicamentos: (document.querySelector('input[name="av_medicamentos"]:checked')||{value:'nao'}).value,
-          medicamentos_which: (document.getElementById('av_medicamentos_which').value||'').trim(),
-          cirurgia: (document.querySelector('input[name="av_cirurgia"]:checked')||{value:'nao'}).value,
-          cirurgia_which: (document.getElementById('av_cirurgia_which').value||'').trim(),
-          inspec: (document.getElementById('av_inspec').value||''),
-          inspec_outros: (document.getElementById('av_inspec_outros').value||'').trim(),
-          testes: (document.getElementById('av_testes').value||'').trim(),
-          eva: (document.getElementById('av_eva').value||'').trim()
-        };
+        const payload = avSerializePayload();
         try{
-          console.debug('[DEBUG] saveAvaliacao pid=', pid, 'payload=', payload);
           localStorage.setItem('avaliacao_'+prontuarioId, JSON.stringify(payload));
           const result = await saveProntuarioRecord(pid, { id: prontuarioId, avaliacao: payload });
           touchProntuarioModified(pid, prontuarioId);
@@ -2755,22 +3018,38 @@
         }catch(e){ console.error('saveAvaliacao error', e); if(msg){ msg.style.color='red'; msg.textContent='Erro ao salvar.'; } }
       }
 
-      function clearAvaliacao(){ ['av_exames_clinicos','av_deambulando','av_deambulando_outros','av_exames_comp_which','av_medicamentos_which','av_cirurgia_which','av_inspec','av_inspec_outros','av_testes','av_eva'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; if(el && el.tagName==='TEXTAREA') el.value=''; });
-        // reset radios
-        document.querySelectorAll('input[name="av_exames_comp"]').forEach(r=>r.checked = (r.value==='nao'));
-        document.querySelectorAll('input[name="av_medicamentos"]').forEach(r=>r.checked = (r.value==='nao'));
-        document.querySelectorAll('input[name="av_cirurgia"]').forEach(r=>r.checked = (r.value==='nao'));
-        // hide detail fields
-        const msg = document.getElementById('avaliacao-msg'); if(msg) msg.textContent=''; document.getElementById('av_deambulando_outros').style.display='none'; document.getElementById('av_inspec_outros').style.display='none'; document.getElementById('av_exames_comp_which').style.display='none'; document.getElementById('av_medicamentos_which').style.display='none'; document.getElementById('av_cirurgia_which').style.display='none'; }
+      function clearAvaliacao(){
+        renderAvaliacaoUI();
+        avResetForm();
+        const msg = document.getElementById('avaliacao-msg');
+        if(msg) msg.textContent='';
+      }
 
-      function loadAvaliacaoForPatient(pid){ if(!pid) return; try{ const prontuarioId = getActiveProntuarioId(pid); if(!prontuarioId){ clearAvaliacao(); return; } const record = getActiveProntuarioObject(pid); if(record && record.avaliacao){ try{ localStorage.setItem('avaliacao_'+prontuarioId, JSON.stringify(record.avaliacao || {})); }catch(e){} } const raw = localStorage.getItem('avaliacao_'+prontuarioId); if(!raw){ clearAvaliacao(); return; } const obj = JSON.parse(raw); if(!obj){ clearAvaliacao(); return; } document.getElementById('av_exames_clinicos').value = obj.exames_clinicos||''; document.getElementById('av_deambulando').value = obj.deambulando||'deambulando'; if(obj.deambulando==='outros'){ document.getElementById('av_deambulando_outros').style.display='block'; document.getElementById('av_deambulando_outros').value = obj.deambulando_outros||''; } else { document.getElementById('av_deambulando_outros').style.display='none'; }
-        // radios and details
-        const ev = obj.exames_comp||'nao'; document.querySelectorAll('input[name="av_exames_comp"]').forEach(r=>{ r.checked = (r.value===ev); }); if(ev==='sim'){ document.getElementById('av_exames_comp_which').style.display='block'; document.getElementById('av_exames_comp_which').value = obj.exames_comp_which||''; } else { document.getElementById('av_exames_comp_which').style.display='none'; }
-        const mv = obj.medicamentos||'nao'; document.querySelectorAll('input[name="av_medicamentos"]').forEach(r=>{ r.checked = (r.value===mv); }); if(mv==='sim'){ document.getElementById('av_medicamentos_which').style.display='block'; document.getElementById('av_medicamentos_which').value = obj.medicamentos_which||''; } else { document.getElementById('av_medicamentos_which').style.display='none'; }
-        const cv = obj.cirurgia||'nao'; document.querySelectorAll('input[name="av_cirurgia"]').forEach(r=>{ r.checked = (r.value===cv); }); if(cv==='sim'){ document.getElementById('av_cirurgia_which').style.display='block'; document.getElementById('av_cirurgia_which').value = obj.cirurgia_which||''; } else { document.getElementById('av_cirurgia_which').style.display='none'; }
-        document.getElementById('av_inspec').value = obj.inspec||'normal'; if(obj.inspec==='outros'){ document.getElementById('av_inspec_outros').style.display='block'; document.getElementById('av_inspec_outros').value = obj.inspec_outros||''; } else { document.getElementById('av_inspec_outros').style.display='none'; }
-        document.getElementById('av_testes').value = obj.testes||''; document.getElementById('av_eva').value = obj.eva||'';
-      }catch(e){ console.debug('[DEBUG] loadAvaliacaoForPatient failed for pid=', pid, 'error=', e); }
+      function loadAvaliacaoForPatient(pid){
+        renderAvaliacaoUI();
+        if(!pid){ clearAvaliacao(); return; }
+        try{
+          const prontuarioId = getActiveProntuarioId(pid);
+          if(!prontuarioId){ clearAvaliacao(); return; }
+          const record = getActiveProntuarioObject(pid);
+          if(record && record.avaliacao){ try{ localStorage.setItem('avaliacao_'+prontuarioId, JSON.stringify(record.avaliacao || {})); }catch(e){} }
+          const raw = localStorage.getItem('avaliacao_'+prontuarioId);
+          if(!raw){ clearAvaliacao(); return; }
+          const obj = JSON.parse(raw || '{}') || {};
+          if(obj.schema_version === AV_SCHEMA_VERSION){
+            avApplyPayload(obj);
+            return;
+          }
+          // compatibilidade com formato antigo
+          avResetForm();
+          if(obj.exames_clinicos) avSetByPath(obj, 'inspecao_geral.observacoes_gerais', obj.exames_clinicos);
+          if(obj.testes) avSetByPath(obj, 'funcional.outro_teste_funcional.observacao', obj.testes);
+          if(obj.eva) avSetByPath(obj, 'escalas.eva_escala_visual_analogica.pontuacao', obj.eva);
+          avApplyPayload(obj);
+        }catch(e){
+          console.debug('[DEBUG] loadAvaliacaoForPatient failed for pid=', pid, 'error=', e);
+          clearAvaliacao();
+        }
       }
 
       // Plano: load/save/clear evolutions and plano fields per patient
