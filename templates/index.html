@@ -838,26 +838,20 @@
               </div>
               <div id="plano-msg" style="margin-top:6px;font-size:13px;color:var(--muted)"></div>
               <div>
-                <label>Objetivo de tratamento</label>
+                <label>Parecer fisioterapêutico</label>
+                <textarea id="pl_parecer" rows="4" style="width:100%;padding:8px;border-radius:8px"></textarea>
+              </div>
+              <div>
+                <label>Objetivo terapêutico</label>
                 <textarea id="pl_objetivo" rows="3" style="width:100%;padding:8px;border-radius:8px"></textarea>
               </div>
               <div>
-                <label>Recursos terapêuticos</label>
-                <textarea id="pl_recursos" rows="3" style="width:100%;padding:8px;border-radius:8px"></textarea>
-              </div>
-              <div>
-                <label>Plano de tratamento</label>
+                <label>Plano terapêutico</label>
                 <textarea id="pl_plano" rows="4" style="width:100%;padding:8px;border-radius:8px"></textarea>
               </div>
-              <div style="display:flex;flex-direction:column;gap:6px">
-                <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-                  <label style="margin:0;">Prestação de Serviço</label>
-                  <div style="display:flex;gap:12px;align-items:center">
-                    <label style="font-weight:600;margin:0;display:inline-flex;align-items:center;gap:6px"><input type="radio" name="pl_prestacao_servico" value="nao" checked /> Não</label>
-                    <label style="font-weight:600;margin:0;display:inline-flex;align-items:center;gap:6px"><input type="radio" name="pl_prestacao_servico" value="sim" /> Sim</label>
-                  </div>
-                  <input id="pl_prestacao_servico_texto" placeholder="Informe a prestação de serviço" style="display:none;flex:1;min-width:240px;padding:8px;border-radius:8px" />
-                </div>
+              <div>
+                <label>Proposta de plano clínico</label>
+                <textarea id="pl_proposta" rows="4" style="width:100%;padding:8px;border-radius:8px"></textarea>
               </div>
               <div>
                 <label>Evolução</label>
@@ -1711,10 +1705,10 @@
         }catch(e){}
 
         const plano = [
-          `Objetivo: ${getInputValue('pl_objetivo') || 'Não informado'}`,
-          `Recursos terapêuticos: ${getInputValue('pl_recursos') || 'Não informado'}`,
-          `Plano de tratamento: ${getInputValue('pl_plano') || 'Não informado'}`,
-          `Prestação de Serviço: ${getPrestacaoServicoPdfText()}`,
+          `Parecer fisioterapêutico: ${getInputValue('pl_parecer') || 'Não informado'}`,
+          `Objetivo terapêutico: ${getInputValue('pl_objetivo') || 'Não informado'}`,
+          `Plano terapêutico: ${getInputValue('pl_plano') || 'Não informado'}`,
+          `Proposta de plano clínico: ${getInputValue('pl_proposta') || 'Não informado'}`,
           `Evoluções: ${evolText}`
         ];
 
@@ -3065,21 +3059,42 @@
 
       function escapeHtml(s){ if(!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;'); }
 
-      function loadPlanoForPatient(pid){ if(!pid) { document.getElementById('pl_objetivo').value=''; document.getElementById('pl_recursos').value=''; document.getElementById('pl_plano').value=''; document.querySelectorAll('input[name="pl_prestacao_servico"]').forEach(r=>{ r.checked = (r.value==='nao'); }); document.getElementById('pl_prestacao_servico_texto').value=''; updatePrestacaoServicoUI(); renderEvolutions([]); return; }
+      function getEmptyPlanoObject(){
+        return {
+          parecer: '',
+          objetivo: '',
+          plano: '',
+          proposta: '',
+          evolutions: []
+        };
+      }
+
+      function resetPlanoFields(){
+        setInputValue('pl_parecer', '');
+        setInputValue('pl_objetivo', '');
+        setInputValue('pl_plano', '');
+        setInputValue('pl_proposta', '');
+        renderEvolutions([]);
+      }
+
+      function loadPlanoForPatient(pid){ if(!pid) { resetPlanoFields(); return; }
         try{
           const prontuarioId = getActiveProntuarioId(pid);
-          if(!prontuarioId){ document.getElementById('pl_objetivo').value=''; document.getElementById('pl_recursos').value=''; document.getElementById('pl_plano').value=''; document.querySelectorAll('input[name="pl_prestacao_servico"]').forEach(r=>{ r.checked = (r.value==='nao'); }); document.getElementById('pl_prestacao_servico_texto').value=''; updatePrestacaoServicoUI(); renderEvolutions([]); return; }
+          if(!prontuarioId){ resetPlanoFields(); return; }
           const record = getActiveProntuarioObject(pid);
           if(record && record.plano){ try{ localStorage.setItem('plano_'+prontuarioId, JSON.stringify(record.plano || {})); }catch(e){} }
           const raw = localStorage.getItem('plano_'+prontuarioId);
-          if(!raw){ document.getElementById('pl_objetivo').value=''; document.getElementById('pl_recursos').value=''; document.getElementById('pl_plano').value=''; document.querySelectorAll('input[name="pl_prestacao_servico"]').forEach(r=>{ r.checked = (r.value==='nao'); }); document.getElementById('pl_prestacao_servico_texto').value=''; updatePrestacaoServicoUI(); renderEvolutions([]); return; }
+          if(!raw){ resetPlanoFields(); return; }
           const obj = JSON.parse(raw);
-          document.getElementById('pl_objetivo').value = obj.objetivo||'';
-          document.getElementById('pl_recursos').value = obj.recursos||'';
-          document.getElementById('pl_plano').value = obj.plano||'';
-          document.querySelectorAll('input[name="pl_prestacao_servico"]').forEach(r=>{ r.checked = (r.value === (obj.prestacao_servico_tipo||'nao')); });
-          document.getElementById('pl_prestacao_servico_texto').value = obj.prestacao_servico_texto||'';
-          updatePrestacaoServicoUI();
+          // Compatibilidade com estrutura anterior
+          const parecer = String(obj.parecer || obj.recursos || '').trim();
+          const objetivo = String(obj.objetivo || '').trim();
+          const plano = String(obj.plano || '').trim();
+          const proposta = String(obj.proposta || obj.prestacao_servico_texto || '').trim();
+          setInputValue('pl_parecer', parecer);
+          setInputValue('pl_objetivo', objetivo);
+          setInputValue('pl_plano', plano);
+          setInputValue('pl_proposta', proposta);
           renderEvolutions(obj.evolutions||[]);
         }catch(e){ console.warn('loadPlanoForPatient failed', e); }
       }
@@ -3093,14 +3108,13 @@
           return;
         }
         try{
+          const parecer = (document.getElementById('pl_parecer').value||'').trim();
           const objetivo = (document.getElementById('pl_objetivo').value||'').trim();
-          const recursos = (document.getElementById('pl_recursos').value||'').trim();
           const plano = (document.getElementById('pl_plano').value||'').trim();
-          const prestacaoServicoTipo = (document.querySelector('input[name="pl_prestacao_servico"]:checked')||{value:'nao'}).value;
-          const prestacaoServicoTexto = (document.getElementById('pl_prestacao_servico_texto').value||'').trim();
+          const proposta = (document.getElementById('pl_proposta').value||'').trim();
           const existing = JSON.parse(localStorage.getItem('plano_'+prontuarioId) || '{}');
           const evol = existing.evolutions || [];
-          const obj = { objetivo, recursos, plano, prestacao_servico_tipo: prestacaoServicoTipo, prestacao_servico_texto: prestacaoServicoTipo === 'sim' ? prestacaoServicoTexto : '', evolutions: evol };
+          const obj = { parecer, objetivo, plano, proposta, evolutions: evol };
           localStorage.setItem('plano_'+prontuarioId, JSON.stringify(obj));
           const result = await saveProntuarioRecord(pid, { id: prontuarioId, plano: obj });
           touchProntuarioModified(pid, prontuarioId);
@@ -3108,9 +3122,9 @@
         }catch(e){ console.error('savePlano failed', e); if(msg){ msg.style.color='red'; msg.textContent='Erro ao salvar.'; } }
       }
 
-      async function clearPlano(){ const pid = getCurrentPatientId(); const prontuarioId = getActiveProntuarioId(pid); const msg = document.getElementById('plano-msg'); if(msg) msg.style.color='var(--muted)'; if(!pid || !prontuarioId){ if(msg){ msg.style.color='red'; msg.textContent='Selecione paciente e prontuário.'; } return } const emptyPlano = { objetivo:'', recursos:'', plano:'', prestacao_servico_tipo:'nao', prestacao_servico_texto:'', evolutions:[] }; document.getElementById('pl_objetivo').value=''; document.getElementById('pl_recursos').value=''; document.getElementById('pl_plano').value=''; document.querySelectorAll('input[name="pl_prestacao_servico"]').forEach(r=>{ r.checked = (r.value==='nao'); }); document.getElementById('pl_prestacao_servico_texto').value=''; updatePrestacaoServicoUI(); localStorage.setItem('plano_'+prontuarioId, JSON.stringify(emptyPlano)); renderEvolutions([]); const result = await saveProntuarioRecord(pid, { id: prontuarioId, plano: emptyPlano }); if(msg){ msg.style.color = result && result.record ? 'green' : 'orange'; msg.textContent = result && result.record ? 'Plano limpo.' : 'Plano limpo no navegador, mas não sincronizou com o servidor.'; setTimeout(()=>msg.textContent='',1400); } }
+      async function clearPlano(){ const pid = getCurrentPatientId(); const prontuarioId = getActiveProntuarioId(pid); const msg = document.getElementById('plano-msg'); if(msg) msg.style.color='var(--muted)'; if(!pid || !prontuarioId){ if(msg){ msg.style.color='red'; msg.textContent='Selecione paciente e prontuário.'; } return } const emptyPlano = getEmptyPlanoObject(); resetPlanoFields(); localStorage.setItem('plano_'+prontuarioId, JSON.stringify(emptyPlano)); const result = await saveProntuarioRecord(pid, { id: prontuarioId, plano: emptyPlano }); if(msg){ msg.style.color = result && result.record ? 'green' : 'orange'; msg.textContent = result && result.record ? 'Plano limpo.' : 'Plano limpo no navegador, mas não sincronizou com o servidor.'; setTimeout(()=>msg.textContent='',1400); } }
 
-      async function addEvolution(){ const pid = getCurrentPatientId(); const prontuarioId = getActiveProntuarioId(pid); const msg = document.getElementById('plano-msg'); if(msg) msg.style.color='var(--muted)'; if(!pid){ if(msg){ msg.style.color='red'; msg.textContent='Selecione o paciente antes.'; } return } if(!prontuarioId){ askProntuarioForPatient(pid, (document.getElementById('p_name') && document.getElementById('p_name').value) ? document.getElementById('p_name').value : 'paciente'); if(msg){ msg.style.color='red'; msg.textContent='Selecione ou crie o prontuário para salvar.'; } return } const text = (document.getElementById('pl_new_evo').value||'').trim(); if(!text){ if(msg){ msg.style.color='red'; msg.textContent='Digite a evolução antes de adicionar.'; } return } try{ const key = 'plano_'+prontuarioId; const raw = localStorage.getItem(key); const obj = raw ? JSON.parse(raw) : { objetivo:'', recursos:'', plano:'', prestacao_servico_tipo:'nao', prestacao_servico_texto:'', evolutions:[] }; const ts = new Date().toLocaleString(); obj.evolutions = obj.evolutions || []; obj.evolutions.push({ ts: ts, text: text }); localStorage.setItem(key, JSON.stringify(obj)); const result = await saveProntuarioRecord(pid, { id: prontuarioId, plano: obj }); touchProntuarioModified(pid, prontuarioId); document.getElementById('pl_new_evo').value=''; renderEvolutions(obj.evolutions); if(msg){ msg.style.color = result && result.record ? 'green' : 'orange'; msg.textContent = result && result.record ? 'Evolução adicionada.' : 'Evolução salva no navegador, mas não sincronizou com o servidor.'; setTimeout(()=>msg.textContent='',1400); } }catch(e){ console.error('addEvolution failed', e); if(msg){ msg.style.color='red'; msg.textContent='Erro ao adicionar evolução.'; } }
+      async function addEvolution(){ const pid = getCurrentPatientId(); const prontuarioId = getActiveProntuarioId(pid); const msg = document.getElementById('plano-msg'); if(msg) msg.style.color='var(--muted)'; if(!pid){ if(msg){ msg.style.color='red'; msg.textContent='Selecione o paciente antes.'; } return } if(!prontuarioId){ askProntuarioForPatient(pid, (document.getElementById('p_name') && document.getElementById('p_name').value) ? document.getElementById('p_name').value : 'paciente'); if(msg){ msg.style.color='red'; msg.textContent='Selecione ou crie o prontuário para salvar.'; } return } const text = (document.getElementById('pl_new_evo').value||'').trim(); if(!text){ if(msg){ msg.style.color='red'; msg.textContent='Digite a evolução antes de adicionar.'; } return } try{ const key = 'plano_'+prontuarioId; const raw = localStorage.getItem(key); const obj = raw ? JSON.parse(raw) : getEmptyPlanoObject(); const ts = new Date().toLocaleString(); obj.evolutions = obj.evolutions || []; obj.evolutions.push({ ts: ts, text: text }); localStorage.setItem(key, JSON.stringify(obj)); const result = await saveProntuarioRecord(pid, { id: prontuarioId, plano: obj }); touchProntuarioModified(pid, prontuarioId); document.getElementById('pl_new_evo').value=''; renderEvolutions(obj.evolutions); if(msg){ msg.style.color = result && result.record ? 'green' : 'orange'; msg.textContent = result && result.record ? 'Evolução adicionada.' : 'Evolução salva no navegador, mas não sincronizou com o servidor.'; setTimeout(()=>msg.textContent='',1400); } }catch(e){ console.error('addEvolution failed', e); if(msg){ msg.style.color='red'; msg.textContent='Erro ao adicionar evolução.'; } }
       }
 
       async function loadAppointments(){
