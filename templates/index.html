@@ -2079,6 +2079,19 @@
         setAnexosMessage('');
       }
 
+      function prepareNewPatientDraft(prefillCpfDigits){
+        clearPatientForm();
+        const cpfDigits = String(prefillCpfDigits || '').replace(/\D/g,'').slice(0,11);
+        if(cpfDigits){
+          setInputValue('p_cpf', formatCPF(cpfDigits));
+          const cpfInput = document.getElementById('p_cpf');
+          if(cpfInput) cpfInput.dispatchEvent(new Event('input'));
+        }
+        setInputValue('p_id', '');
+        ACTIVE_PRONTUARIO_ID = '';
+        updateSaveButtonState();
+      }
+
       function populatePatientForm(id){
         const list = window._patientsCache || [];
         const p = list.find(x=>String(x.id)===String(id)); if(!p) return;
@@ -2240,9 +2253,25 @@
         if(!cpf){ document.getElementById('cpf-msg').textContent='CPF obrigatório.'; document.getElementById('cpf-msg').style.display='block'; return }
         if(!validateCPF(cpf)){ document.getElementById('cpf-msg').textContent='CPF inválido.'; document.getElementById('cpf-msg').style.display='block'; return }
         document.getElementById('cpf-msg').style.display='none';
+        const cpfDigits = String(cpf || '').replace(/\D/g,'');
+        let effectiveId = String(id || '');
+        if(effectiveId){
+          const list = Array.isArray(window._patientsCache) ? window._patientsCache : [];
+          const loaded = list.find(x=> String(x.id) === String(effectiveId));
+          const loadedCpfDigits = String((loaded && loaded.cpf) ? loaded.cpf : '').replace(/\D/g,'');
+          if(loadedCpfDigits && cpfDigits && loadedCpfDigits !== cpfDigits){
+            effectiveId = '';
+            setInputValue('p_id', '');
+            ACTIVE_PRONTUARIO_ID = '';
+            if(msgEl){
+              msgEl.style.color = 'orange';
+              msgEl.textContent = 'CPF alterado detectado: salvando como novo paciente para evitar sobrescrever o cadastro anterior.';
+            }
+          }
+        }
         // only include `id` in payload when updating an existing patient
         const payload = { cpf, name, birth_date, age, sex, gender, marital_status, profession, phone, whatsapp, email, address, city, state, cep, emergency_contact, emergency_phone, emergency_relationship, insurance, insurance_number, private_patient, legal_guardian, legal_guardian_cpf, legal_guardian_phone, doctor_name, doctor_crm, medical_diagnosis, cid, evaluation_date, care_modality, care_location, physiotherapist_name, physiotherapist_crefito, registration_notes };
-        if(id){ payload.id = id; }
+        if(effectiveId){ payload.id = effectiveId; }
         const result = await savePatientToServer(payload);
         if(!result){ msgEl.style.color='red'; msgEl.textContent='Erro ao salvar.'; return }
         if(result.status === 'exists' && result.patient){
@@ -2265,7 +2294,7 @@
           btnKeep.onclick = ()=>{ msgEl.textContent = ''; };
           return;
         }
-        const savedPid = String((result && result.id) ? result.id : (id || ''));
+        const savedPid = String((result && result.id) ? result.id : (effectiveId || ''));
         if(savedPid) document.getElementById('p_id').value = savedPid;
 
         const prontuarios = await fetchProntuariosForPatient(savedPid);
@@ -2400,17 +2429,8 @@
                 populatePatientFormFromObject(found, { promptProntuario: true, onlyIfHasProntuario: true });
                 showPatientTab('dados');
               } else {
-                if(pSearchMsg){ pSearchMsg.style.color='var(--muted)'; pSearchMsg.textContent='Paciente não encontrado. Preencha os dados e clique em Salvar para cadastrar.'; }
-                const pCpf = document.getElementById('p_cpf');
-                if(pCpf){
-                  pCpf.value = formatCPF(raw);
-                  pCpf.dispatchEvent(new Event('input'));
-                  const btnSaveRef = document.getElementById('patient-save');
-                  if(btnSaveRef){
-                    if(validateCPF(raw)) btnSaveRef.disabled = false;
-                    else { btnSaveRef.disabled = true; const cm = document.getElementById('cpf-msg'); if(cm){ cm.style.display='block'; cm.style.color='red'; cm.textContent='CPF inválido.'; } }
-                  }
-                }
+                prepareNewPatientDraft(raw);
+                if(pSearchMsg){ pSearchMsg.style.color='var(--muted)'; pSearchMsg.textContent='Paciente não encontrado. Iniciado novo cadastro com este CPF.'; }
               }
             }catch(e){ if(pSearchMsg){ pSearchMsg.style.color='red'; pSearchMsg.textContent='Erro de conexão.'; } }
           };
