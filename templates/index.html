@@ -853,6 +853,16 @@
                 <label>Proposta de plano clínico</label>
                 <textarea id="pl_proposta" rows="4" style="width:100%;padding:8px;border-radius:8px"></textarea>
               </div>
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+                  <label style="margin:0;">Local do tratamento</label>
+                  <div style="display:flex;gap:12px;align-items:center">
+                    <label style="font-weight:600;margin:0;display:inline-flex;align-items:center;gap:6px"><input type="radio" name="pl_prestacao_servico" value="nao" checked /> Não</label>
+                    <label style="font-weight:600;margin:0;display:inline-flex;align-items:center;gap:6px"><input type="radio" name="pl_prestacao_servico" value="sim" /> Sim</label>
+                  </div>
+                  <input id="pl_prestacao_servico_texto" placeholder="Nome da clínica/local" style="display:none;flex:1;min-width:240px;padding:8px;border-radius:8px" />
+                </div>
+              </div>
               <div>
                 <label>Evolução</label>
                 <div id="pl_evol_list" style="display:flex;flex-direction:column;gap:8px;max-height:220px;overflow:auto;padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.04);background:rgba(255,255,255,0.95)"></div>
@@ -1709,6 +1719,7 @@
           `Objetivo terapêutico: ${getInputValue('pl_objetivo') || 'Não informado'}`,
           `Plano terapêutico: ${getInputValue('pl_plano') || 'Não informado'}`,
           `Proposta de plano clínico: ${getInputValue('pl_proposta') || 'Não informado'}`,
+          `Local do tratamento: ${getPrestacaoServicoPdfText()}`,
           `Evoluções: ${evolText}`
         ];
 
@@ -3065,6 +3076,8 @@
           objetivo: '',
           plano: '',
           proposta: '',
+          prestacao_servico_tipo: 'nao',
+          prestacao_servico_texto: '',
           evolutions: []
         };
       }
@@ -3074,6 +3087,9 @@
         setInputValue('pl_objetivo', '');
         setInputValue('pl_plano', '');
         setInputValue('pl_proposta', '');
+        document.querySelectorAll('input[name="pl_prestacao_servico"]').forEach(r=>{ r.checked = (r.value==='nao'); });
+        setInputValue('pl_prestacao_servico_texto', '');
+        updatePrestacaoServicoUI();
         renderEvolutions([]);
       }
 
@@ -3091,10 +3107,15 @@
           const objetivo = String(obj.objetivo || '').trim();
           const plano = String(obj.plano || '').trim();
           const proposta = String(obj.proposta || obj.prestacao_servico_texto || '').trim();
+          const prestacaoServicoTipo = String(obj.prestacao_servico_tipo || 'nao');
+          const prestacaoServicoTexto = String(obj.prestacao_servico_texto || '').trim();
           setInputValue('pl_parecer', parecer);
           setInputValue('pl_objetivo', objetivo);
           setInputValue('pl_plano', plano);
           setInputValue('pl_proposta', proposta);
+          document.querySelectorAll('input[name="pl_prestacao_servico"]').forEach(r=>{ r.checked = (r.value === prestacaoServicoTipo); });
+          setInputValue('pl_prestacao_servico_texto', prestacaoServicoTexto);
+          updatePrestacaoServicoUI();
           renderEvolutions(obj.evolutions||[]);
         }catch(e){ console.warn('loadPlanoForPatient failed', e); }
       }
@@ -3112,9 +3133,11 @@
           const objetivo = (document.getElementById('pl_objetivo').value||'').trim();
           const plano = (document.getElementById('pl_plano').value||'').trim();
           const proposta = (document.getElementById('pl_proposta').value||'').trim();
+          const prestacaoServicoTipo = (document.querySelector('input[name="pl_prestacao_servico"]:checked')||{value:'nao'}).value;
+          const prestacaoServicoTexto = (document.getElementById('pl_prestacao_servico_texto').value||'').trim();
           const existing = JSON.parse(localStorage.getItem('plano_'+prontuarioId) || '{}');
           const evol = existing.evolutions || [];
-          const obj = { parecer, objetivo, plano, proposta, evolutions: evol };
+          const obj = { parecer, objetivo, plano, proposta, prestacao_servico_tipo: prestacaoServicoTipo, prestacao_servico_texto: prestacaoServicoTipo === 'sim' ? prestacaoServicoTexto : '', evolutions: evol };
           localStorage.setItem('plano_'+prontuarioId, JSON.stringify(obj));
           const result = await saveProntuarioRecord(pid, { id: prontuarioId, plano: obj });
           touchProntuarioModified(pid, prontuarioId);
